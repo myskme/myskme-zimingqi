@@ -1,0 +1,1820 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MYSKME自鸣棋 · 课堂肉鸽自走棋</title>
+<style>
+/* ============================================================
+   断云演武 · 视觉主题「断云演武场」
+   编年史的壳，街机的拳头，断云的天。
+   深青蓝云海底色 + 金徽章体系 + 三幕换景
+   ============================================================ */
+:root{
+  --ink:#eee8d8; --ink2:#a8a294; --ink3:#6d685c; --ink4:#3f3c33;
+  --gold:#c9a64a; --gold2:#e8c768; --gold3:#7a6320;
+  --red:#a83030; --red2:#d56060;
+  --purple:#9d72d6; --blue:#5a8ec8; --green:#6aa86a; --teal:#5fb8a5;
+  --line:rgba(201,166,74,.24); --line2:rgba(201,166,74,.10);
+  --glow-gold:0 0 22px rgba(201,166,74,.38);
+  --glow-red:0 0 22px rgba(168,48,48,.5);
+  --serif:"Noto Serif SC","Source Han Serif SC","Songti SC","STSong","SimSun",serif;
+  --mono:ui-monospace,Menlo,Consolas,monospace;
+  /* 幕景默认（序幕·断云） */
+  --sky1:#132230; --sky2:#223d55; --sky3:#2e4f6b;
+  --cloudA:rgba(120,160,190,.10); --cloudB:rgba(201,166,74,.07);
+  --panel:rgba(12,22,30,.72); --panel2:rgba(10,18,26,.88);
+}
+/* —— 三幕换景 —— */
+body[data-act="1"]{--sky1:#12262a;--sky2:#1e4038;--sky3:#2a5548;
+  --cloudA:rgba(110,190,160,.09);--cloudB:rgba(201,166,74,.10);
+  --panel:rgba(10,24,22,.72);--panel2:rgba(8,20,18,.88)}
+body[data-act="2"]{--sky1:#14283e;--sky2:#274a68;--sky3:#39628a;
+  --cloudA:rgba(150,190,230,.11);--cloudB:rgba(201,166,74,.07);
+  --panel:rgba(10,20,32,.72);--panel2:rgba(8,16,26,.88)}
+body[data-act="3"]{--sky1:#1c1322;--sky2:#332040;--sky3:#46285a;
+  --cloudA:rgba(157,114,214,.10);--cloudB:rgba(168,48,48,.09);
+  --panel:rgba(20,12,26,.74);--panel2:rgba(16,10,22,.9)}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:var(--serif);color:var(--ink);
+  background:linear-gradient(178deg,var(--sky1) 0%,var(--sky2) 58%,var(--sky3) 100%);
+  transition:background 2.4s ease;
+  min-height:100vh;overflow-x:hidden;position:relative;
+}
+/* 军规一：噪点层（性能版：无混合模式，提升为合成层） */
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;
+  opacity:.13;transform:translateZ(0);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.92' numOctaves='2'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)'/%3E%3C/svg%3E")}
+/* 地平线金光 */
+body::after{content:'';position:fixed;left:0;right:0;bottom:0;height:34vh;pointer-events:none;z-index:1;
+  background:linear-gradient(0deg,var(--cloudB),transparent 80%)}
+
+/* —— 漂移云海（两层错速） —— */
+#clouds{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
+/* 性能版：径向渐变自带软边，替代高成本 blur() */
+#clouds i{position:absolute;will-change:transform}
+#clouds .c1{width:70vw;height:26vh;left:-12vw;top:16vh;background:radial-gradient(closest-side,var(--cloudA),transparent);animation:drift1 74s ease-in-out infinite alternate}
+#clouds .c2{width:56vw;height:22vh;right:-10vw;top:44vh;background:radial-gradient(closest-side,var(--cloudA),transparent);animation:drift2 96s ease-in-out infinite alternate}
+#clouds .c3{width:64vw;height:20vh;left:6vw;bottom:4vh;background:radial-gradient(closest-side,var(--cloudB),transparent);animation:drift1 118s ease-in-out infinite alternate-reverse}
+@keyframes drift1{to{transform:translateX(9vw) translateY(-2vh)}}
+@keyframes drift2{to{transform:translateX(-11vw) translateY(3vh)}}
+
+/* —— 全屏闪光 / 震屏 —— */
+#flash{position:fixed;inset:0;pointer-events:none;z-index:80;opacity:0;
+  background:radial-gradient(ellipse at center,rgba(255,255,255,.9),rgba(255,255,255,.28))}
+#flash.go{animation:flashOut .45s ease-out}
+#flash.red{background:radial-gradient(ellipse at center,rgba(200,40,40,.6),rgba(120,20,20,.2))}
+@keyframes flashOut{0%{opacity:.85}100%{opacity:0}}
+@keyframes shakeKF{10%,90%{transform:translate(-2px,1px)}20%,80%{transform:translate(3px,-1px)}
+  30%,70%{transform:translate(-4px,2px)}40%,60%{transform:translate(4px,-2px)}50%{transform:translate(-3px,1px)}}
+body.shaking{animation:shakeKF .4s cubic-bezier(.36,.07,.19,.97)}
+
+/* ============ 布局与通用 ============ */
+main{position:relative;z-index:5;max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+section.scr{display:none;animation:scrIn .5s cubic-bezier(.16,1,.3,1) both}
+section.scr.on{display:block}
+@keyframes scrIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+h2.sec{font-weight:300;letter-spacing:.22em;font-size:clamp(20px,3vw,30px);text-align:center;margin:8px 0 4px}
+h2.sec em{font-style:normal;color:var(--gold);font-weight:500}
+.sub{color:var(--ink2);text-align:center;letter-spacing:.14em;font-size:13px;margin-bottom:20px}
+.panel{background:var(--panel);border:1px solid var(--line);padding:18px}
+/* 碑铭四角 */
+.ornate{position:relative;border:1px solid var(--line)}
+.ornate::before,.ornate::after{content:'';position:absolute;width:13px;height:13px;border:1px solid var(--gold);transition:all .3s;z-index:3}
+.ornate::before{top:-1px;left:-1px;border-right:0;border-bottom:0}
+.ornate::after{bottom:-1px;right:-1px;border-left:0;border-top:0}
+.ornate:hover::before,.ornate:hover::after{width:22px;height:22px}
+
+/* 按钮 */
+.btn{font-family:var(--serif);cursor:pointer;background:var(--panel2);color:var(--ink);
+  border:1px solid var(--line);padding:10px 22px;letter-spacing:.18em;font-size:15px;
+  transition:transform .12s,box-shadow .12s,border-color .2s,background .2s;user-select:none}
+.btn:hover{transform:translateY(-2px);box-shadow:var(--glow-gold);border-color:var(--gold)}
+.btn:active{transform:translateY(1px) scale(.97);box-shadow:none;transition-duration:.05s}
+.btn.gold{background:linear-gradient(160deg,rgba(201,166,74,.2),rgba(122,99,32,.14));border-color:var(--gold);color:var(--gold2)}
+.btn.big{padding:14px 42px;font-size:18px}
+.btn.mini{padding:5px 12px;font-size:12.5px;letter-spacing:.1em}
+.btn.danger{border-color:rgba(168,48,48,.55);color:var(--red2)}
+.btn.danger:hover{box-shadow:var(--glow-red)}
+.btn:disabled{opacity:.35;pointer-events:none}
+.btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+
+/* ============ HUD ============ */
+#hud{position:sticky;top:0;z-index:40;display:none;align-items:center;gap:14px;
+  max-width:1180px;margin:0 auto;padding:10px 20px;
+  background:linear-gradient(180deg,rgba(8,14,20,.92),rgba(8,14,20,.62) 80%,transparent)}
+body.playing #hud{display:flex}
+#hud .act-chip{border:1px solid var(--gold);padding:4px 12px;letter-spacing:.24em;font-size:13px;color:var(--gold2);white-space:nowrap}
+#hud .act-name{font-size:13px;color:var(--ink2);letter-spacing:.18em;white-space:nowrap}
+#hud .phase{font-size:12px;color:var(--ink3);letter-spacing:.22em;white-space:nowrap}
+#rage-wrap{flex:1;min-width:110px;display:flex;align-items:center;gap:8px}
+#rage-wrap .lbl{font-size:11px;color:var(--red2);letter-spacing:.2em;white-space:nowrap}
+.bar{height:9px;background:rgba(0,0,0,.45);overflow:hidden;position:relative;flex:1;border:1px solid rgba(168,48,48,.3)}
+.bar i{display:block;height:100%;width:0;transition:width .5s cubic-bezier(.16,1,.3,1);
+  background:linear-gradient(90deg,#5c1a1a,var(--red),var(--red2))}
+.bar.warn i{animation:ragePulse 1s ease-in-out infinite}
+@keyframes ragePulse{50%{filter:brightness(1.7)}}
+#hud .standings{display:flex;gap:10px;font-size:12.5px;color:var(--ink2);flex-wrap:wrap}
+#hud .standings b{color:var(--gold2);font-weight:500}
+
+/* ============ 标题页 ============ */
+#scr-title{text-align:center;padding-top:9vh}
+.title-mark{width:76px;height:76px;margin:0 auto 22px;border:1px solid var(--gold);position:relative;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(201,166,74,.14),transparent 70%)}
+.title-mark::before{content:'';position:absolute;inset:6px;border:1px dashed var(--gold3);animation:spinSlow 22s linear infinite}
+.title-mark span{font-size:38px;color:var(--gold);text-shadow:0 0 26px rgba(201,166,74,.5)}
+@keyframes spinSlow{to{transform:rotate(360deg)}}
+.title-hero{font-size:clamp(40px,7vw,84px);font-weight:300;letter-spacing:.2em;margin-left:.2em;
+  animation:titleIn 1.4s cubic-bezier(.16,1,.3,1) both}
+.title-hero em{font-style:normal;color:var(--gold);font-weight:500}
+@keyframes titleIn{0%{opacity:0;letter-spacing:.44em;transform:translateY(18px);filter:blur(6px)}
+  100%{opacity:1;letter-spacing:.2em;transform:translateY(0);filter:blur(0)}}
+.title-sub{color:var(--ink2);letter-spacing:.3em;margin:14px 0 6px;font-size:clamp(13px,1.6vw,16px)}
+.title-quote{color:var(--ink3);font-size:13px;letter-spacing:.12em;margin-bottom:34px}
+.title-foot{margin-top:7vh;color:var(--ink3);font-size:12px;letter-spacing:.28em}
+
+/* ============ 开局设置 ============ */
+#scr-setup .panel{max-width:760px;margin:0 auto}
+.fieldrow{display:flex;align-items:center;gap:14px;margin:16px 0;flex-wrap:wrap}
+.fieldrow label{min-width:96px;color:var(--ink2);letter-spacing:.14em;font-size:14px}
+.seg{display:flex;border:1px solid var(--line)}
+.seg button{font-family:var(--serif);background:none;border:0;color:var(--ink2);padding:8px 16px;cursor:pointer;
+  letter-spacing:.1em;font-size:14px;transition:all .2s;border-right:1px solid var(--line2)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:rgba(201,166,74,.18);color:var(--gold2)}
+#name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+#name-grid input{font-family:var(--serif);background:rgba(0,0,0,.3);border:1px solid var(--line2);
+  color:var(--ink);padding:9px 12px;font-size:15px;letter-spacing:.08em;width:100%}
+#name-grid input:focus{outline:none;border-color:var(--gold);box-shadow:var(--glow-gold)}
+
+/* ============ 答题波 ============ */
+#wave-head{display:flex;align-items:baseline;justify-content:center;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+#wave-head .wv{font-size:13px;color:var(--ink2);letter-spacing:.2em}
+#wave-head .wv b{color:var(--gold2);font-size:20px;font-weight:500}
+#pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(255px,1fr));gap:14px}
+.pcard{background:var(--panel);border:1px solid var(--line);padding:13px 14px;position:relative;overflow:hidden;
+  transition:border-color .3s,box-shadow .3s}
+.pcard.reveng::after{content:'复仇火种';position:absolute;top:10px;right:-26px;transform:rotate(38deg);
+  background:rgba(168,48,48,.85);color:#ffd9d9;font-size:10.5px;letter-spacing:.18em;padding:2px 28px}
+.pcard.picked{border-color:var(--gold);box-shadow:var(--glow-gold)}
+.pcard h4{font-weight:500;letter-spacing:.1em;font-size:17px;display:flex;align-items:center;gap:8px}
+.pcard h4 .crown{color:var(--gold2);font-size:13.5px;font-family:var(--mono)}
+.pcard .res{display:flex;gap:14px;margin:7px 0 9px;font-size:13px;color:var(--ink2)}
+.pcard .res b{color:var(--gold2);font-weight:500;font-family:var(--mono);font-size:15px}
+.pcard .mini-army{display:flex;gap:5px;margin-bottom:10px;min-height:26px;flex-wrap:wrap}
+.mini-u{width:26px;height:26px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
+  font-size:14px;position:relative;background:rgba(0,0,0,.25)}
+.mini-u.star2::after{content:'★';position:absolute;top:-7px;right:-5px;font-size:9px;color:var(--gold2)}
+.mini-u.f-dark{border-color:rgba(157,114,214,.5)}
+.judge{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.judge .btn{padding:8px 4px;font-size:13.5px;letter-spacing:.06em;text-align:center}
+.judge .ok{border-color:rgba(106,168,106,.5);color:#9fd49f}
+.judge .ok:hover{box-shadow:0 0 18px rgba(106,168,106,.35)}
+.judge .hard{border-color:var(--gold);color:var(--gold2)}
+.judge .snap{border-color:rgba(90,142,200,.55);color:#9cc0e8}
+.judge .snap:hover{box-shadow:0 0 18px rgba(90,142,200,.35)}
+.judge .bad{border-color:rgba(168,48,48,.5);color:var(--red2)}
+
+/* ============ 征募 ============ */
+#draft-top{display:flex;justify-content:center;align-items:center;gap:20px;flex-wrap:wrap;margin-bottom:6px}
+#drafter-name{font-size:clamp(20px,3vw,28px);letter-spacing:.2em;font-weight:300}
+#drafter-name em{color:var(--gold2);font-style:normal;font-weight:500}
+#draft-coins{font-family:var(--mono);font-size:19px;color:var(--gold2);border:1px solid var(--line);padding:5px 16px}
+#draft-order{display:flex;justify-content:center;gap:9px;flex-wrap:wrap;margin-bottom:16px;font-size:12px;color:var(--ink3);letter-spacing:.1em}
+#draft-order span{padding:3px 10px;border:1px solid var(--line2)}
+#draft-order span.cur{border-color:var(--gold);color:var(--gold2)}
+#draft-order span.done{opacity:.38;text-decoration:line-through}
+#offers{display:grid;grid-template-columns:repeat(3,minmax(200px,300px));gap:16px;justify-content:center}
+.offer{background:var(--panel2);padding:16px 14px 13px;text-align:center;cursor:default;
+  transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s}
+.offer:hover{transform:translateY(-5px)}
+.offer.sold{opacity:.32;pointer-events:none;filter:grayscale(.8)}
+.offer .fac{font-size:11px;letter-spacing:.3em;color:var(--ink3);margin-bottom:9px}
+.offer .fac.f-academy{color:var(--gold2)}.offer .fac.f-sky{color:#9cc0e8}
+.offer .fac.f-sea{color:var(--teal)}.offer .fac.f-swing{color:#c8b06a}
+.offer .fac.f-dark{color:var(--purple)}.offer .fac.f-novice{color:#9fd49f}
+/* 军规四：四层徽章 */
+.badge{width:84px;height:84px;margin:0 auto;border:1px solid var(--line);position:relative;
+  display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(201,166,74,.13),transparent 70%)}
+.badge::before{content:'';position:absolute;inset:5px;border:1px solid var(--gold3);opacity:.4;
+  transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .4s}
+.badge .glyph{font-size:42px;font-weight:300;text-shadow:0 0 22px rgba(201,166,74,.3);transition:transform .6s,text-shadow .4s}
+.badge .beast{position:absolute;font-size:56px;opacity:.13;filter:grayscale(1)}
+.offer:hover .badge::before{opacity:.85;transform:rotate(45deg) scale(1.08)}
+.offer:hover .badge .glyph{transform:scale(1.12)}
+.badge.ur::after{content:'';position:absolute;inset:-6px;border:1px dashed var(--gold);animation:spinSlow 12s linear infinite}
+.r-N .glyph{color:var(--ink2)} .r-R .glyph{color:#8fb8e8}
+.r-SR .glyph{color:var(--purple);text-shadow:0 0 14px rgba(157,114,214,.5)}
+.r-SSR .glyph{color:var(--gold);text-shadow:0 0 12px rgba(201,166,74,.55)}
+.r-UR .glyph{color:#fff;text-shadow:0 0 12px var(--gold),0 0 34px var(--gold)}
+/* UR 呼吸感改由虚线环旋转承担（text-shadow 逐帧动画在投影设备上代价过高，已移除） */
+.offer h3{margin:10px 0 2px;font-weight:500;letter-spacing:.16em;font-size:19px}
+.offer .rar-tag{font-size:10.5px;letter-spacing:.3em;color:var(--ink3)}
+.offer .stats{display:flex;justify-content:center;gap:13px;margin:9px 0;font-family:var(--mono);font-size:14.5px}
+.offer .stats .atk{color:var(--red2)} .offer .stats .hp{color:#9fd49f} .offer .stats .spd{color:#9cc0e8}
+.offer .skill{font-size:12.5px;color:var(--ink2);line-height:1.65;min-height:3.3em;padding:0 4px}
+.offer .lore{font-size:11px;color:var(--ink3);font-style:italic;margin:4px 0 10px;letter-spacing:.06em}
+.offer .cost-btn{width:100%}
+.offer.relic-offer .badge{border-color:var(--gold)}
+#draft-actions{display:flex;gap:12px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+#bench{max-width:820px;margin:22px auto 0}
+#bench h5{text-align:center;color:var(--ink3);letter-spacing:.26em;font-weight:400;font-size:12px;margin-bottom:10px}
+#bench-units{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;min-height:56px}
+.bunit{border:1px solid var(--line);background:var(--panel);padding:7px 10px;text-align:center;
+  transition:border-color .2s;position:relative;min-width:78px}
+.bunit:hover{border-color:var(--gold)}
+.bunit .g{font-size:21px} .bunit .n{font-size:11px;color:var(--ink2);letter-spacing:.08em}
+.bunit .st{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
+.bunit.star2 .g::after{content:' ★';font-size:11px;color:var(--gold2)}
+/* 站位编辑：◀▶ 调整（左=前排），✕ 出售 */
+.bunit .bmove{display:flex;gap:3px;justify-content:center;margin-top:5px}
+.bunit .bmove button{font-family:var(--serif);cursor:pointer;background:rgba(0,0,0,.35);
+  border:1px solid var(--line2);color:var(--ink2);font-size:11px;padding:2px 7px;transition:all .15s}
+.bunit .bmove button:hover{border-color:var(--gold);color:var(--gold2)}
+.bunit .bmove button:disabled{opacity:.22;pointer-events:none}
+.bunit .bmove .bx:hover{border-color:var(--red2);color:var(--red2)}
+.bunit .front-tag{position:absolute;top:-9px;left:-1px;background:var(--gold3);color:var(--ink);
+  font-size:9.5px;letter-spacing:.12em;padding:1px 7px}
+/* 宿敌预告 */
+#pair-preview{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;
+  margin:-2px 0 14px;font-size:13px;color:var(--ink2)}
+#pair-preview .pp-lab{color:var(--gold2);letter-spacing:.2em;font-size:12px}
+#pair-preview .pp-pair{border:1px solid var(--line2);padding:3px 12px;letter-spacing:.08em;background:rgba(0,0,0,.22)}
+#pair-preview .pp-pair i{color:var(--red2);font-style:normal;font-size:11px;margin:0 5px}
+#relic-shelf{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.relic-chip{border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px;letter-spacing:.1em;cursor:help}
+
+/* ============ 命运事件 ============ */
+#scr-event{text-align:center;padding-top:5vh}
+#event-card{width:min(420px,88vw);margin:26px auto;perspective:1000px;cursor:pointer}
+#event-inner{position:relative;width:100%;height:300px;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.16,1,.3,1)}
+#event-card.flip #event-inner{transform:rotateY(180deg)}
+.ev-face{position:absolute;inset:0;backface-visibility:hidden;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;background:var(--panel2);border:1px solid var(--gold)}
+.ev-back{font-size:60px;color:var(--gold);letter-spacing:0}
+.ev-back small{font-size:12px;color:var(--ink3);letter-spacing:.34em}
+.ev-front{transform:rotateY(180deg);padding:24px}
+.ev-front h3{font-size:26px;letter-spacing:.24em;color:var(--gold2);font-weight:400}
+.ev-front p{color:var(--ink2);font-size:15px;line-height:1.8;letter-spacing:.06em}
+.ev-front .ev-icon{font-size:40px}
+
+/* ============ 演武（战斗） ============ */
+#pairings{max-width:640px;margin:0 auto 20px}
+.pairrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 16px;
+  border:1px solid var(--line2);margin-bottom:8px;background:var(--panel);font-size:15.5px;letter-spacing:.1em}
+.pairrow .vs{color:var(--red2);font-family:var(--mono);font-size:13px;letter-spacing:.2em}
+.pairrow .who{flex:1}.pairrow .who.right{text-align:right}
+.pairrow.done{opacity:.5}
+.pairrow .r{font-size:12px;color:var(--gold2)}
+#stage{position:relative;min-height:340px;margin-top:6px}
+#battle-title{text-align:center;letter-spacing:.26em;font-size:15px;color:var(--ink2);margin-bottom:16px}
+#battle-title b{color:var(--gold2);font-weight:500;font-size:19px}
+#arena{display:flex;justify-content:space-between;gap:4vw;max-width:1020px;margin:0 auto;position:relative}
+.side{display:flex;gap:9px;flex:1;min-height:170px;align-items:flex-end}
+.side.L{justify-content:flex-end}
+.side.R{justify-content:flex-start}
+/* 战斗单位：像素基因——粗边、硬影 */
+.u{width:88px;padding:8px 4px 6px;text-align:center;position:relative;background:var(--panel2);
+  border:2px solid var(--ink4);box-shadow:3px 3px 0 rgba(0,0,0,.45);transition:transform .18s}
+.u .g{font-size:30px;line-height:1.25;display:block}
+.u.star2 .g::after{content:'★';font-size:11px;color:var(--gold2);vertical-align:top}
+.u .n{font-size:11px;color:var(--ink2);letter-spacing:.06em;display:block;margin-top:1px}
+.u .num{font-family:var(--mono);font-size:11.5px;margin-top:3px;display:flex;justify-content:center;gap:7px}
+.u .num .a{color:var(--red2)} .u .num .h{color:#9fd49f}
+.u .hpb{height:6px;background:#000;margin-top:4px;border:1px solid #000;position:relative}
+.u .hpb i{display:block;height:100%;background:linear-gradient(90deg,#3f7a3f,#6aa86a);transition:width .25s steps(6)}
+.u .hpb.low i{background:linear-gradient(90deg,#7a2020,#d56060);animation:ragePulse .8s infinite}
+.u .sh{position:absolute;top:-9px;left:-9px;font-size:13px;color:#9cc0e8;text-shadow:0 0 8px rgba(90,142,200,.8);font-family:var(--mono)}
+.u.dead{opacity:.22;filter:grayscale(1);transform:scale(.9) rotate(4deg)}
+.u.acting{transform:translateY(-7px);border-color:var(--gold);box-shadow:3px 3px 0 rgba(0,0,0,.45),var(--glow-gold);z-index:5}
+.u.hit{animation:hitFlash .32s ease}
+@keyframes hitFlash{0%{filter:brightness(2.4);transform:translateX(0) scale(1.03)}
+  30%{transform:translateX(-5px)}60%{transform:translateX(4px)}100%{filter:brightness(1);transform:translateX(0)}}
+.float-num{position:absolute;left:50%;top:6%;font-family:var(--mono);font-weight:700;font-size:24px;
+  pointer-events:none;z-index:30;text-shadow:2px 2px 0 #000;animation:floatUp .9s steps(9) forwards}
+.float-num.crit{font-size:34px}
+@keyframes floatUp{0%{opacity:0;transform:translate(-50%,8px) scale(.7)}
+  25%{opacity:1;transform:translate(-50%,-8px) scale(1.18)}
+  100%{opacity:0;transform:translate(-50%,-48px) scale(1)}}
+#vsmark{position:absolute;left:50%;top:38%;transform:translate(-50%,-50%);font-size:clamp(26px,4vw,44px);
+  color:var(--red2);letter-spacing:.1em;text-shadow:3px 3px 0 rgba(0,0,0,.6);font-weight:300;pointer-events:none}
+#blog{max-width:640px;margin:16px auto 0;text-align:center;min-height:44px;color:var(--ink2);
+  font-size:13.5px;letter-spacing:.08em;line-height:1.7}
+#blog b{color:var(--gold2);font-weight:500}
+#battle-ctl{display:flex;gap:10px;justify-content:center;margin-top:14px}
+.result-banner{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(4,8,12,.66);z-index:70;animation:scrIn .4s both}
+.result-banner h1{font-size:clamp(38px,7vw,74px);font-weight:300;letter-spacing:.3em;color:var(--gold2);
+  text-shadow:0 0 44px rgba(201,166,74,.55);animation:titleIn .9s cubic-bezier(.16,1,.3,1) both}
+.result-banner p{color:var(--ink2);margin-top:14px;letter-spacing:.2em}
+.result-banner .hint{margin-top:38px;font-size:12px;color:var(--ink3);animation:ragePulse 2s infinite}
+
+/* ============ 叶王乱入 ============ */
+#boss-veil{position:fixed;inset:0;background:rgba(6,2,10,.88);z-index:60;display:none;
+  align-items:center;justify-content:center;flex-direction:column;text-align:center}
+#boss-veil.on{display:flex;animation:scrIn .5s both}
+#boss-veil h1{font-size:clamp(40px,8vw,86px);font-weight:300;letter-spacing:.34em;color:var(--purple);
+  text-shadow:0 0 46px rgba(157,114,214,.6);animation:titleIn 1.1s both}
+#boss-veil p{color:var(--ink2);margin-top:16px;letter-spacing:.16em;font-size:15px;line-height:2}
+#boss-veil .snake{font-size:54px;margin-bottom:10px;animation:snakeSway 3s ease-in-out infinite}
+@keyframes snakeSway{50%{transform:rotate(7deg) translateY(-4px)}}
+.stamp-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:26px;max-width:760px}
+.stamp{border:1px solid var(--line);padding:12px 18px;min-width:120px;opacity:0;transform:scale(1.6);background:var(--panel2)}
+.stamp.show{animation:stampIn .4s cubic-bezier(.16,1,.3,1) forwards}
+@keyframes stampIn{to{opacity:1;transform:scale(1)}}
+.stamp .nm{font-size:15px;letter-spacing:.12em}
+.stamp .verdict{font-size:19px;margin-top:6px;letter-spacing:.2em;font-weight:500}
+.stamp.win .verdict{color:#9fd49f}.stamp.lose .verdict{color:var(--red2)}
+
+/* ============ 终局 · 加冕 ============ */
+#scr-final{text-align:center}
+#podium{display:flex;justify-content:center;align-items:flex-end;gap:14px;margin:30px 0 8px;flex-wrap:wrap}
+.pod{border:1px solid var(--line);background:var(--panel);padding:16px 18px 12px;min-width:132px;position:relative}
+.pod.first{border-color:var(--gold);box-shadow:var(--glow-gold);padding-top:26px}
+.pod .medal{font-size:26px}.pod.first .medal{font-size:38px}
+.pod h3{font-weight:500;letter-spacing:.14em;margin:6px 0 3px;font-size:17px}
+.pod .sc{font-family:var(--mono);color:var(--gold2);font-size:15px}
+.pod .army-line{margin-top:7px;font-size:16px;letter-spacing:2px}
+#report-wrap{margin:26px auto 0;max-width:520px}
+#report-canvas{width:100%;border:1px solid var(--line);box-shadow:0 12px 44px rgba(0,0,0,.5)}
+
+/* ============ 点名转盘 ============ */
+#wheel-veil{position:fixed;inset:0;background:rgba(4,8,12,.7);z-index:65;display:none;
+  align-items:center;justify-content:center;flex-direction:column}
+#wheel-veil.on{display:flex}
+#wheel-name{font-size:clamp(44px,9vw,100px);font-weight:300;letter-spacing:.2em;color:var(--ink);min-height:1.4em}
+#wheel-name.locked{color:var(--gold2);text-shadow:0 0 40px rgba(201,166,74,.6);animation:stampIn .3s both}
+#wheel-veil .tag{color:var(--ink3);letter-spacing:.3em;font-size:13px;margin-bottom:18px}
+#wheel-veil .btnrow{margin-top:34px}
+
+/* ============ 弹层 / 提示 ============ */
+#modal-veil{position:fixed;inset:0;background:rgba(4,8,12,.72);z-index:75;display:none;
+  align-items:center;justify-content:center;padding:20px}
+#modal-veil.on{display:flex}
+#modal-box{max-width:680px;max-height:82vh;overflow:auto;background:var(--panel2);border:1px solid var(--gold);
+  padding:26px 30px;line-height:1.85;font-size:14.5px;color:var(--ink2)}
+#modal-box h3{color:var(--gold2);letter-spacing:.2em;font-weight:500;margin-bottom:12px;text-align:center}
+#modal-box h4{color:var(--ink);letter-spacing:.14em;font-weight:500;margin:16px 0 6px}
+#modal-box::-webkit-scrollbar{width:5px}#modal-box::-webkit-scrollbar-thumb{background:var(--gold3)}
+#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(80px);z-index:85;
+  background:var(--panel2);border:1px solid var(--gold);color:var(--ink);padding:10px 26px;
+  letter-spacing:.1em;font-size:14px;transition:transform .4s cubic-bezier(.16,1,.3,1);pointer-events:none;max-width:86vw;text-align:center}
+#toast.show{transform:translateX(-50%) translateY(0)}
+
+/* 入场编排 */
+.stag{animation:cardIn .5s cubic-bezier(.16,1,.3,1) both}
+@keyframes cardIn{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+
+/* ============ 美术资源层（有图上图，缺图回退字形徽章） ============ */
+#scene{position:fixed;inset:0;z-index:0;pointer-events:none}
+#scene img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.8s ease}
+#scene img.show{opacity:.42}
+#title-kv{max-width:720px;margin:0 auto 26px;display:none}
+#title-kv.show{display:block;animation:scrIn .8s both}
+#title-kv img{width:100%;display:block;border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.45)}
+.badge .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:2}
+.u .face{position:relative;height:48px;margin:-8px -4px 2px;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.35)}
+.u .face .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center}
+.u .face .g{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.ev-front .ev-art{position:absolute;inset:0;overflow:hidden;z-index:0}
+.ev-front .ev-art img{width:100%;height:100%;object-fit:cover;opacity:.26}
+.ev-front h3,.ev-front p,.ev-front .ev-icon{position:relative;z-index:1}
+#boss-art{width:min(280px,56vw);margin:0 auto 16px;display:none}
+#boss-art.show{display:block;animation:scrIn .8s both}
+#boss-art img{width:100%;display:block;border:1px solid rgba(157,114,214,.55);box-shadow:0 0 44px rgba(157,114,214,.35)}
+
+@media (max-width:760px){
+  main{padding:12px 10px 40px}
+  #offers{grid-template-columns:1fr;max-width:340px;margin:0 auto}
+  .u{width:62px}.u .g{font-size:22px}.u .num{font-size:10px;gap:4px}
+  #arena{gap:2vw}
+  .side{gap:5px}
+  #hud{flex-wrap:wrap;gap:8px}
+  .judge .btn{font-size:12px;padding:7px 2px}
+}
+</style>
+</head>
+<body>
+<div id="scene"><img id="scene-img" alt=""></div>
+<div id="clouds"><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i></div>
+<div id="flash"></div>
+
+<header id="hud">
+  <span class="act-chip" id="hud-act">序幕</span>
+  <span class="act-name" id="hud-actname">断云之上</span>
+  <span class="phase" id="hud-phase">答题波</span>
+  <div id="rage-wrap"><span class="lbl">暴走槽</span><div class="bar" id="rage-bar"><i></i></div><span class="lbl" id="rage-num">0/8</span></div>
+  <div class="standings" id="hud-standings"></div>
+  <button class="btn mini" id="btn-menu">☰</button>
+</header>
+
+<main>
+  <!-- 标题 -->
+  <section class="scr on" id="scr-title">
+    <div id="title-kv"><img alt=""></div>
+    <div class="title-mark"><span>鸣</span></div>
+    <h1 class="title-hero">自<em>鸣</em>棋</h1>
+    <p class="title-sub">MYSKME · 课堂肉鸽自走棋 · 狼先生与他的学生们</p>
+    <p class="title-quote">「拒绝一切死板的教条。世界值得有趣地活一次。」</p>
+    <div class="btnrow">
+      <button class="btn gold big" id="btn-new">开 局</button>
+      <button class="btn big" id="btn-continue" style="display:none">续 局</button>
+      <button class="btn big" id="btn-howto">玩法与课堂说明</button>
+    </div>
+    <p class="title-foot"><a href="https://myskme.github.io/myskme-hub/" style="color:inherit;text-decoration:underline dotted rgba(201,166,74,.5)">← 作品总目</a>　·　MAKE YOURSELF SPECIAL &amp; KIND — MYSKME · Mr. Wang</p>
+  </section>
+
+  <!-- 开局设置 -->
+  <section class="scr" id="scr-setup">
+    <h2 class="sec">点 将 <em>开 局</em></h2>
+    <p class="sub">2–8 位玩家 · 一节课一局 · 题在老师手里</p>
+    <div class="panel ornate">
+      <div class="fieldrow"><label>玩家人数</label><div class="seg" id="seg-count"></div></div>
+      <div class="fieldrow"><label>玩家名字</label><div id="name-grid" style="flex:1"></div></div>
+      <div class="fieldrow"><label>幕数</label>
+        <div class="seg" id="seg-acts">
+          <button data-v="2">两幕 · 快课</button><button data-v="3" class="on">三幕 · 标准</button>
+        </div>
+      </div>
+      <div class="fieldrow"><label>暴走阈值</label>
+        <div class="seg" id="seg-rage">
+          <button data-v="6">6 · 易怒</button><button data-v="8" class="on">8 · 标准</button><button data-v="10">10 · 温和</button><button data-v="0">关闭</button>
+        </div>
+      </div>
+      <div class="fieldrow"><label>命运事件</label>
+        <div class="seg" id="seg-event">
+          <button data-v="1" class="on">开启</button><button data-v="0">关闭</button>
+        </div>
+      </div>
+    </div>
+    <div class="btnrow">
+      <button class="btn" id="btn-back-title">返回</button>
+      <button class="btn gold big" id="btn-start">启 程</button>
+    </div>
+  </section>
+
+  <!-- 答题波 -->
+  <section class="scr" id="scr-wave">
+    <h2 class="sec" id="wave-title">第一幕 · <em>谷地雾晨</em></h2>
+    <div id="wave-head">
+      <span class="wv">本幕判定 <b id="wave-count">0</b> 次</span>
+      <span class="wv" style="color:var(--ink3)">答对+2 · 难题+3 · 抢答再+1 · 答错喂暴走槽</span>
+    </div>
+    <div id="pair-preview"></div>
+    <div id="pgrid"></div>
+    <div class="btnrow">
+      <button class="btn" id="btn-wheel">随机点名</button>
+      <button class="btn" id="btn-undo">撤销上一判定</button>
+      <button class="btn gold big" id="btn-endwave">结束答题波 → 征募</button>
+    </div>
+  </section>
+
+  <!-- 征募 -->
+  <section class="scr" id="scr-draft">
+    <h2 class="sec" id="draft-title">征 募 · <em>三 选 一</em></h2>
+    <p class="sub" id="draft-sub">按排名从后往前挑 · 落后者先选</p>
+    <div id="draft-order"></div>
+    <div id="draft-top">
+      <span id="drafter-name">轮到 <em>—</em></span>
+      <span id="draft-coins">◈ 0</span>
+    </div>
+    <div id="offers"></div>
+    <div id="draft-actions">
+      <button class="btn" id="btn-reroll">刷新 · 2 铸币</button>
+      <button class="btn gold" id="btn-draft-done">本人征募完成</button>
+    </div>
+    <div id="bench">
+      <h5>—— 军 团 ——</h5>
+      <div id="bench-units"></div>
+      <div id="relic-shelf"></div>
+    </div>
+  </section>
+
+  <!-- 命运事件 -->
+  <section class="scr" id="scr-event">
+    <h2 class="sec">命 运 <em>事 件</em></h2>
+    <p class="sub">点击卡背翻开 · 全班一起念出来</p>
+    <div id="event-card">
+      <div id="event-inner">
+        <div class="ev-face ev-back">命<br><small>FATE · 断云在上</small></div>
+        <div class="ev-face ev-front"><div class="ev-art"><img id="ev-art-img" alt=""></div><div class="ev-icon" id="ev-icon"></div><h3 id="ev-name"></h3><p id="ev-desc"></p></div>
+      </div>
+    </div>
+    <div class="btnrow"><button class="btn gold big" id="btn-event-done" disabled>宣读完毕 → 演武</button></div>
+  </section>
+
+  <!-- 演武 -->
+  <section class="scr" id="scr-battle">
+    <h2 class="sec">演 武 · <em id="battle-act-tag">第一幕</em></h2>
+    <p class="sub" id="battle-sub">邻位配对 · 胜者夺王座分</p>
+    <div id="pairings"></div>
+    <div id="stage" style="display:none">
+      <div id="battle-title"></div>
+      <div id="arena">
+        <div class="side L" id="side-L"></div>
+        <div id="vsmark">VS</div>
+        <div class="side R" id="side-R"></div>
+      </div>
+      <div id="blog"></div>
+      <div id="battle-ctl">
+        <button class="btn mini" id="btn-speed">▶▶ 二倍速</button>
+        <button class="btn mini" id="btn-skipb">跳过演出</button>
+      </div>
+    </div>
+    <div class="btnrow" id="battle-next-row" style="display:none">
+      <button class="btn gold big" id="btn-battle-next">下一场</button>
+    </div>
+  </section>
+
+  <!-- 终局 -->
+  <section class="scr" id="scr-final">
+    <h2 class="sec">加 冕 · <em>王 座</em></h2>
+    <p class="sub">断云之上，尘埃落定</p>
+    <div id="podium"></div>
+    <div id="report-wrap"><canvas id="report-canvas" width="1000" height="1400"></canvas></div>
+    <div class="btnrow">
+      <button class="btn gold" id="btn-save-report">保存战报卡 PNG</button>
+      <button class="btn" id="btn-again">再来一局</button>
+    </div>
+  </section>
+</main>
+
+<!-- 叶王乱入 -->
+<div id="boss-veil"></div>
+<!-- 点名转盘 -->
+<div id="wheel-veil">
+  <p class="tag">谁 来 答 题</p>
+  <div id="wheel-name">?</div>
+  <div class="btnrow">
+    <button class="btn gold" id="btn-wheel-go">转！</button>
+    <button class="btn" id="btn-wheel-close">收起</button>
+  </div>
+</div>
+<!-- 通用弹层 -->
+<div id="modal-veil"><div id="modal-box" class="ornate"></div></div>
+<div id="toast"></div>
+
+<script>
+'use strict';
+/* ============================================================
+   断云演武 · 数据层
+   单位取材《狼先生与他的学生们 · 世界编年史》正典
+   ============================================================ */
+
+// 六系阵营
+const FACS = {
+  academy:{n:'学院',    syn:'学院之谊：全队 +3 最大生命'},
+  sky:    {n:'天之国',  syn:'云上风向：全队 +1 速度'},
+  sea:    {n:'海族',    syn:'海雾同悲：己方单位阵亡时，溅射随机敌人 1 伤'},
+  swing:  {n:'摇摆队',  syn:'骑墙之利：每幕征募开始 +2 铸币'},
+  dark:   {n:'黑域',    syn:'紫光加身：黑域单位 +2 攻，但每幕征募开始你 -1 铸币'},
+  novice: {n:'挑战者队',syn:'新徒疯长：战后成长翻倍'},
+};
+
+// 单位池（cost=征募价 / atk攻 hp血 spd速 / rar稀有度 / w=出现权重）
+// skill.k 效果键：见 simulateBattle
+const UNITS = [
+ // —— 学院系 ——
+ {id:'lin',  n:'琳',   fac:'academy', cost:3, atk:3, hp:10, spd:4, rar:'SSR', w:7,  beast:'⚔',
+  skill:{k:'shieldAll', v:2, t:'开战时：全队获得 2 护盾'}, lore:'首徒。剑横膝上，一坐十年'},
+ {id:'yin',  n:'音',   fac:'academy', cost:2, atk:3, hp:5,  spd:6, rar:'SR',  w:9,  beast:'♪',
+  skill:{k:'boostLin', v:3, t:'阵亡时：若琳在场，琳 +3 攻（归于琳）'}, lore:'琳的独立形态，一缕离体的弦音'},
+ {id:'lu',   n:'璐',   fac:'academy', cost:2, atk:2, hp:6,  spd:3, rar:'SR',  w:9,  beast:'♬',
+  skill:{k:'healLow', v:2, t:'每回合：治疗血量最低的友军 2'}, lore:'独立受教，带来哼唱'},
+ {id:'wolf', n:'狼先生',fac:'academy', cost:5, atk:2, hp:8,  spd:2, rar:'UR',  w:2,  beast:'◐',
+  skill:{k:'aura11', t:'光环：其余友军 +1 攻 +1 速（他自己只喝茶）'}, lore:'「我只让你们变得有趣一点。」'},
+ {id:'guard',n:'谷地守望',fac:'academy',cost:1, atk:1, hp:8,  spd:2, rar:'N',   w:12, beast:'🛡',
+  skill:{k:'none', t:'无技能。便宜、扛打、忠诚'}, lore:'学院墙上第一盏不灭的灯'},
+ {id:'carter',n:'星尘车夫',fac:'academy',cost:1,atk:1, hp:6,  spd:5, rar:'N',   w:11, beast:'✦',
+  skill:{k:'coinDeath', v:1, t:'阵亡时：主人 +1 铸币（车翻了，货还在）'}, lore:'拉着星尘车跑遍谷地'},
+ // —— 天之国系 ——
+ {id:'nuo',  n:'诺',   fac:'sky',     cost:3, atk:4, hp:6,  spd:7, rar:'SSR', w:7,  beast:'🦉',
+  skill:{k:'snipeBack', v:3, t:'开战时：狙击敌方最后排 3 伤'}, lore:'小猫头鹰。每天看天，看另一边的云'},
+ {id:'crane',n:'白鹤侍从',fac:'sky',  cost:1, atk:2, hp:4,  spd:6, rar:'R',   w:11, beast:'🕊',
+  skill:{k:'shieldSelf', v:2, t:'开战时：自身 +2 护盾'}, lore:'宰相门下，步子比云还轻'},
+ {id:'scout',n:'断云斥候',fac:'sky',  cost:2, atk:3, hp:4,  spd:8, rar:'R',   w:10, beast:'☁',
+  skill:{k:'firstPlus', v:2, t:'首次攻击 +2（云层里先手一刀）'}, lore:'在断云缝隙里长大的孩子'},
+ {id:'pigeon',n:'信鸽', fac:'sky',    cost:1, atk:1, hp:3,  spd:9, rar:'N',   w:10, beast:'✉',
+  skill:{k:'none', t:'无技能。全场最快，命最薄'}, lore:'脚环上系过一片紫色蛇鳞'},
+ // —— 海族系 ——
+ {id:'yu',   n:'屿',   fac:'sea',     cost:3, atk:4, hp:7,  spd:5, rar:'SSR', w:7,  beast:'🐟',
+  skill:{k:'splashDeath', v:2, t:'阵亡时：爆炸炮弹，敌方全体 2 伤'}, lore:'翻车鱼少年。炮弹锁在角落，是提醒'},
+ {id:'qi',   n:'麒',   fac:'sea',     cost:2, atk:3, hp:7,  spd:3, rar:'SR',  w:9,  beast:'🌊',
+  skill:{k:'pairYu', v:2, t:'开战时：若屿在场，兄弟二人各 +2 攻'}, lore:'屿的哥哥，浪来了先站在前面'},
+ {id:'mist', n:'海雾行者',fac:'sea',  cost:2, atk:2, hp:8,  spd:4, rar:'R',   w:10, beast:'🌫',
+  skill:{k:'slowFast', v:2, t:'开战时：敌方最快单位 -2 速'}, lore:'从上岸那天起就没干过'},
+ // —— 摇摆队④ ——
+ {id:'wei',  n:'炜',   fac:'swing',   cost:1, atk:2, hp:5,  spd:4, rar:'R',   w:11, beast:'☯',
+  skill:{k:'none', t:'无技能。阵营未定，价格好谈'}, lore:'摇摆队④。谁赢帮谁'},
+ {id:'rong', n:'荣',   fac:'swing',   cost:1, atk:1, hp:7,  spd:3, rar:'R',   w:11, beast:'☯',
+  skill:{k:'none', t:'无技能。站得稳，看得远'}, lore:'摇摆队④。观望是一种武艺'},
+ {id:'yang', n:'洋',   fac:'swing',   cost:2, atk:2, hp:6,  spd:5, rar:'SR',  w:9,  beast:'☯',
+  skill:{k:'growAtk', v:1, t:'每回合：自身 +1 攻（越打越来劲）'}, lore:'摇摆队④里最先动摇的那个'},
+ // —— 黑域系 ——
+ {id:'wan',  n:'菀',   fac:'dark',    cost:3, atk:4, hp:6,  spd:5, rar:'SSR', w:6,  beast:'📏',
+  skill:{k:'snipeBack', v:4, t:'开战时：理性尺精准斩后排 4 伤'}, lore:'尺的零刻度，曾对着诺的座位'},
+ {id:'xuan', n:'璇',   fac:'dark',    cost:3, atk:5, hp:5,  spd:6, rar:'SR',  w:8,  beast:'🐆',
+  skill:{k:'firstCrit', t:'首次攻击必定暴击 ×2（猞猁突袭）'}, lore:'大耳猞猁，从不打第二声招呼'},
+ {id:'hui',  n:'慧',   fac:'dark',    cost:2, atk:2, hp:6,  spd:4, rar:'SR',  w:9,  beast:'🍂',
+  skill:{k:'buffAdj', v:2, t:'阵亡时：相邻友军 +2 攻（低语留下了）'}, lore:'「她只是让我们停止说服自己。」'},
+ {id:'hang', n:'航',   fac:'dark',    cost:4, atk:7, hp:8,  spd:5, rar:'UR',  w:3,  beast:'🎭',
+  skill:{k:'drain', t:'全场最高攻。代价：每幕征募开始吞你 1 铸币（自愿戴上锁）'}, lore:'紫光面具后，眼里只剩一个方向'},
+ // —— 挑战者队⑤ · 新徒 ——
+ {id:'yue',  n:'月',   fac:'novice',  cost:2, atk:3, hp:6,  spd:5, rar:'SR',  w:9,  beast:'🌙',
+  skill:{k:'growth', g:{atk:1}, t:'成长：每场战斗存活后永久 +1 攻'}, lore:'挑战者队⑤，战书已下'},
+ {id:'duo',  n:'铎',   fac:'novice',  cost:2, atk:2, hp:8,  spd:3, rar:'SR',  w:9,  beast:'🔔',
+  skill:{k:'growth', g:{hp:2}, t:'成长：每场战斗存活后永久 +2 最大生命'}, lore:'挑战者队⑤，钟声不退'},
+ {id:'wen',  n:'文',   fac:'novice',  cost:1, atk:2, hp:5,  spd:5, rar:'R',   w:10, beast:'📖',
+  skill:{k:'growth', g:{atk:1}, t:'成长：每场战斗存活后永久 +1 攻'}, lore:'潜力待发，笔比剑快'},
+ {id:'xiao', n:'晓',   fac:'novice',  cost:1, atk:1, hp:6,  spd:6, rar:'R',   w:10, beast:'🌅',
+  skill:{k:'growth', g:{atk:1}, t:'成长：每场战斗存活后永久 +1 攻'}, lore:'天亮之前她就醒了'},
+];
+const UMAP = Object.fromEntries(UNITS.map(u=>[u.id,u]));
+
+// 遗物（军团级，一人多件可叠不同）
+const RELICS = [
+ {id:'teapot', n:'茶壶',       t:'每幕征募开始 +2 铸币', icon:'🫖'},
+ {id:'astro',  n:'断云星盘',   t:'每幕第一次刷新免费', icon:'🧭'},
+ {id:'tassel', n:'琳的剑穗',   t:'最前排单位 +4 最大生命', icon:'🎐'},
+ {id:'letter', n:'诺的信',     t:'全队 +1 速度（没寄出去，但一直带着）', icon:'✉'},
+ {id:'shards', n:'爆炸残片',   t:'己方单位阵亡时，敌方全体 1 伤', icon:'💥'},
+ {id:'ruler',  n:'理性尺刻度', t:'每场战斗你方首次攻击 +3', icon:'📏'},
+ {id:'mask',   n:'紫光面具碎片',t:'黑域单位征募费 -1，航不再吞币', icon:'🎭'},
+ {id:'dustbag',n:'星尘袋',     t:'存币利息上限 +2', icon:'👝'},
+ {id:'goldleaf',n:'金叶徽章',  t:'演武战败额外 +2 铸币（把战败也酿成茶）', icon:'🍁'},
+ {id:'quill',  n:'战报羽笔',   t:'开战时：随机敌人 -1 攻', icon:'🪶'},
+];
+const RMAP = Object.fromEntries(RELICS.map(r=>[r.id,r]));
+
+// 命运事件（征募后翻一张，作用于本幕演武或经济）
+const EVENTS = [
+ {id:'ev_rain',  n:'星尘雨',   icon:'🌠', d:'夜里落了一场星尘。所有玩家 +3 铸币。', w:10},
+ {id:'ev_wind',  n:'断云逆风', icon:'🌪', d:'逆风偏爱慢的人。本幕演武：全场速度最低的单位 +3 攻。', w:10},
+ {id:'ev_swing', n:'摇摆队倒戈',icon:'☯', d:'摇摆队看了看排行榜。当前最后一名免费获得一名摇摆队员（军团满员则改为 +3 铸币）。', w:10, catchup:true},
+ {id:'ev_gaze',  n:'叶王的注视',icon:'🐍', d:'石墙上盘着一圈影子。暴走槽 +2。', w:8},
+ {id:'ev_crane', n:'白鹤调停', icon:'🕊', d:'宰相亲自走过云阶。本幕演武败者的复仇火种翻倍（+4 铸币 + 2 次免费刷新）。', w:9, catchup:true},
+ {id:'ev_purple',n:'紫光低语', icon:'💜', d:'面具在石头上泛着光。本幕演武：黑域单位 +2 攻。', w:9},
+ {id:'ev_tea',   n:'谷地茶会', icon:'🫖', d:'狼先生烧了水。每拥有一名学院单位 +1 铸币。', w:9},
+ {id:'ev_market',n:'商路开通', icon:'🏮', d:'断云水道通航。下一幕征募：所有刷新免费。', w:8},
+ {id:'ev_fog',   n:'迷雾',     icon:'🌫', d:'雾从海上来。本幕演武：出手顺序完全随机，速度失效。', w:8},
+ {id:'ev_horn',  n:'号角',     icon:'📯', d:'远处有人替落后者吹响号角。当前最后一名 +3 铸币。', w:9, once:true, catchup:true},
+ {id:'ev_maze',  n:'星轨错位', icon:'🌀', d:'星图今晚不作数。本幕演武配对完全随机，不按排名。', w:8},
+ {id:'ev_echo',  n:'复读风暴', icon:'📢', d:'童声复读机的残响掠过战场。本幕演武：每回合双方各有一名随机单位受 1 伤。', w:8},
+];
+
+// 幽灵军 & Boss（幕数索引）
+const GHOSTS = {
+ 1:{n:'黑域游兵团', units:[
+    {id:'g1',n:'黑域游兵',glyph:'蛇',atk:2,hp:6,spd:4,skill:{k:'none'}},
+    {id:'g1',n:'黑域游兵',glyph:'蛇',atk:2,hp:6,spd:4,skill:{k:'none'}},
+    {id:'g2',n:'蛇纹卫',glyph:'纹',atk:3,hp:5,spd:5,skill:{k:'none'}}]},
+ 2:{n:'黑域战团', units:[
+    {id:'g3',n:'紫甲兵',glyph:'甲',atk:3,hp:8,spd:4,skill:{k:'none'}},
+    {id:'g1',n:'黑域游兵',glyph:'蛇',atk:3,hp:6,spd:5,skill:{k:'none'}},
+    {id:'g4',n:'低语者',glyph:'语',atk:4,hp:6,spd:6,skill:{k:'firstPlus',v:2}},
+    {id:'g2',n:'蛇纹卫',glyph:'纹',atk:3,hp:7,spd:5,skill:{k:'none'}}]},
+ 3:{n:'鹦鹉学派亲卫', units:[
+    {id:'g5',n:'鹦鹉教授',glyph:'鹦',atk:4,hp:12,spd:4,skill:{k:'echoAll',v:1,t:'复读噪音'}},
+    {id:'g6',n:'童声复读机',glyph:'机',atk:3,hp:9,spd:3,skill:{k:'revive1',t:'复读'}},
+    {id:'g3',n:'紫甲兵',glyph:'甲',atk:4,hp:8,spd:5,skill:{k:'none'}},
+    {id:'g1',n:'黑域游兵',glyph:'蛇',atk:3,hp:7,spd:5,skill:{k:'none'}}]},
+};
+const BOSS_WAVE = (act)=>({n:'叶王 · 乱入', units:[
+  {id:'yewang',n:'叶王',glyph:'叶',atk:4+act,hp:10+act*4,spd:6,skill:{k:'weakenTop',v:1,t:'蛇缠：每回合敌方最高攻 -1'}},
+  ...(act>=2?[{id:'g4',n:'低语者',glyph:'语',atk:2+act,hp:4+act,spd:6,skill:{k:'none'}}]:[]),
+  {id:'g2',n:'蛇纹卫',glyph:'纹',atk:act>1?3:2,hp:5+act,spd:4,skill:{k:'none'}},
+]});
+
+const ACT_NAMES = {1:'谷地雾晨',2:'断云之上',3:'黑域门前'};
+const ACT_CN = {1:'第一幕',2:'第二幕',3:'第三幕'};
+const ARMY_CAP = {1:3,2:4,3:5};
+
+/* ============================================================
+   工具
+   ============================================================ */
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+let rng = mulberry32(Date.now()%2147483647);
+const ri=(n)=>Math.floor(rng()*n), pick=(arr)=>arr[ri(arr.length)];
+function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),ms)}
+function shake(){document.body.classList.remove('shaking');void document.body.offsetWidth;document.body.classList.add('shaking')}
+function flash(red){const f=$('#flash');f.className=red?'red':'';void f.offsetWidth;f.classList.add('go');
+  setTimeout(()=>f.classList.remove('go'),500)}
+function floatNum(host,txt,color,crit){const f=document.createElement('div');
+  f.className='float-num'+(crit?' crit':'');f.textContent=txt;f.style.color=color;
+  host.appendChild(f);setTimeout(()=>f.remove(),950)}
+function burst(x,y,colors,n=24){for(let i=0;i<n;i++){const p=document.createElement('div');
+  p.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:7px;height:7px;pointer-events:none;z-index:90;background:${colors[i%colors.length]};border-radius:${i%2?'50%':'0'}`;
+  document.body.appendChild(p);
+  const a=Math.random()*Math.PI*2,v=3+Math.random()*5;let vx=Math.cos(a)*v,vy=Math.sin(a)*v-3,px=x,py=y,life=60;
+  (function tick(){vy+=0.18;px+=vx;py+=vy;life--;
+    p.style.transform=`translate(${px-x}px,${py-y}px) rotate(${life*8}deg)`;p.style.opacity=life/60;
+    life>0?requestAnimationFrame(tick):p.remove()})();}}
+function modal(html){$('#modal-box').innerHTML=html+'<div class="btnrow"><button class="btn gold" onclick="closeModal()">关 闭</button></div>';
+  $('#modal-veil').classList.add('on')}
+function closeModal(){$('#modal-veil').classList.remove('on')}
+$('#modal-veil').addEventListener('click',e=>{if(e.target.id==='modal-veil')closeModal()});
+
+/* ============================================================
+   美术资源映射层
+   Codex 出图后放进 assets/ 即自动生效；缺图自动回退字形徽章。
+   文件名与《Codex 美术生产指令》清单一一对应，不要改名。
+   ============================================================ */
+const ART_DIR='assets/';
+const ART={
+  // 单位立绘（512×768 竖版）
+  lin:'unit-lin.webp',   yin:'unit-yin.webp',   lu:'unit-lu.webp',     wolf:'unit-wolf.webp',
+  guard:'unit-guard.webp', carter:'unit-carter.webp',
+  nuo:'unit-nuo.webp',   crane:'unit-crane.webp', scout:'unit-scout.webp', pigeon:'unit-pigeon.webp',
+  yu:'unit-yu.webp',     qi:'unit-qi.webp',     mist:'unit-mist.webp',
+  wei:'unit-wei.webp',   rong:'unit-rong.webp', yang:'unit-yang.webp',
+  wan:'unit-wan.webp',   xuan:'unit-xuan.webp', hui:'unit-hui.webp',   hang:'unit-hang.webp',
+  yue:'unit-yue.webp',   duo:'unit-duo.webp',   wen:'unit-wen.webp',   xiao:'unit-xiao.webp',
+  // Boss 与幽灵军（512×768）
+  yewang:'boss-yewang.webp',
+  g1:'ghost-raider.webp', g2:'ghost-guard.webp', g3:'ghost-armor.webp',
+  g4:'ghost-whisper.webp', g5:'boss-professor.webp', g6:'boss-echo.webp',
+  // 遗物图标（256×256，透明底）
+  relic_teapot:'relic-teapot.webp', relic_astro:'relic-astro.webp', relic_tassel:'relic-tassel.webp',
+  relic_letter:'relic-letter.webp', relic_shards:'relic-shards.webp', relic_ruler:'relic-ruler.webp',
+  relic_mask:'relic-mask.webp', relic_dustbag:'relic-dustbag.webp', relic_goldleaf:'relic-goldleaf.webp',
+  relic_quill:'relic-quill.webp',
+  // 命运事件插图（768×512 横版）
+  ev_rain:'event-rain.webp',   ev_wind:'event-wind.webp',   ev_swing:'event-swing.webp',
+  ev_gaze:'event-gaze.webp',   ev_crane:'event-crane.webp', ev_purple:'event-purple.webp',
+  ev_tea:'event-tea.webp',     ev_market:'event-market.webp', ev_fog:'event-fog.webp',
+  ev_horn:'event-horn.webp',   ev_maze:'event-maze.webp',   ev_echo:'event-echo.webp',
+  // 场景（1600×900 横版）
+  title:'title-kv.webp', bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
+};
+function artURL(key){return ART[key]?ART_DIR+ART[key]:null}
+// 返回内嵌 <img>，加载失败自动移除自己（露出下层字形徽章）
+function artTag(key,cls){const u=artURL(key);
+  return u?`<img class="${cls||'art'}" src="${u}" alt="" onerror="this.remove()">`:''}
+// canvas 用：预载图片，1.2s 超时/失败/file协议（避免污染画布）都回退 null
+function loadArt(key){return new Promise(res=>{
+  const u=artURL(key);
+  if(!u||location.protocol==='file:')return res(null);
+  const im=new Image();const tm=setTimeout(()=>res(null),1200);
+  im.onload=()=>{clearTimeout(tm);res(im)};
+  im.onerror=()=>{clearTimeout(tm);res(null)};
+  im.src=u;})}
+// 三幕环境图：有则淡入，无则保持渐变云海
+function setScene(act){
+  const im=$('#scene-img');if(!im)return;
+  im.classList.remove('show');
+  const u=artURL('bg'+Math.min(act,3));if(!u)return;
+  im.onload=()=>im.classList.add('show');
+  im.onerror=()=>im.classList.remove('show');
+  im.src=u;
+}
+
+/* ============================================================
+   全局状态
+   ============================================================ */
+let S=null; // 整局状态（可 JSON 序列化）
+let uidSeq=1;
+
+function newState(names,acts,rageMax,eventsOn){
+  return {
+    v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn,
+    waveJudge:0, hornUsed:false, freeRerollNext:false,
+    players:names.map((n,i)=>({i, name:n, coins:3, crowns:0, wins:0,
+      army:[], relics:[], revenge:0, savedCoins:0})),
+    // 征募运行时
+    draftQueue:[], draftIdx:0, offers:[], offersSold:[], rerollFreeUsed:false,
+    // 演武运行时
+    pairs:[], battleIdx:0, actEvent:null, evFlags:{},
+    dmgTally:{}, mvp:null, evLog:[], bossPending:false, bossDone:false,
+    seed: Date.now()%2147483647,
+  };
+}
+function save(){try{localStorage.setItem('dyyw1',JSON.stringify(S))}catch(e){}}
+function clearSave(){localStorage.removeItem('dyyw1')}
+function loadSave(){try{const j=localStorage.getItem('dyyw1');return j?JSON.parse(j):null}catch(e){return null}}
+
+/* 单位实例 */
+function mkInst(id){return {uid:uidSeq++, id, star:1, gAtk:0, gHp:0}}
+function instBase(inst){const u=UMAP[inst.id];
+  const m=inst.star===2?1.8:1;
+  return {atk:Math.round(u.atk*m)+inst.gAtk, hp:Math.round(u.hp*m)+inst.gHp, spd:u.spd+(inst.star===2?1:0)};}
+
+/* 屏幕切换 */
+function go(id){$$('.scr').forEach(s=>s.classList.remove('on'));$('#scr-'+id).classList.add('on');
+  window.scrollTo({top:0,behavior:'smooth'})}
+function setAct(a){document.body.dataset.act=a;setScene(a)}
+function setPhase(txt){$('#hud-phase').textContent=txt}
+function hud(){
+  if(!S){document.body.classList.remove('playing');return}
+  document.body.classList.add('playing');
+  $('#hud-act').textContent=ACT_CN[S.act]||'终幕';
+  $('#hud-actname').textContent=ACT_NAMES[S.act]||'王座之前';
+  const pct=S.rageMax?Math.min(100,S.rage/S.rageMax*100):0;
+  $('#rage-bar i').style.width=pct+'%';
+  $('#rage-bar').classList.toggle('warn',S.rageMax&&S.rage>=S.rageMax-2&&S.rage>0);
+  $('#rage-num').textContent=S.rageMax?`${S.rage}/${S.rageMax}`:'关';
+  const sorted=[...S.players].sort((a,b)=>b.crowns-a.crowns||b.coins-a.coins);
+  $('#hud-standings').innerHTML=sorted.map(p=>`<span>${p.name} <b>♛${p.crowns}</b></span>`).join('');
+}
+
+/* ============================================================
+   开局设置
+   ============================================================ */
+let setupCount=4;
+function renderSetup(){
+  const seg=$('#seg-count');seg.innerHTML='';
+  for(let n=2;n<=8;n++){const b=document.createElement('button');b.textContent=n;
+    if(n===setupCount)b.classList.add('on');
+    b.onclick=()=>{setupCount=n;renderSetup()};seg.appendChild(b)}
+  const grid=$('#name-grid');const old=[...grid.querySelectorAll('input')].map(i=>i.value);
+  grid.innerHTML='';
+  for(let i=0;i<setupCount;i++){const inp=document.createElement('input');
+    inp.placeholder='玩家 '+(i+1);inp.value=old[i]||'';inp.maxLength=6;grid.appendChild(inp)}
+}
+function segVal(sel){return +$(sel+' button.on').dataset.v}
+$$('#seg-acts button,#seg-rage button,#seg-event button').forEach(b=>{
+  b.onclick=()=>{[...b.parentNode.children].forEach(x=>x.classList.remove('on'));b.classList.add('on')}});
+
+$('#btn-new').onclick=()=>{renderSetup();go('setup')};
+$('#btn-back-title').onclick=()=>go('title');
+$('#btn-start').onclick=()=>{
+  const names=[...$$('#name-grid input')].map((i,k)=>i.value.trim()||('玩家'+(k+1)));
+  S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1);
+  rng=mulberry32(S.seed);
+  setAct(1);hud();startOriginDraft();save();
+};
+$('#btn-continue').onclick=()=>{const s=loadSave();if(!s){toast('没有找到存档');return}
+  S=s;rng=mulberry32(S.seed+S.act*97+S.waveJudge);setAct(Math.min(S.act,3));hud();
+  resumePhase();toast('已恢复上局进度')};
+function resumePhase(){
+  const map={
+    origin:()=>{setPhase('开局点将');renderDraft();go('draft')},
+    wave:()=>startWave(),
+    draft:()=>{setPhase('征募');renderDraft();go('draft')},
+    event:()=>startEvent(),
+    battle:()=>{setPhase('演武');renderPairings();go('battle')},
+    boss:()=>startBossSequence(),
+    final:()=>finale(),
+  };
+  (map[S.phase]||startWave)();
+}
+$('#btn-again').onclick=()=>{clearSave();location.reload()};
+
+/* ============================================================
+   答题波
+   ============================================================ */
+let undoStack=[];
+function startWave(){
+  S.phase='wave';
+  // 宿敌预告：幕初即锁定本幕演武配对（杀戮尖塔式地图可见性——目标可见，行动才有方向）
+  S.pairs=computeActPairs();
+  save();
+  $('#wave-title').innerHTML=`${ACT_CN[S.act]} · <em>${ACT_NAMES[S.act]}</em>`;
+  setPhase('答题波');undoStack=[];
+  renderWave();go('wave');hud();
+}
+function computeActPairs(){
+  const idxs=[...S.players].sort((a,b)=>b.crowns-a.crowns||b.coins-a.coins).map(p=>p.i);
+  const pairs=[];
+  for(let i=0;i+1<idxs.length;i+=2)pairs.push({a:idxs[i],b:idxs[i+1],done:false,r:''});
+  if(idxs.length%2===1)pairs.push({a:idxs[idxs.length-1],b:-1,done:false,r:''});
+  return pairs;
+}
+function renderWave(){
+  $('#wave-count').textContent=S.waveJudge;
+  // 宿敌预告条
+  $('#pair-preview').innerHTML='<span class="pp-lab">宿敌预告</span>'+S.pairs.map(pr=>{
+    const an=S.players[pr.a].name;
+    const bn=pr.b===-1?GHOSTS[Math.min(S.act,3)].n:S.players[pr.b].name;
+    return `<span class="pp-pair">${an}<i>VS</i>${bn}</span>`}).join('');
+  const g=$('#pgrid');g.innerHTML='';
+  S.players.forEach((p,idx)=>{
+    const d=document.createElement('div');d.className='pcard stag'+(p.revenge?' reveng':'');
+    d.style.animationDelay=(idx*0.06)+'s';d.dataset.p=idx;
+    d.innerHTML=`<h4>${p.name} <span class="crown">♛${p.crowns}</span></h4>
+      <div class="res"><span>铸币 <b>◈${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
+      <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
+        return `<span class="mini-u ${a.star===2?'star2':''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
+      <div class="judge">
+        <button class="btn ok"   data-a="ok">答对 +2</button>
+        <button class="btn hard" data-a="hard">难题 +3</button>
+        <button class="btn snap" data-a="snap">抢答 +1</button>
+        <button class="btn bad"  data-a="bad">答错</button>
+      </div>`;
+    d.querySelectorAll('.judge .btn').forEach(b=>b.onclick=()=>judge(idx,b.dataset.a,b));
+    g.appendChild(d);
+  });
+}
+function judge(pi,act,btnEl){
+  const p=S.players[pi];const gain={ok:2,hard:3,snap:1,bad:0}[act];
+  if(act==='bad'){
+    if(S.rageMax){S.rage=Math.min(S.rageMax,S.rage+1);
+      if(S.rage>=S.rageMax){S.bossPending=true;toast('⚠ 暴走槽已满——叶王将在本幕演武乱入！',3200);flash(true);shake()}}
+    floatNum(btnEl.closest('.pcard'),'暴走+1','var(--red2)');
+  }else{
+    p.coins+=gain;
+    floatNum(btnEl.closest('.pcard'),'+'+gain+'◈','var(--gold2)');
+  }
+  S.waveJudge++;undoStack.push({pi,act});
+  renderWaveNumbersOnly();hud();save();
+}
+function renderWaveNumbersOnly(){
+  $('#wave-count').textContent=S.waveJudge;
+  S.players.forEach((p,idx)=>{
+    const card=$(`.pcard[data-p="${idx}"]`);if(!card)return;
+    card.querySelector('.res b').textContent='◈'+p.coins;
+  });
+}
+$('#btn-undo').onclick=()=>{
+  const last=undoStack.pop();if(!last){toast('没有可撤销的判定');return}
+  const p=S.players[last.pi];const gain={ok:2,hard:3,snap:1,bad:0}[last.act];
+  if(last.act==='bad'){if(S.rageMax){S.rage=Math.max(0,S.rage-1);if(S.rage<S.rageMax)S.bossPending=false}}
+  else p.coins=Math.max(0,p.coins-gain);
+  S.waveJudge=Math.max(0,S.waveJudge-1);
+  toast(`已撤销：${p.name} 的判定`);renderWaveNumbersOnly();hud();save();
+};
+$('#btn-endwave').onclick=()=>{startDraft()};
+
+/* —— 随机点名转盘 —— */
+let wheelTimer=null;
+$('#btn-wheel').onclick=()=>{$('#wheel-veil').classList.add('on');$('#wheel-name').textContent='?';
+  $('#wheel-name').classList.remove('locked')};
+$('#btn-wheel-close').onclick=()=>{clearInterval(wheelTimer);$('#wheel-veil').classList.remove('on')};
+$('#btn-wheel-go').onclick=()=>{
+  clearInterval(wheelTimer);
+  const pool=[...S.players.map(p=>p.name),'全员抢答！'];
+  const el=$('#wheel-name');el.classList.remove('locked');
+  let t=0,total=22+ri(12);
+  wheelTimer=setInterval(()=>{
+    t++;el.textContent=pool[ri(pool.length)];
+    if(t>=total){clearInterval(wheelTimer);
+      const final=(rng()<0.16)?'全员抢答！':S.players[ri(S.players.length)].name;
+      el.textContent=final;el.classList.add('locked');
+      if(final==='全员抢答！')flash(false);
+    }
+  },70+t*2);
+};
+</script>
+<script>
+'use strict';
+/* ============================================================
+   征募 · 三选一
+   ============================================================ */
+function synCount(p,fac){ // 阵营计数（同名只算一次）
+  const ids=new Set(p.army.filter(a=>UMAP[a.id].fac===fac).map(a=>a.id));return ids.size;}
+function hasRelic(p,id){return p.relics.includes(id)}
+
+/* —— 开局点将：人人免费领一名低费学员（Hades 起手祝福式，保证首幕人人有兵） —— */
+function startOriginDraft(){
+  S.phase='origin';save();setPhase('开局点将');
+  S.draftQueue=S.players.map(p=>p.i);S.draftIdx=0;
+  S.offers=genOriginOffers();S.offersSold=[false,false,false];
+  renderDraft();go('draft');hud();
+}
+function genOriginOffers(){
+  const pool=UNITS.filter(u=>u.cost<=2);
+  const picks=[],used=new Set();
+  while(picks.length<3){const u=pool[ri(pool.length)];
+    if(used.has(u.id))continue;used.add(u.id);picks.push({type:'unit',id:u.id})}
+  return picks;
+}
+
+function startDraft(){
+  S.phase='draft';save();setPhase('征募');
+  // 落后者先选
+  S.draftQueue=[...S.players].sort((a,b)=>a.crowns-b.crowns||a.coins-b.coins||ri(3)-1).map(p=>p.i);
+  S.draftIdx=0;
+  // —— 幕初经济结算（逐人） ——
+  S.players.forEach(p=>{
+    const notes=[];
+    // 利息：每存 5 币 +1（上限 3，星尘袋 +2）
+    const cap=3+(hasRelic(p,'dustbag')?2:0);
+    const interest=Math.min(cap,Math.floor(p.coins/5));
+    if(interest>0){p.coins+=interest;notes.push(`利息+${interest}`)}
+    if(hasRelic(p,'teapot')){p.coins+=2;notes.push('茶壶+2')}
+    if(synCount(p,'swing')>=2){p.coins+=2;notes.push('摇摆+2')}
+    if(synCount(p,'dark')>=2){p.coins=Math.max(0,p.coins-1);notes.push('黑域-1')}
+    if(p.army.some(a=>a.id==='hang')&&!hasRelic(p,'mask')){p.coins=Math.max(0,p.coins-1);notes.push('航吞币-1')}
+    if(p.revenge>0){const dbl=p.revenge>=2;p.coins+=dbl?4:2;notes.push(dbl?'复仇火种×2 +4':'复仇火种+2')}
+    p._freeRr=(p.revenge>0?p.revenge:0)+(S.freeRerollNext?99:0); // 免费刷新次数
+    p._astroUsed=false;
+    p._notes=notes;
+  });
+  S.freeRerollNext=false;
+  renderDraft();go('draft');hud();
+}
+function curDrafter(){return S.players[S.draftQueue[S.draftIdx]]}
+
+function genOffers(p){
+  const mult={1:{N:1.3,R:1.2,SR:.9,SSR:.55,UR:.3},2:{N:1,R:1,SR:1,SSR:1,UR:1},
+              3:{N:.6,R:.9,SR:1.1,SSR:1.3,UR:1.6}}[Math.min(S.act,3)];
+  const pool=UNITS.map(u=>({u,w:u.w*(mult[u.rar]||1)}));
+  const total=pool.reduce((s,x)=>s+x.w,0);
+  const offers=[];
+  for(let i=0;i<3;i++){
+    let r=rng()*total,chosen=pool[0].u;
+    for(const x of pool){r-=x.w;if(r<=0){chosen=x.u;break}}
+    offers.push({type:'unit',id:chosen.id});
+  }
+  // 22% 第三格换成遗物
+  const owned=new Set(p.relics);
+  const avail=RELICS.filter(r=>!owned.has(r.id));
+  if(avail.length&&rng()<0.22) offers[2]={type:'relic',id:pick(avail).id};
+  return offers;
+}
+function unitPrice(p,u){let c=u.cost;
+  if(u.fac==='dark'&&hasRelic(p,'mask'))c=Math.max(1,c-1);return c}
+
+function renderDraft(fresh){
+  const p=curDrafter();
+  const origin=S.phase==='origin';
+  if(!origin&&(fresh||!S.offers.length)){S.offers=genOffers(p);S.offersSold=[false,false,false]}
+  $('#draft-title').innerHTML=origin?'开 局 <em>点 将</em>':'征 募 · <em>三 选 一</em>';
+  $('#draft-sub').textContent=origin?'开局礼：每人免费领一名学员入队':'按排名从后往前挑 · 落后者先选';
+  $('#btn-reroll').style.display=origin?'none':'';
+  $('#btn-draft-done').style.display=origin?'none':'';
+  $('#draft-order').innerHTML=S.draftQueue.map((pi,k)=>{
+    const cls=k<S.draftIdx?'done':(k===S.draftIdx?'cur':'');
+    return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
+  $('#drafter-name').innerHTML=`轮到 <em>${p.name}</em>`;
+  $('#draft-coins').textContent='◈ '+p.coins;
+  if(p._notes&&p._notes.length){toast(`${p.name}：${p._notes.join(' · ')}`,2600);p._notes=null}
+  const box=$('#offers');box.innerHTML='';
+  S.offers.forEach((o,idx)=>{
+    const d=document.createElement('div');
+    d.className='offer ornate stag'+(S.offersSold[idx]?' sold':'');
+    d.style.animationDelay=(idx*0.08)+'s';
+    if(o.type==='unit'){
+      const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
+      const willMerge=!origin&&p.army.some(a=>a.id===u.id&&a.star===1);
+      d.innerHTML=`
+        <div class="fac f-${u.fac}">${FACS[u.fac].n}</div>
+        <div class="badge r-${u.rar} ${u.rar==='UR'?'ur':''}"><span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
+        <h3>${u.n}</h3><div class="rar-tag">${u.rar}${willMerge?' · ★可合星':''}</div>
+        <div class="stats"><span class="atk">⚔${u.atk}</span><span class="hp">♥${u.hp}</span><span class="spd">»${u.spd}</span></div>
+        <div class="skill">${u.skill.t}</div>
+        <div class="lore">${u.lore}</div>
+        <button class="btn mini gold cost-btn">${origin?'免费 · 入队':`征募 · ${price} 铸币`}</button>`;
+      d.querySelector('.cost-btn').onclick=()=>buyUnit(idx,u,price);
+    }else{
+      const r=RMAP[o.id];
+      d.innerHTML=`
+        <div class="fac" style="color:var(--gold2)">遗 物</div>
+        <div class="badge r-SSR"><span class="glyph" style="font-size:36px">${r.icon}</span>${artTag('relic_'+r.id)}</div>
+        <h3>${r.n}</h3><div class="rar-tag">RELIC</div>
+        <div class="stats" style="color:var(--ink3)">军团级 · 永久生效</div>
+        <div class="skill">${r.t}</div>
+        <div class="lore">断云的馈赠</div>
+        <button class="btn mini gold cost-btn">收下 · 3 铸币</button>`;
+      d.querySelector('.cost-btn').onclick=()=>buyRelic(idx,r);
+    }
+    box.appendChild(d);
+  });
+  renderBench(p);
+  const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
+  $('#btn-reroll').textContent=freeRr?'刷新 · 免费':'刷新 · 2 铸币';
+}
+function renderBench(p){
+  const cap=ARMY_CAP[Math.min(S.act,3)];
+  $('#bench h5').textContent=`—— ${p.name} 的军团 ${p.army.length}/${cap} ·（最左 = 前排先承伤，◀▶ 调站位）——`;
+  const bx=$('#bench-units');bx.innerHTML='';
+  if(!p.army.length)bx.innerHTML='<span style="color:var(--ink4);font-size:12px;letter-spacing:.2em;align-self:center">虚位以待</span>';
+  p.army.forEach((a,ai)=>{
+    const u=UMAP[a.id];const st=instBase(a);
+    const refund=a.star===2?u.cost*2:u.cost;
+    const d=document.createElement('div');d.className='bunit'+(a.star===2?' star2':'');
+    d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
+      <div class="g">${u.n[0]}</div><div class="n">${u.n}</div>
+      <div class="st">⚔${st.atk} ♥${st.hp}</div>
+      <div class="bmove">
+        <button title="向前排移动" ${ai===0?'disabled':''}>◀</button>
+        <button title="向后排移动" ${ai===p.army.length-1?'disabled':''}>▶</button>
+        <button class="bx" title="出售，返还 ${refund} 铸币">✕</button>
+      </div>`;
+    const [bL,bR,bX]=d.querySelectorAll('.bmove button');
+    bL.onclick=()=>{[p.army[ai-1],p.army[ai]]=[p.army[ai],p.army[ai-1]];renderDraft();save()};
+    bR.onclick=()=>{[p.army[ai+1],p.army[ai]]=[p.army[ai],p.army[ai+1]];renderDraft();save()};
+    bX.onclick=()=>{p.army.splice(ai,1);p.coins+=refund;
+      toast(`${u.n} 离队，返还 ${refund} 铸币`);renderDraft();save()};
+    bx.appendChild(d);
+  });
+  $('#relic-shelf').innerHTML=p.relics.map(rid=>{const r=RMAP[rid];
+    return `<span class="relic-chip" title="${r.t}">${r.icon} ${r.n}</span>`}).join('');
+  // 被叶王收走的单位 · 赎回
+  if(S.captured&&S.captured.pi===p.i){
+    const u=UMAP[S.captured.inst.id];
+    const chip=document.createElement('span');chip.className='relic-chip';
+    chip.style.borderColor='var(--purple)';chip.style.color='var(--purple)';
+    chip.textContent=`🐍 ${u.n} 被叶王扣押 · 点击赎回 3◈`;chip.style.cursor='pointer';
+    chip.onclick=()=>{
+      if(p.coins<3){toast('铸币不够赎回');return}
+      if(p.army.length>=ARMY_CAP[Math.min(S.act,3)]){toast('军团已满，先腾出位置');return}
+      p.coins-=3;p.army.push(S.captured.inst);S.captured=null;
+      toast(`${u.n} 归队了`);renderDraft();save();
+    };
+    $('#relic-shelf').appendChild(chip);
+  }
+}
+function buyUnit(idx,u,price){
+  const p=curDrafter();
+  // 开局点将：免费领一名，选完自动轮到下一位
+  if(S.phase==='origin'){
+    p.army.push(mkInst(u.id));
+    toast(`${p.name} 点将：${u.n} 入队`);
+    S.draftIdx++;
+    if(S.draftIdx>=S.draftQueue.length){S.offers=[];startWave()}
+    else{S.offers=genOriginOffers();S.offersSold=[false,false,false];renderDraft()}
+    hud();save();return;
+  }
+  if(p.coins<price){toast('铸币不够——先答题赚钱去');return}
+  const cap=ARMY_CAP[Math.min(S.act,3)];
+  const mergeTarget=p.army.find(a=>a.id===u.id&&a.star===1);
+  if(!mergeTarget&&p.army.length>=cap){toast('军团已满：点下方成员可出售腾位');return}
+  p.coins-=price;S.offersSold[idx]=true;
+  if(mergeTarget){mergeTarget.star=2;
+    flash(false);shake();toast(`★ ${u.n} 合星！属性大幅提升`,2600);
+    burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#fff'],30);
+  }else{p.army.push(mkInst(u.id));toast(`${u.n} 入队`)}
+  renderDraft();hud();save();
+}
+function buyRelic(idx,r){
+  const p=curDrafter();
+  if(p.coins<3){toast('铸币不够');return}
+  p.coins-=3;p.relics.push(r.id);S.offersSold[idx]=true;
+  toast(`遗物入手：${r.n}`);renderDraft();hud();save();
+}
+$('#btn-reroll').onclick=()=>{
+  const p=curDrafter();
+  if(p._freeRr>0){p._freeRr--}
+  else if(hasRelic(p,'astro')&&!p._astroUsed){p._astroUsed=true}
+  else{if(p.coins<2){toast('铸币不够刷新');return}p.coins-=2}
+  S.offers=genOffers(p);S.offersSold=[false,false,false];renderDraft();save();
+};
+$('#btn-draft-done').onclick=()=>{
+  const p=curDrafter();p.revenge=0;
+  S.draftIdx++;
+  if(S.draftIdx>=S.draftQueue.length){
+    S.offers=[];
+    if(S.bossPending){startBossSequence()}
+    else if(S.eventsOn){startEvent()}
+    else{startBattlePhase()}
+  }else{S.offers=[];renderDraft(true);save()}
+};
+
+/* ============================================================
+   命运事件
+   ============================================================ */
+function lastPlace(){return [...S.players].sort((a,b)=>a.crowns-b.crowns||a.coins-b.coins)[0]}
+function crownGap(){const c=S.players.map(p=>p.crowns);return Math.max(...c)-Math.min(...c)}
+
+function startEvent(){
+  S.phase='event';save();setPhase('命运事件');
+  // 权重抽取
+  const gap=crownGap();
+  const pool=EVENTS.filter(e=>!(e.once&&S.hornUsed));
+  const weights=pool.map(e=>e.w*(e.catchup&&gap>=2?2.2:1));
+  const total=weights.reduce((a,b)=>a+b,0);
+  let r=rng()*total,ev=pool[0];
+  for(let i=0;i<pool.length;i++){r-=weights[i];if(r<=0){ev=pool[i];break}}
+  S.actEvent=ev.id;
+  $('#event-card').classList.remove('flip');
+  $('#btn-event-done').disabled=true;
+  $('#ev-icon').textContent=ev.icon;$('#ev-name').textContent=ev.n;$('#ev-desc').textContent=ev.d;
+  // 事件插图（有则作衬底）
+  const ai=$('#ev-art-img');
+  if(ai){ai.style.display='none';const u=artURL(ev.id);
+    if(u){ai.onload=()=>ai.style.display='';ai.onerror=()=>{ai.style.display='none'};ai.src=u}}
+  go('event');
+}
+$('#event-card').onclick=()=>{
+  const card=$('#event-card');if(card.classList.contains('flip'))return;
+  card.classList.add('flip');flash(false);
+  setTimeout(()=>{applyEvent(EVENTS.find(e=>e.id===S.actEvent));$('#btn-event-done').disabled=false},900);
+};
+function applyEvent(ev){
+  S.evLog.push(ev.n);S.evFlags={};
+  switch(ev.id){
+    case 'ev_rain': S.players.forEach(p=>p.coins+=3);toast('所有人 +3 铸币');break;
+    case 'ev_gaze': if(S.rageMax){S.rage=Math.min(S.rageMax,S.rage+2);
+      if(S.rage>=S.rageMax){S.bossPending=true;toast('⚠ 暴走槽被注视填满了……',3000)}}
+      shake();break;
+    case 'ev_horn': {const lp=lastPlace();lp.coins+=3;S.hornUsed=true;toast(`号角为 ${lp.name} 而鸣：+3 铸币`)}break;
+    case 'ev_tea': S.players.forEach(p=>{const n=p.army.filter(a=>UMAP[a.id].fac==='academy').length;
+      if(n)p.coins+=n});toast('学院单位的主人们领了茶钱');break;
+    case 'ev_market': S.freeRerollNext=true;toast('下一幕征募：刷新全部免费');break;
+    case 'ev_swing': {const lp=lastPlace();
+      const cap=ARMY_CAP[Math.min(S.act,3)];
+      const sw=UNITS.filter(u=>u.fac==='swing');
+      if(lp.army.length<cap){const u=pick(sw);lp.army.push(mkInst(u.id));toast(`${u.n} 倒戈加入 ${lp.name} 的军团！`)}
+      else{lp.coins+=3;toast(`${lp.name} 军团已满，改领 3 铸币`)}}break;
+    case 'ev_wind': S.evFlags.wind=true;break;
+    case 'ev_purple': S.evFlags.purple=true;break;
+    case 'ev_fog': S.evFlags.fog=true;break;
+    case 'ev_maze': S.evFlags.maze=true;break;
+    case 'ev_echo': S.evFlags.echo=true;break;
+    case 'ev_crane': S.evFlags.crane=true;break;
+  }
+  hud();save();
+}
+$('#btn-event-done').onclick=()=>{
+  if(S.bossPending){startBossSequence()}else{startBattlePhase()}
+};
+
+/* ============================================================
+   演武 · 战斗演算核心（纯函数，DOM 无关，可单测）
+   ============================================================ */
+/*SIM-BEGIN*/
+function buildFighters(p, evFlags){
+  // 玩家军团 → 战斗体数组（前排在 0）
+  const fs=p.army.map((inst,ix)=>{
+    const u=UMAP[inst.id];const b=instBase(inst);
+    return {uid:inst.uid, id:inst.id, n:u.n, glyph:u.n[0], fac:u.fac, star:inst.star,
+      atk:b.atk, hp:b.hp, maxhp:b.hp, spd:b.spd, shield:0, alive:true,
+      first:true, usedRevive:false, skill:u.skill, ix};
+  });
+  // 阵营羁绊
+  if(synCount(p,'academy')>=2) fs.forEach(f=>{f.hp+=3;f.maxhp+=3});
+  if(synCount(p,'sky')>=2)     fs.forEach(f=>f.spd+=1);
+  if(synCount(p,'dark')>=2)    fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
+  // 遗物
+  if(hasRelic(p,'tassel')&&fs[0]){fs[0].hp+=4;fs[0].maxhp+=4}
+  if(hasRelic(p,'letter')) fs.forEach(f=>f.spd+=1);
+  // 狼先生光环
+  if(fs.some(f=>f.id==='wolf')) fs.forEach(f=>{if(f.id!=='wolf'){f.atk+=1;f.spd+=1}});
+  // 事件：紫光低语
+  if(evFlags&&evFlags.purple) fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
+  return fs;
+}
+function ghostFighters(list){
+  return list.map((g,ix)=>({uid:'g'+ix+'_'+g.id, id:g.id, n:g.n, glyph:g.glyph, fac:'ghost', star:1,
+    atk:g.atk, hp:g.hp, maxhp:g.hp, spd:g.spd, shield:0, alive:true,
+    first:true, usedRevive:false, skill:g.skill||{k:'none'}, ix}));
+}
+function sideFlags(p){ // 边级效果
+  if(!p) return {seaSyn:false,shards:false,ruler:false,quill:false,goldleaf:false};
+  return {seaSyn:synCount(p,'sea')>=2, shards:hasRelic(p,'shards'),
+    ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf')};
+}
+
+function simulateBattle(A,B,flagsA,flagsB,rand,mods){
+  mods=mods||{};
+  const sides=[A,B], flags=[flagsA,flagsB], log=[], dmgByUid={}, coinsGain=[0,0];
+  const rulerUsed=[false,false];
+  const alive=s=>sides[s].filter(f=>f.alive);
+  const foes=s=>alive(1-s);
+  const front=s=>alive(s)[0];
+  const back=s=>{const a=alive(s);return a[a.length-1]};
+  const tally=(uid,amt)=>{if(uid!=null)dmgByUid[uid]=(dmgByUid[uid]||0)+amt};
+  const deathQ=[];
+
+  function dealDmg(srcSide,src,tgt,amt,tag,crit){
+    if(!tgt||!tgt.alive)return;
+    let rest=amt;
+    if(tgt.shield>0){const ab=Math.min(tgt.shield,rest);tgt.shield-=ab;rest-=ab;
+      if(ab>0)log.push({t:'shieldHit',d:tgt.uid,amt:ab})}
+    if(rest>0){tgt.hp-=rest;tally(src?src.uid:null,rest)}
+    const kill=tgt.hp<=0;
+    log.push({t:'dmg',s:src?src.uid:null,d:tgt.uid,amt,crit:!!crit,kill,tag});
+    if(kill){tgt.alive=false;tgt.hp=0;deathQ.push(tgt)}
+  }
+  function dieSideOf(f){return sides[0].includes(f)?0:1}
+  function processDeaths(){
+    while(deathQ.length){
+      const f=deathQ.shift();const s=dieSideOf(f);
+      // 复读机复活
+      if(f.skill.k==='revive1'&&!f.usedRevive){f.usedRevive=true;f.alive=true;
+        f.hp=Math.ceil(f.maxhp/2);log.push({t:'revive',d:f.uid});continue}
+      log.push({t:'die',d:f.uid});
+      // 阵亡技
+      if(f.skill.k==='splashDeath'){foesOf(s).forEach(e=>dealDmg(s,f,e,f.skill.v,'爆炸'))}
+      if(f.skill.k==='boostLin'){const lin=alive(s).find(x=>x.id==='lin');
+        if(lin){lin.atk+=f.skill.v;log.push({t:'buff',d:lin.uid,txt:'+'+f.skill.v+'⚔ 归于琳'})}}
+      if(f.skill.k==='buffAdj'){const a=alive(s);
+        if(a.length){const adj=a.reduce((m,x)=>Math.abs(x.ix-f.ix)<Math.abs(m.ix-f.ix)?x:m,a[0]);
+          adj.atk+=f.skill.v;log.push({t:'buff',d:adj.uid,txt:'+'+f.skill.v+'⚔ 低语'})}}
+      if(f.skill.k==='coinDeath'){coinsGain[s]+=f.skill.v||1;log.push({t:'coin',side:s,amt:f.skill.v||1})}
+      // 边级：海雾同悲 / 爆炸残片
+      if(flags[s].seaSyn){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,1,'海雾')}
+      if(flags[s].shards){foesOf(s).forEach(e=>dealDmg(s,null,e,1,'残片'))}
+    }
+  }
+  function foesOf(s){return alive(1-s)}
+  function pickR(arr){return arr.length?arr[Math.floor(rand()*arr.length)]:null}
+
+  // —— 事件：断云逆风（全场最低速 +3 攻）——
+  if(mods.wind){
+    const all=[...A,...B];const mn=Math.min(...all.map(f=>f.spd));
+    all.filter(f=>f.spd===mn).forEach(f=>{f.atk+=3;log.push({t:'buff',d:f.uid,txt:'+3⚔ 逆风'})});
+  }
+  // —— 开战技（全场速度序）——
+  const bsOrder=[...A.map(f=>[0,f]),...B.map(f=>[1,f])].sort((x,y)=>y[1].spd-x[1].spd||rand()-0.5);
+  for(const [s,f] of bsOrder){
+    if(!f.alive)continue;const k=f.skill.k;
+    if(k==='shieldAll'){alive(s).forEach(x=>{x.shield+=f.skill.v});log.push({t:'shield',d:f.uid,txt:`全队+${f.skill.v}盾`})}
+    if(k==='shieldSelf'){f.shield+=f.skill.v;log.push({t:'shield',d:f.uid,txt:`+${f.skill.v}盾`})}
+    if(k==='snipeBack'){const t=back(1-s);if(t){dealDmg(s,f,t,f.skill.v,'狙击');processDeaths()}}
+    if(k==='slowFast'){const foesA=foesOf(s);if(foesA.length){
+      const t=foesA.reduce((m,x)=>x.spd>m.spd?x:m,foesA[0]);t.spd=Math.max(1,t.spd-f.skill.v);
+      log.push({t:'debuff',d:t.uid,txt:`-${f.skill.v}» 海雾`})}}
+    if(k==='pairYu'){const yu=alive(s).find(x=>x.id==='yu');
+      if(yu){yu.atk+=f.skill.v;f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'兄弟羁绊 +2⚔'})}}
+  }
+  // 战报羽笔
+  [0,1].forEach(s=>{if(flags[s].quill){const e=pickR(foesOf(s));
+    if(e){e.atk=Math.max(0,e.atk-1);log.push({t:'debuff',d:e.uid,txt:'-1⚔ 羽笔'})}}});
+
+  // —— 回合循环 ——
+  let winner=-1;
+  for(let r=1;r<=30;r++){
+    if(!alive(0).length||!alive(1).length)break;
+    log.push({t:'round',n:r});
+    // 每回合技
+    const erOrder=[...alive(0).map(f=>[0,f]),...alive(1).map(f=>[1,f])].sort((x,y)=>y[1].spd-x[1].spd);
+    for(const [s,f] of erOrder){
+      if(!f.alive)continue;const k=f.skill.k;
+      if(k==='healLow'){const a=alive(s);const t=a.reduce((m,x)=>x.hp/x.maxhp<m.hp/m.maxhp?x:m,a[0]);
+        const heal=Math.min(f.skill.v,t.maxhp-t.hp);
+        if(heal>0){t.hp+=heal;log.push({t:'heal',d:t.uid,amt:heal})}}
+      if(k==='growAtk'){f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'+1⚔'})}
+      if(k==='echoAll'){foesOf(s).forEach(e=>dealDmg(s,f,e,f.skill.v,'噪音'));processDeaths()}
+      if(k==='weakenTop'){const foesA=foesOf(s);if(foesA.length){
+        const t=foesA.reduce((m,x)=>x.atk>m.atk?x:m,foesA[0]);t.atk=Math.max(0,t.atk-f.skill.v);
+        log.push({t:'debuff',d:t.uid,txt:'-1⚔ 蛇缠'})}}
+    }
+    // 复读风暴
+    if(mods.echo){[0,1].forEach(s=>{const t=pickR(alive(s));if(t){dealDmg(1-s,null,t,1,'风暴')}});processDeaths()}
+    if(!alive(0).length||!alive(1).length)break;
+    // 出手
+    let order=[...alive(0).map(f=>[0,f]),...alive(1).map(f=>[1,f])];
+    if(mods.fog){order.sort(()=>rand()-0.5)}else{order.sort((x,y)=>y[1].spd-x[1].spd||rand()-0.5)}
+    for(const [s,f] of order){
+      if(!f.alive)continue;
+      const t=front(1-s);if(!t)break;
+      let amt=f.atk,crit=false;
+      if(f.first){
+        if(f.skill.k==='firstPlus')amt+=f.skill.v;
+        if(f.skill.k==='firstCrit'){amt*=2;crit=true}
+      }
+      if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
+      f.first=false;
+      dealDmg(s,f,t,amt,'攻击',crit);processDeaths();
+      if(!alive(1-s).length)break;
+    }
+  }
+  const a0=alive(0).length,a1=alive(1).length;
+  if(a0&&!a1)winner=0;else if(a1&&!a0)winner=1;
+  else if(!a0&&!a1)winner=-1;
+  else{ // 30 回合未分：按剩余血量比
+    const hpr=s=>alive(s).reduce((t,f)=>t+f.hp,0)/sides[s].reduce((t,f)=>t+f.maxhp,0);
+    const h0=hpr(0),h1=hpr(1);
+    winner=h0>h1?0:(h1>h0?1:-1);
+  }
+  log.push({t:'end',winner});
+  return {winner,log,dmgByUid,coinsGain,
+    surv:[alive(0).map(f=>f.uid),alive(1).map(f=>f.uid)]};
+}
+/*SIM-END*/
+
+/* ============================================================
+   演武 · 配对与流程
+   ============================================================ */
+function startBattlePhase(){
+  S.phase='battle';setPhase('演武');
+  // 配对已在幕初锁定（宿敌预告）；星轨错位事件才重洗
+  if(!S.pairs||!S.pairs.length)S.pairs=computeActPairs();
+  if(S.evFlags.maze){
+    const idxs=S.players.map(p=>p.i);
+    for(let i=idxs.length-1;i>0;i--){const j=ri(i+1);[idxs[i],idxs[j]]=[idxs[j],idxs[i]]}
+    S.pairs=[];
+    for(let i=0;i+1<idxs.length;i+=2)S.pairs.push({a:idxs[i],b:idxs[i+1],done:false,r:''});
+    if(idxs.length%2===1)S.pairs.push({a:idxs[idxs.length-1],b:-1,done:false,r:''});
+    toast('星轨错位——宿敌预告作废，配对重洗！',3000);
+  }
+  S.battleIdx=0;save();
+  renderPairings();go('battle');hud();
+}
+function renderPairings(resume){
+  $('#battle-act-tag').textContent=ACT_CN[S.act];
+  $('#battle-sub').textContent=S.evFlags.maze?'星轨错位 · 随机配对':'宿敌对决 · 胜者夺王座分'+(S.act===S.actsTotal?'（终幕双倍）':'');
+  const box=$('#pairings');box.style.display='';box.innerHTML='';
+  S.pairs.forEach((pr,k)=>{
+    const an=S.players[pr.a].name;
+    const bn=pr.b===-1?GHOSTS[Math.min(S.act,3)].n+'（幽灵军）':S.players[pr.b].name;
+    const d=document.createElement('div');d.className='pairrow stag'+(pr.done?' done':'');
+    d.style.animationDelay=(k*0.07)+'s';
+    d.innerHTML=`<span class="who">${an}</span><span class="vs">VS</span><span class="who right">${bn}</span><span class="r">${pr.r}</span>`;
+    box.appendChild(d);
+  });
+  $('#stage').style.display='none';
+  $('#battle-next-row').style.display='';
+  const nxt=S.pairs.findIndex(p=>!p.done);
+  $('#btn-battle-next').textContent=nxt===-1?'结束本幕 →':`开战：第 ${nxt+1} 场`;
+}
+$('#btn-battle-next').onclick=()=>{
+  const nxt=S.pairs.findIndex(p=>!p.done);
+  if(nxt===-1){actEnd();return}
+  S.battleIdx=nxt;playBattle(S.pairs[nxt]);
+};
+
+/* —— 战斗播放 —— */
+let PB={speed:1,skip:false,timer:null};
+$('#btn-speed').onclick=e=>{PB.speed=PB.speed===1?2:1;e.target.textContent=PB.speed===2?'▶ 一倍速':'▶▶ 二倍速'};
+$('#btn-skipb').onclick=()=>{PB.skip=true};
+
+function unitEl(f){
+  const d=document.createElement('div');
+  d.className='u'+(f.star===2?' star2':'');d.dataset.uid=f.uid;
+  d.innerHTML=`<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}</div><span class="n">${f.n}</span>
+    <span class="num"><span class="a">⚔${f.atk}</span><span class="h">♥${f.hp}</span></span>
+    <div class="hpb"><i style="width:100%"></i></div>
+    <span class="sh" style="display:none">🛡</span>`;
+  return d;
+}
+function playBattle(pr){
+  const pa=S.players[pr.a];
+  const pb=pr.b===-1?null:S.players[pr.b];
+  const A=buildFighters(pa,S.evFlags);
+  const B=pb?buildFighters(pb,S.evFlags):ghostFighters(GHOSTS[Math.min(S.act,3)].units);
+  const fA=sideFlags(pa), fB=sideFlags(pb);
+  if(!A.length){toast(`${pa.name} 没有军团，自动判负`);finishBattle(pr,{winner:1,dmgByUid:{},coinsGain:[0,0],surv:[[],B.map(f=>f.uid)]},A,B);return}
+  if(!B.length){finishBattle(pr,{winner:0,dmgByUid:{},coinsGain:[0,0],surv:[A.map(f=>f.uid),[]]},A,B);return}
+  // 快照供 DOM（sim 会改动 fighter，因此先渲染再模拟）
+  $('#pairings').style.display='none';$('#battle-next-row').style.display='none';
+  $('#stage').style.display='';PB.skip=false;
+  const bn=pb?pb.name:GHOSTS[Math.min(S.act,3)].n;
+  $('#battle-title').innerHTML=`<b>${pa.name}</b> 对阵 <b>${bn}</b>`;
+  const L=$('#side-L'),R=$('#side-R');L.innerHTML='';R.innerHTML='';
+  // 前排靠中：左侧反转排列
+  A.forEach(f=>L.prepend(unitEl(f)));
+  B.forEach(f=>R.appendChild(unitEl(f)));
+  $('#blog').textContent='战斗开始——';
+  const battleRng=mulberry32(S.seed+S.act*131+S.battleIdx*17+7);
+  const mods={wind:!!S.evFlags.wind,fog:!!S.evFlags.fog,echo:!!S.evFlags.echo};
+  const result=simulateBattle(A,B,fA,fB,battleRng,mods);
+  // 播放 log
+  const nameOf={},elOf={};
+  [...A,...B].forEach(f=>{nameOf[f.uid]=f.n});
+  const hpNow={},hpMax={},atkNow={};
+  [...A,...B].forEach(f=>{hpNow[f.uid]=f.maxhp;hpMax[f.uid]=f.maxhp}); // 播放时重算（sim后 f 已变）
+  // 注意：buildFighters 后立刻 sim，f.maxhp 不变，可用
+  let i=0;
+  const stepDelay=()=>PB.skip?0:(PB.speed===2?260:560);
+  function el(uid){return document.querySelector(`.u[data-uid="${uid}"]`)}
+  function applyEntry(e,animate){
+    const blog=$('#blog');
+    if(e.t==='round'&&animate)blog.innerHTML=`—— 第 <b>${e.n}</b> 回合 ——`;
+    if(e.t==='dmg'){
+      const tgt=el(e.d);if(tgt){
+        hpNow[e.d]=Math.max(0,(hpNow[e.d]??hpMax[e.d])- e.amt);
+        const barI=tgt.querySelector('.hpb i');
+        const pct=Math.max(0,hpNow[e.d]/hpMax[e.d]*100);
+        barI.style.width=pct+'%';
+        tgt.querySelector('.hpb').classList.toggle('low',pct<32);
+        tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
+        if(animate){tgt.classList.remove('hit');void tgt.offsetWidth;tgt.classList.add('hit');
+          floatNum(tgt,'-'+e.amt+(e.crit?'!':''),e.crit?'#ffd075':'var(--red2)',e.crit);
+          if(e.s){const src=el(e.s);if(src){src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
+          blog.innerHTML=`<b>${nameOf[e.s]||e.tag||'——'}</b> ${e.tag||'攻击'} <b>${nameOf[e.d]}</b>，造成 ${e.amt}${e.crit?' 暴击!':''}`;
+          if(e.kill)shake();
+        }
+        if(e.kill&&animate===false){tgt.classList.add('dead')}
+      }
+    }
+    if(e.t==='die'){const tgt=el(e.d);if(tgt)tgt.classList.add('dead');
+      if(animate)blog.innerHTML=`<b>${nameOf[e.d]}</b> 倒下了`;}
+    if(e.t==='revive'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead');
+      hpNow[e.d]=Math.ceil(hpMax[e.d]/2);
+      tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
+      if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false)}}}
+    if(e.t==='heal'){const tgt=el(e.d);if(tgt){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+e.amt);
+      tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
+      tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
+      if(animate)floatNum(tgt,'+'+e.amt,'#9fd49f')}}
+    if((e.t==='buff'||e.t==='debuff')&&animate){const tgt=el(e.d);
+      if(tgt)floatNum(tgt,e.txt,e.t==='buff'?'var(--gold2)':'var(--purple)')}
+    if(e.t==='shield'&&animate){const tgt=el(e.d);if(tgt){tgt.querySelector('.sh').style.display='';
+      floatNum(tgt,e.txt,'#9cc0e8')}}
+    if(e.t==='shieldHit'&&animate){const tgt=el(e.d);if(tgt)floatNum(tgt,'盾-'+e.amt,'#9cc0e8')}
+    if(e.t==='coin'&&animate){blog.innerHTML='车翻了，货还在：+1 铸币'}
+  }
+  function step(){
+    if(i>=result.log.length){finishBattle(pr,result,A,B);return}
+    const e=result.log[i++];
+    if(e.t==='end'){finishBattle(pr,result,A,B);return}
+    applyEntry(e,!PB.skip);
+    if(PB.skip){step()}else{PB.timer=setTimeout(step,e.t==='round'?stepDelay()*0.7:stepDelay())}
+  }
+  setTimeout(step,PB.skip?0:600);
+}
+
+function finishBattle(pr,result,A,B){
+  clearTimeout(PB.timer);
+  const pa=S.players[pr.a], pb=pr.b===-1?null:S.players[pr.b];
+  const crownVal=S.act===S.actsTotal?2:1;
+  // 伤害计入 MVP 台账
+  S.uidMeta=S.uidMeta||{};
+  A.forEach(f=>{if(!String(f.uid).startsWith('g'))S.uidMeta[f.uid]={n:f.n,owner:pa.name}});
+  B.forEach(f=>{if(!String(f.uid).startsWith('g'))S.uidMeta[f.uid]={n:f.n,owner:pb?pb.name:''}});
+  for(const uid in result.dmgByUid){
+    if(String(uid).startsWith('g'))continue;
+    S.dmgTally[uid]=(S.dmgTally[uid]||0)+result.dmgByUid[uid];
+  }
+  // 战斗中金币
+  pa.coins+=result.coinsGain[0]||0;
+  if(pb)pb.coins+=result.coinsGain[1]||0;
+  // 胜负结算
+  let txt='',winName='';
+  const reven=(p)=>{p.revenge=S.evFlags.crane?2:1;if(hasRelic(p,'goldleaf')){p.coins+=2}};
+  if(result.winner===0){pa.crowns+=crownVal;pa.wins++;winName=pa.name;
+    if(pb)reven(pb);txt=`${pa.name} 胜 · 王座分 +${crownVal}`}
+  else if(result.winner===1){
+    if(pb){pb.crowns+=crownVal;pb.wins++;winName=pb.name;txt=`${pb.name} 胜 · 王座分 +${crownVal}`}
+    else{txt='幽灵军获胜——黑域在笑';}
+    reven(pa);}
+  else{txt='平局 · 双方各获复仇火种';reven(pa);if(pb)reven(pb)}
+  // 成长（存活的新徒；挑战者队羁绊翻倍）
+  [[pa,A,result.surv[0]],[pb,B,result.surv[1]]].forEach(([p,fs,surv])=>{
+    if(!p)return;const dbl=synCount(p,'novice')>=2?2:1;
+    p.army.forEach(inst=>{
+      const u=UMAP[inst.id];
+      if(u.skill.k==='growth'&&surv.includes(inst.uid)){
+        inst.gAtk+=(u.skill.g.atk||0)*dbl;inst.gHp+=(u.skill.g.hp||0)*dbl;
+      }
+    });
+  });
+  pr.done=true;pr.r=txt.split(' · ')[0];
+  hud();save();
+  // 胜利横幅
+  const b=document.createElement('div');b.className='result-banner';
+  b.innerHTML=`<h1>${winName?winName+' 胜':'平 局'}</h1><p>${txt}</p><p class="hint">点击任意处继续</p>`;
+  document.body.appendChild(b);
+  flash(false);if(winName)burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],32);
+  b.onclick=()=>{b.remove();renderPairings()};
+}
+
+function actEnd(){
+  S.evFlags={};S.rage=Math.max(0,S.rage-2); // 幕间缓和
+  if(S.act>=S.actsTotal){finale();return}
+  S.act++;setAct(Math.min(S.act,3));
+  toast(`${ACT_CN[S.act]} · ${ACT_NAMES[S.act]} —— 军团上限 ${ARMY_CAP[Math.min(S.act,3)]}`,3000);
+  startWave();
+}
+
+/* ============================================================
+   叶王乱入（暴走槽满 · 取代本幕演武）
+   ============================================================ */
+function startBossSequence(){
+  S.phase='boss';S.bossPending=false;S.rage=0;save();setPhase('叶王乱入');
+  S.evLog.push('叶王乱入');
+  const veil=$('#boss-veil');
+  const bossArt=artURL('yewang')?`<div id="boss-art"><img src="${artURL('yewang')}" alt=""
+    onload="this.parentNode.classList.add('show')" onerror="this.parentNode.remove()"></div>`:'';
+  veil.innerHTML=`${bossArt}<div class="snake">🐍</div><h1>叶 王 乱 入</h1>
+    <p>石墙上的影子终于动了。答错的声音太多，把她引来了。<br>
+    本幕演武取消——<b style="color:var(--gold2)">全员各自迎击黑域侵攻</b>，守住的人获得王座分。</p>
+    <div class="stamp-list" id="stamps"></div>
+    <div class="btnrow" id="boss-btnrow" style="margin-top:30px">
+      <button class="btn gold big" id="btn-boss-fight">迎 击</button>
+    </div>`;
+  veil.classList.add('on');flash(true);shake();hud();
+  $('#btn-boss-fight').onclick=resolveBoss;
+}
+function resolveBoss(){
+  $('#boss-btnrow').innerHTML='';
+  const stamps=$('#stamps');stamps.innerHTML='';
+  const results=S.players.map(p=>{
+    if(!p.army.length)return {p,win:false};
+    const A=buildFighters(p,{});
+    const B=ghostFighters(BOSS_WAVE(S.act).units);
+    const r=simulateBattle(A,B,sideFlags(p),sideFlags(null),
+      mulberry32(S.seed+p.i*61+S.act*7),{});
+    return {p,win:r.winner===0};
+  });
+  results.forEach((res,k)=>{
+    setTimeout(()=>{
+      const d=document.createElement('div');d.className='stamp '+(res.win?'win':'lose');
+      d.innerHTML=`<div class="nm">${res.p.name}</div><div class="verdict">${res.win?'守 住 了':'失 守'}</div>`;
+      stamps.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));
+      if(res.win){burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#9fd49f'],18)}else{shake()}
+    },k*640);
+  });
+  setTimeout(()=>{
+    let anyWin=false;
+    results.forEach(res=>{
+      if(res.win){res.p.crowns+=1;res.p.wins++;anyWin=true}
+      else{res.p.revenge=Math.max(res.p.revenge,1)}
+    });
+    let capTxt='';
+    if(!anyWin){
+      // 全灭：叶王收走全场最强单位
+      let best=null,bestP=null,bestAtk=-1;
+      S.players.forEach(p=>p.army.forEach(inst=>{
+        const a=instBase(inst).atk;
+        if(a>bestAtk){bestAtk=a;best=inst;bestP=p}}));
+      if(best){bestP.army=bestP.army.filter(x=>x!==best);
+        S.captured={pi:bestP.i,inst:best};
+        capTxt=`<p style="color:var(--red2);margin-top:18px">全线失守。叶王把 <b>${UMAP[best.id].n}</b>（${bestP.name} 的单位）带走了——下一幕征募时可花 3 铸币赎回。</p>`;}
+    }
+    $('#boss-btnrow').insertAdjacentHTML('beforebegin',capTxt);
+    $('#boss-btnrow').innerHTML='<button class="btn gold big" id="btn-boss-done">她走了 · 继续</button>';
+    $('#btn-boss-done').onclick=()=>{$('#boss-veil').classList.remove('on');actEnd()};
+    hud();save();
+  },results.length*640+700);
+}
+
+/* ============================================================
+   终局 · 加冕 & 战报卡
+   ============================================================ */
+function finalSort(){return [...S.players].sort((a,b)=>b.crowns-a.crowns||b.coins-a.coins||b.wins-a.wins)}
+function finale(){
+  S.phase='final';setPhase('加冕');save();
+  const sorted=finalSort();
+  const pod=$('#podium');pod.innerHTML='';
+  const medals=['🥇','🥈','🥉'];
+  const top=sorted.slice(0,3);
+  const order=top.length>=3?[top[1],top[0],top[2]]:top;
+  order.forEach(p=>{
+    const rank=sorted.indexOf(p);
+    const d=document.createElement('div');d.className='pod stag'+(rank===0?' first':'');
+    d.innerHTML=`<div class="medal">${medals[rank]||''}</div><h3>${p.name}</h3>
+      <div class="sc">♛ ${p.crowns} · ◈ ${p.coins}</div>
+      <div class="army-line">${p.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div>`;
+    pod.appendChild(d);
+  });
+  drawReport(sorted);
+  go('final');
+  flash(false);shake();
+  burst(innerWidth/2,innerHeight/4,['#c9a64a','#e8c768','#fff','#9cc0e8','#d56060'],44);
+  clearSave();
+}
+function mvpInfo(){
+  let best=null,amt=0;
+  for(const uid in (S.dmgTally||{})){
+    if(S.dmgTally[uid]>amt){amt=S.dmgTally[uid];best=uid}}
+  if(!best||!S.uidMeta||!S.uidMeta[best])return null;
+  return {...S.uidMeta[best],amt};
+}
+async function drawReport(sorted){
+  const cv=$('#report-canvas'),ctx=cv.getContext('2d');
+  const W=cv.width,H=cv.height;
+  // 背景：断云青蓝渐变
+  const g=ctx.createLinearGradient(0,0,0,H);
+  g.addColorStop(0,'#12262a');g.addColorStop(.55,'#1c3a50');g.addColorStop(1,'#27455f');
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  // 云雾光斑
+  const blob=(x,y,r,c)=>{const rg=ctx.createRadialGradient(x,y,0,x,y,r);
+    rg.addColorStop(0,c);rg.addColorStop(1,'rgba(0,0,0,0)');ctx.fillStyle=rg;ctx.fillRect(x-r,y-r,r*2,r*2)};
+  blob(W*.2,H*.16,320,'rgba(150,190,230,.10)');
+  blob(W*.85,H*.5,360,'rgba(201,166,74,.08)');
+  blob(W*.4,H*.9,400,'rgba(201,166,74,.09)');
+  // 金框
+  ctx.strokeStyle='rgba(201,166,74,.8)';ctx.lineWidth=3;ctx.strokeRect(28,28,W-56,H-56);
+  ctx.strokeStyle='rgba(201,166,74,.28)';ctx.lineWidth=1;ctx.strokeRect(40,40,W-80,H-80);
+  const gold='#e8c768',ink='#eee8d8',ink2='#a8a294';
+  const serif=(s,w)=>`${w||400} ${s}px "Noto Serif SC","Songti SC","STSong",serif`;
+  ctx.textAlign='center';
+  // 标题
+  ctx.fillStyle=gold;ctx.font=serif(74,300);
+  ctx.fillText('自 鸣 棋',W/2,150);
+  ctx.fillStyle=ink2;ctx.font=serif(26);
+  ctx.fillText('MYSKME 自鸣棋 · 演武战报 · '+new Date().toLocaleDateString('zh-CN'),W/2,196);
+  // 分隔
+  ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,232);ctx.lineTo(W-120,232);ctx.stroke();
+  // 冠军
+  const champ=sorted[0];
+  ctx.fillStyle=gold;ctx.font=serif(40);ctx.fillText('♛',W/2,300);
+  ctx.fillStyle=ink;ctx.font=serif(64,500);ctx.fillText(champ.name,W/2,372);
+  ctx.fillStyle=ink2;ctx.font=serif(26);
+  ctx.fillText(`王座分 ${champ.crowns} · 战胜 ${champ.wins} 场 · 铸币 ${champ.coins}`,W/2,412);
+  // 冠军军团徽章
+  const army=champ.army;
+  const bw=110,gap=20,total=army.length*bw+(army.length-1)*gap;
+  let x0=(W-total)/2;
+  const arts=await Promise.all(army.map(inst=>loadArt(inst.id))); // 有立绘画立绘，无则字形
+  army.forEach((inst,ai)=>{
+    const u=UMAP[inst.id];
+    const im=arts[ai];
+    if(im&&im.width){
+      const s=Math.min(im.width,im.height);
+      ctx.save();ctx.beginPath();ctx.rect(x0,452,bw,bw);ctx.clip();
+      ctx.drawImage(im,(im.width-s)/2,0,s,s,x0,452,bw,bw);ctx.restore();
+    }else{
+      ctx.fillStyle=u.fac==='dark'?'#b48ae0':gold;ctx.font=serif(56,300);
+      ctx.fillText(u.n[0],x0+bw/2,452+bw/2+20);
+    }
+    ctx.strokeStyle='rgba(201,166,74,.7)';ctx.lineWidth=2;
+    ctx.strokeRect(x0,452,bw,bw);
+    ctx.strokeStyle='rgba(201,166,74,.25)';ctx.lineWidth=1;ctx.strokeRect(x0+7,459,bw-14,bw-14);
+    if(inst.star===2){ctx.fillStyle=gold;ctx.font=serif(22);ctx.fillText('★',x0+bw-16,452+24)}
+    ctx.fillStyle=ink2;ctx.font=serif(20);ctx.fillText(u.n,x0+bw/2,452+bw+30);
+    x0+=bw+gap;
+  });
+  let y=army.length?660:520;
+  // MVP
+  const mvp=mvpInfo();
+  ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,y);ctx.lineTo(W-120,y);ctx.stroke();
+  y+=64;
+  ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('本局 MVP 单位',W/2,y);y+=52;
+  ctx.fillStyle=ink;ctx.font=serif(40,500);
+  ctx.fillText(mvp?`${mvp.n} —— 总输出 ${mvp.amt}（${mvp.owner} 麾下）`:'战场太安静，无人称雄',W/2,y);
+  y+=70;
+  // 命运回放
+  ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('命运回放',W/2,y);y+=46;
+  ctx.fillStyle=ink2;ctx.font=serif(26);
+  const evs=(S.evLog||[]).slice(-4);
+  ctx.fillText(evs.length?evs.join(' · '):'诸神今日沉默',W/2,y);
+  y+=72;
+  // 排名
+  ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,y-30);ctx.lineTo(W-120,y-30);ctx.stroke();
+  ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('终 榜',W/2,y+14);y+=64;
+  sorted.forEach((p,k)=>{
+    ctx.fillStyle=k===0?gold:ink;ctx.font=serif(30,k===0?500:400);
+    ctx.fillText(`${k+1} · ${p.name} —— ♛${p.crowns}　◈${p.coins}`,W/2,y);y+=46;
+  });
+  // 页脚
+  ctx.fillStyle=ink2;ctx.font=serif(22);
+  ctx.fillText('「拒绝一切死板的教条。世界值得有趣地活一次。」',W/2,H-140);
+  ctx.fillStyle=gold;ctx.font=serif(24,500);
+  ctx.fillText('MAKE YOURSELF SPECIAL & KIND',W/2,H-96);
+  ctx.fillStyle=ink2;ctx.font=serif(20);
+  ctx.fillText('MYSKME · Mr. Wang',W/2,H-64);
+}
+$('#btn-save-report').onclick=()=>{
+  const a=document.createElement('a');
+  a.download='MYSKME自鸣棋战报_'+new Date().toISOString().slice(0,10)+'.png';
+  a.href=$('#report-canvas').toDataURL('image/png');a.click();
+  toast('战报卡已保存——发到家长群里去吧');
+};
+
+/* ============================================================
+   菜单 / 玩法说明 / 启动
+   ============================================================ */
+function showHowto(){
+  modal(`<h3>玩法与课堂说明</h3>
+  <h4>一局怎么跑（一节课 30–40 分钟）</h4>
+  开局每人<b>免费点将</b>一名学员。之后三幕循环：<b>答题波 → 征募 → 命运事件 → 演武</b>。
+  每幕开局公布<b>宿敌预告</b>（本幕演武打谁）——答题赚钱、征募补强，都冲着那一场去。
+  题在老师手里（口头 / 试卷 / 黑板都行），屏幕上只做判定：答对 +2 铸币、难题 +3、抢答再 +1；
+  答错不扣分，但喂满「暴走槽」会引来叶王乱入。
+  <h4>征募（三选一）</h4>
+  按排名<b>从后往前</b>轮流选卡——落后者先挑。买到同名第二张自动<b>合星 ★2</b>（属性 ×1.8）。
+  存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。
+  <h4>站位（一句话策略）</h4>
+  军团从左到右站队：<b>最左是前排，先挨打</b>；狙击类技能专打最后排。
+  征募时用 ◀ ▶ 调站位——坦克顶前面、脆皮藏后面、怕狙击就别把宝贝放最后。
+  <h4>演武（自动对战）</h4>
+  邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
+  胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
+  <h4>六系羁绊（同系 2 名不同单位即触发）</h4>
+  学院：全队 +3 生命 ｜ 天之国：全队 +1 速 ｜ 海族：阵亡溅射 ｜
+  摇摆队：每幕 +2 铸币 ｜ 黑域：黑域 +2 攻但每幕 -1 币 ｜ 挑战者队：成长翻倍
+  <h4>老师小抄</h4>
+  · 课堂节奏慢：调低暴走阈值到 6，乱入更早出现，气氛立刻紧张<br>
+  · 学生水平差距大：多用「抢答 +1」给基础题，难题留给领先者<br>
+  · 赶时间：开局选「两幕 · 快课」；战斗里随时可点「跳过演出」<br>
+  · 断电 / 误关：进度自动保存，回到标题点「续局」即可
+  <h4>世界观</h4>
+  取材《狼先生与他的学生们 · 世界编年史》：光明学员、摇摆队④、挑战者队⑤与黑域诸将同池征募——
+  黑域单位更强，但各有代价。叶王不可征募，她只在你们答错太多时，亲自来。`);
+}
+function showMenu(){
+  modal(`<h3>菜 单</h3>
+  <div class="btnrow" style="flex-direction:column;align-items:center">
+    <button class="btn" onclick="closeModal();showHowto()">玩法与课堂说明</button>
+    <button class="btn" onclick="closeModal();showUnits()">单位与遗物图鉴</button>
+    <button class="btn" onclick="closeModal();go('title')">回到标题（进度已存）</button>
+    <button class="btn danger" onclick="if(confirm('确定放弃本局？存档将清空')){clearSave();location.reload()}">放弃本局</button>
+  </div>`);
+}
+function showUnits(){
+  const rows=Object.keys(FACS).map(fk=>{
+    const us=UNITS.filter(u=>u.fac===fk);
+    return `<h4>${FACS[fk].n} —— ${FACS[fk].syn}</h4>`+us.map(u=>
+      `<div style="margin:4px 0;font-size:13.5px"><b style="color:var(--gold2)">${u.n}</b>
+       <span style="color:var(--ink3)">[${u.rar}·${u.cost}币]</span>
+       ⚔${u.atk} ♥${u.hp} »${u.spd} —— ${u.skill.t}</div>`).join('');
+  }).join('');
+  const relics=RELICS.map(r=>`<div style="margin:3px 0;font-size:13.5px">${r.icon} <b style="color:var(--gold2)">${r.n}</b> —— ${r.t}</div>`).join('');
+  modal(`<h3>单位与遗物图鉴</h3>${rows}<h4>遗物（3 币，翻到才有）</h4>${relics}`);
+}
+$('#btn-howto').onclick=showHowto;
+$('#btn-menu').onclick=showMenu;
+
+(function boot(){
+  if(loadSave())$('#btn-continue').style.display='';
+  renderSetup();
+  // 标题主视觉：assets/title-kv.webp 存在则亮出
+  const kv=$('#title-kv'),u=artURL('title');
+  if(kv&&u){const im=kv.querySelector('img');
+    im.onload=()=>kv.classList.add('show');im.src=u}
+})();
+</script>
+</body>
+</html>
