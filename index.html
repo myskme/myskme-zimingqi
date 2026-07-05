@@ -213,6 +213,24 @@ body.playing #hud{display:flex}
 .r-SSR .glyph{color:var(--gold);text-shadow:0 0 12px rgba(201,166,74,.55)}
 .r-UR .glyph{color:#fff;text-shadow:0 0 12px var(--gold),0 0 34px var(--gold)}
 /* UR 呼吸感改由虚线环旋转承担（text-shadow 逐帧动画在投影设备上代价过高，已移除） */
+/* —— 稀有度框材质分级：靠边框/内线/光晕在投屏+偏色+后排下可辨识，不只靠字色 —— */
+.badge.r-R{border-color:rgba(143,184,232,.5);box-shadow:inset 0 0 0 1px rgba(143,184,232,.16)}
+.badge.r-SR{border-color:rgba(157,114,214,.6);
+  box-shadow:inset 0 0 0 1px rgba(157,114,214,.24),0 0 15px rgba(157,114,214,.16)}
+.badge.r-SSR{border-color:var(--gold);
+  box-shadow:inset 0 0 0 1px rgba(201,166,74,.5),0 0 22px rgba(201,166,74,.32)}
+.badge.r-UR{border-color:var(--gold2);
+  box-shadow:inset 0 0 0 1px rgba(232,199,104,.65),0 0 30px rgba(201,166,74,.55)}
+/* SSR 四角金三角（UR 用旋转虚线环作签名，不叠角标） */
+.badge.r-SSR::after{content:'';position:absolute;inset:2px;pointer-events:none;opacity:.8;z-index:3;
+  background:
+    linear-gradient(135deg,var(--gold) 0 6px,transparent 6px) top left/11px 11px no-repeat,
+    linear-gradient(225deg,var(--gold) 0 6px,transparent 6px) top right/11px 11px no-repeat,
+    linear-gradient(45deg,var(--gold) 0 6px,transparent 6px) bottom left/11px 11px no-repeat,
+    linear-gradient(315deg,var(--gold) 0 6px,transparent 6px) bottom right/11px 11px no-repeat}
+/* 征募卡整卡光晕：SSR 金晕 / UR 白金晕（投屏一眼看出这是稀有卡） */
+.offer.rare-SSR{box-shadow:0 0 0 1px rgba(201,166,74,.4),0 14px 40px rgba(201,166,74,.14)}
+.offer.rare-UR{box-shadow:0 0 0 1px rgba(232,199,104,.6),0 14px 46px rgba(201,166,74,.24)}
 .offer h3{margin:10px 0 2px;font-weight:500;letter-spacing:.16em;font-size:19px}
 .offer .rar-tag{font-size:10.5px;letter-spacing:.3em;color:var(--ink3)}
 .offer .stats{display:flex;justify-content:center;gap:13px;margin:9px 0;font-family:var(--mono);font-size:14.5px}
@@ -378,9 +396,10 @@ body.playing #hud{display:flex}
 #title-kv.show{display:block;animation:scrIn .8s both}
 #title-kv img{width:100%;display:block;border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.45)}
 .badge .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:2}
-.u .face{position:relative;height:48px;margin:-8px -4px 2px;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.35)}
-.u .face .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center}
-.u .face .g{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.u .face{position:relative;height:112px;margin:-8px -4px 3px;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.35);
+  -webkit-mask:linear-gradient(#000 80%,transparent);mask:linear-gradient(#000 80%,transparent)}
+.u .face .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
+.u .face .g{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:40px}
 .ev-front .ev-art{position:absolute;inset:0;overflow:hidden;z-index:0}
 .ev-front .ev-art img{width:100%;height:100%;object-fit:cover;opacity:.26}
 .ev-front h3,.ev-front p,.ev-front .ev-icon{position:relative;z-index:1}
@@ -392,6 +411,7 @@ body.playing #hud{display:flex}
   main{padding:12px 10px 40px}
   #offers{grid-template-columns:1fr;max-width:340px;margin:0 auto}
   .u{width:62px}.u .g{font-size:22px}.u .num{font-size:10px;gap:4px}
+  .u .face{height:82px}.u .face .g{font-size:30px}
   #arena{gap:2vw}
   .side{gap:5px}
   #hud{flex-wrap:wrap;gap:8px}
@@ -732,6 +752,63 @@ function closeModal(){$('#modal-veil').classList.remove('on')}
 $('#modal-veil').addEventListener('click',e=>{if(e.target.id==='modal-veil')closeModal()});
 
 /* ============================================================
+   音效层 · 零依赖 WebAudio 程序化合成（8-bit 街机质感）
+   无外部资源、不循环 BGM（不干扰老师讲话）；静音状态存 localStorage。
+   ============================================================ */
+const SFX=(function(){
+  let ctx=null, muted=(localStorage.getItem('zmq_mute')==='1');
+  function ac(){ if(!ctx){ try{const C=window.AudioContext||window.webkitAudioContext;ctx=C?new C():null}catch(e){ctx=null} } return ctx }
+  function unlock(){ const c=ac(); if(c&&c.state==='suspended')c.resume() }
+  function tone(freq,dur,type,vol,when,glide){
+    const c=ac(); if(!c||muted)return;
+    const t0=c.currentTime+(when||0);
+    const o=c.createOscillator(),g=c.createGain();
+    o.type=type||'square'; o.frequency.setValueAtTime(freq,t0);
+    if(glide)o.frequency.exponentialRampToValueAtTime(Math.max(1,glide),t0+dur);
+    g.gain.setValueAtTime(0.0001,t0);
+    g.gain.exponentialRampToValueAtTime(vol||0.14,t0+0.008);
+    g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+    o.connect(g);g.connect(c.destination);
+    o.start(t0);o.stop(t0+dur+0.03);
+  }
+  function noise(dur,vol,cut,when){ // 打击/阵亡的噪声层
+    const c=ac(); if(!c||muted)return;
+    const t0=c.currentTime+(when||0),n=Math.max(1,Math.floor(c.sampleRate*dur));
+    const buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
+    const s=c.createBufferSource();s.buffer=buf;
+    const g=c.createGain();g.gain.value=vol||0.2;
+    const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=cut||900;
+    s.connect(lp);lp.connect(g);g.connect(c.destination);s.start(t0);
+  }
+  const seq=(notes,type,vol,step)=>notes.forEach((f,i)=>tone(f,(step||0.12)*1.15,type||'triangle',vol||0.12,i*(step||0.12)));
+  const lib={
+    hit(){ tone(200+Math.random()*40,0.07,'square',0.09) },
+    crit(){ tone(880,0.05,'square',0.15); tone(1320,0.11,'square',0.13,0.04) },
+    kill(){ noise(0.24,0.28,1200); tone(140,0.2,'sawtooth',0.12,0,60) },
+    shield(){ tone(520,0.13,'triangle',0.10,0,760) },
+    heal(){ tone(600,0.1,'sine',0.09,0,780); tone(780,0.12,'sine',0.08,0.06) },
+    coin(){ tone(880,0.05,'square',0.10); tone(1180,0.09,'square',0.09,0.05) },
+    merge(){ seq([523,659,784,1047],'triangle',0.13,0.07) },
+    revive(){ tone(392,0.16,'sine',0.10,0,470); tone(523,0.18,'sine',0.10,0.09,620) },
+    boss(){ tone(70,0.7,'sawtooth',0.20,0,40); noise(0.5,0.18,600) },
+    rage(){ tone(190,0.14,'square',0.14); tone(190,0.14,'square',0.14,0.2) },
+    win(){ seq([523,659,784,1047,1319],'triangle',0.14,0.09) },
+    crown(){ seq([392,523,659,784,1047],'sine',0.13,0.13); tone(1568,0.5,'sine',0.12,0.66) },
+    lose(){ tone(300,0.2,'sawtooth',0.12,0,150) },
+    click(){ tone(330,0.04,'square',0.06) },
+  };
+  return {
+    play(n){ try{ if(!muted&&lib[n])lib[n]() }catch(e){} },
+    unlock,
+    toggle(){ muted=!muted; localStorage.setItem('zmq_mute',muted?'1':'0'); return muted },
+    isMuted(){ return muted },
+  };
+})();
+// 首次用户手势解锁 AudioContext（老师任意点击/按键都兜底，含续局直接进战斗的入口）
+['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>SFX.unlock(),{passive:true}));
+
+/* ============================================================
    美术资源映射层
    Codex 出图后放进 assets/ 即自动生效；缺图自动回退字形徽章。
    文件名与《Codex 美术生产指令》清单一一对应，不要改名。
@@ -801,7 +878,8 @@ function newState(names,acts,rageMax,eventsOn){
     draftQueue:[], draftIdx:0, offers:[], offersSold:[], rerollFreeUsed:false,
     // 演武运行时
     pairs:[], battleIdx:0, actEvent:null, evFlags:{},
-    dmgTally:{}, mvp:null, evLog:[], bossPending:false, bossDone:false,
+    dmgTally:{}, mvp:null, evLog:[], bossPending:false, bossDone:false, bossResolved:false,
+    undoStack:[],
     seed: Date.now()%2147483647,
   };
 }
@@ -869,7 +947,7 @@ function resumePhase(){
     draft:()=>{setPhase('征募');renderDraft();go('draft')},
     event:()=>startEvent(),
     battle:()=>{setPhase('演武');renderPairings();go('battle')},
-    boss:()=>startBossSequence(),
+    boss:()=>{ if(S.bossResolved){$('#boss-veil').classList.remove('on');actEnd()} else startBossSequence() },
     final:()=>finale(),
   };
   (map[S.phase]||startWave)();
@@ -879,14 +957,14 @@ $('#btn-again').onclick=()=>{clearSave();location.reload()};
 /* ============================================================
    答题波
    ============================================================ */
-let undoStack=[];
+// 撤销栈现居于 S.undoStack（随存档持久化，续局后仍可撤销）
 function startWave(){
   S.phase='wave';
   // 宿敌预告：幕初即锁定本幕演武配对（杀戮尖塔式地图可见性——目标可见，行动才有方向）
   S.pairs=computeActPairs();
   save();
   $('#wave-title').innerHTML=`${ACT_CN[S.act]} · <em>${ACT_NAMES[S.act]}</em>`;
-  setPhase('答题波');undoStack=[];
+  setPhase('答题波');S.undoStack=[];
   renderWave();go('wave');hud();
 }
 function computeActPairs(){
@@ -925,13 +1003,15 @@ function judge(pi,act,btnEl){
   const p=S.players[pi];const gain={ok:2,hard:3,snap:1,bad:0}[act];
   if(act==='bad'){
     if(S.rageMax){S.rage=Math.min(S.rageMax,S.rage+1);
-      if(S.rage>=S.rageMax){S.bossPending=true;toast('⚠ 暴走槽已满——叶王将在本幕演武乱入！',3200);flash(true);shake()}}
+      if(S.rage>=S.rageMax){S.bossPending=true;toast('⚠ 暴走槽已满——叶王将在本幕演武乱入！',3200);flash(true);shake();SFX.play('boss')}
+      else if(S.rage>=S.rageMax-2){SFX.play('rage')}else{SFX.play('click')}}
     floatNum(btnEl.closest('.pcard'),'暴走+1','var(--red2)');
   }else{
     p.coins+=gain;
     floatNum(btnEl.closest('.pcard'),'+'+gain+'◈','var(--gold2)');
+    SFX.play('coin');
   }
-  S.waveJudge++;undoStack.push({pi,act});
+  S.waveJudge++;(S.undoStack||(S.undoStack=[])).push({pi,act});
   renderWaveNumbersOnly();hud();save();
 }
 function renderWaveNumbersOnly(){
@@ -942,7 +1022,7 @@ function renderWaveNumbersOnly(){
   });
 }
 $('#btn-undo').onclick=()=>{
-  const last=undoStack.pop();if(!last){toast('没有可撤销的判定');return}
+  const last=(S.undoStack||[]).pop();if(!last){toast('没有可撤销的判定');return}
   const p=S.players[last.pi];const gain={ok:2,hard:3,snap:1,bad:0}[last.act];
   if(last.act==='bad'){if(S.rageMax){S.rage=Math.max(0,S.rage-1);if(S.rage<S.rageMax)S.bossPending=false}}
   else p.coins=Math.max(0,p.coins-gain);
@@ -958,14 +1038,16 @@ $('#btn-wheel').onclick=()=>{$('#wheel-veil').classList.add('on');$('#wheel-name
 $('#btn-wheel-close').onclick=()=>{clearInterval(wheelTimer);$('#wheel-veil').classList.remove('on')};
 $('#btn-wheel-go').onclick=()=>{
   clearInterval(wheelTimer);
+  // 点名转盘用独立随机（Math.random），不消费玩法 rng 流——否则摇转盘会推进征募抽卡序列，破坏保底/公平的确定性
+  const wri=n=>Math.floor(Math.random()*n);
   const pool=[...S.players.map(p=>p.name),'全员抢答！'];
   const el=$('#wheel-name');el.classList.remove('locked');
-  let t=0,total=22+ri(12);
+  let t=0,total=22+wri(12);
   wheelTimer=setInterval(()=>{
-    t++;el.textContent=pool[ri(pool.length)];
+    t++;el.textContent=pool[wri(pool.length)];SFX.play('click');
     if(t>=total){clearInterval(wheelTimer);
-      const final=(rng()<0.16)?'全员抢答！':S.players[ri(S.players.length)].name;
-      el.textContent=final;el.classList.add('locked');
+      const final=(Math.random()<0.16)?'全员抢答！':S.players[wri(S.players.length)].name;
+      el.textContent=final;el.classList.add('locked');SFX.play('coin');
       if(final==='全员抢答！')flash(false);
     }
   },70+t*2);
@@ -1062,6 +1144,7 @@ function renderDraft(fresh){
     d.style.animationDelay=(idx*0.08)+'s';
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
+      if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
       const willMerge=!origin&&p.army.some(a=>a.id===u.id&&a.star===1);
       d.innerHTML=`
         <div class="fac f-${u.fac}">${FACS[u.fac].n}</div>
@@ -1148,7 +1231,7 @@ function buyUnit(idx,u,price){
   if(!mergeTarget&&p.army.length>=cap){toast('军团已满：点下方成员可出售腾位');return}
   p.coins-=price;S.offersSold[idx]=true;
   if(mergeTarget){mergeTarget.star=2;
-    flash(false);shake();toast(`★ ${u.n} 合星！属性大幅提升`,2600);
+    flash(false);shake();toast(`★ ${u.n} 合星！属性大幅提升`,2600);SFX.play('merge');
     burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#fff'],30);
   }else{p.army.push(mkInst(u.id));toast(`${u.n} 入队`)}
   renderDraft();hud();save();
@@ -1491,7 +1574,8 @@ function playBattle(pr){
           floatNum(tgt,'-'+e.amt+(e.crit?'!':''),e.crit?'#ffd075':'var(--red2)',e.crit);
           if(e.s){const src=el(e.s);if(src){src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
           blog.innerHTML=`<b>${nameOf[e.s]||e.tag||'——'}</b> ${e.tag||'攻击'} <b>${nameOf[e.d]}</b>，造成 ${e.amt}${e.crit?' 暴击!':''}`;
-          if(e.kill)shake();
+          SFX.play(e.crit?'crit':'hit');
+          if(e.kill){shake();SFX.play('kill')}
         }
         if(e.kill&&animate===false){tgt.classList.add('dead')}
       }
@@ -1501,15 +1585,15 @@ function playBattle(pr){
     if(e.t==='revive'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead');
       hpNow[e.d]=Math.ceil(hpMax[e.d]/2);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
-      if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false)}}}
+      if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false);SFX.play('revive')}}}
     if(e.t==='heal'){const tgt=el(e.d);if(tgt){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+e.amt);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
       tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
-      if(animate)floatNum(tgt,'+'+e.amt,'#9fd49f')}}
+      if(animate){floatNum(tgt,'+'+e.amt,'#9fd49f');SFX.play('heal')}}}
     if((e.t==='buff'||e.t==='debuff')&&animate){const tgt=el(e.d);
       if(tgt)floatNum(tgt,e.txt,e.t==='buff'?'var(--gold2)':'var(--purple)')}
     if(e.t==='shield'&&animate){const tgt=el(e.d);if(tgt){tgt.querySelector('.sh').style.display='';
-      floatNum(tgt,e.txt,'#9cc0e8')}}
+      floatNum(tgt,e.txt,'#9cc0e8');SFX.play('shield')}}
     if(e.t==='shieldHit'&&animate){const tgt=el(e.d);if(tgt)floatNum(tgt,'盾-'+e.amt,'#9cc0e8')}
     if(e.t==='coin'&&animate){blog.innerHTML='车翻了，货还在：+1 铸币'}
   }
@@ -1564,7 +1648,7 @@ function finishBattle(pr,result,A,B){
   const b=document.createElement('div');b.className='result-banner';
   b.innerHTML=`<h1>${winName?winName+' 胜':'平 局'}</h1><p>${txt}</p><p class="hint">点击任意处继续</p>`;
   document.body.appendChild(b);
-  flash(false);if(winName)burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],32);
+  flash(false);if(winName){burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],32);SFX.play('win')}else{SFX.play('lose')}
   b.onclick=()=>{b.remove();renderPairings()};
 }
 
@@ -1580,7 +1664,7 @@ function actEnd(){
    叶王乱入（暴走槽满 · 取代本幕演武）
    ============================================================ */
 function startBossSequence(){
-  S.phase='boss';S.bossPending=false;S.rage=0;save();setPhase('叶王乱入');
+  S.phase='boss';S.bossPending=false;S.rage=0;S.bossResolved=false;save();setPhase('叶王乱入');
   S.evLog.push('叶王乱入');
   const veil=$('#boss-veil');
   const bossArt=artURL('yewang')?`<div id="boss-art"><img src="${artURL('yewang')}" alt=""
@@ -1592,7 +1676,7 @@ function startBossSequence(){
     <div class="btnrow" id="boss-btnrow" style="margin-top:30px">
       <button class="btn gold big" id="btn-boss-fight">迎 击</button>
     </div>`;
-  veil.classList.add('on');flash(true);shake();hud();
+  veil.classList.add('on');flash(true);shake();hud();SFX.play('boss');
   $('#btn-boss-fight').onclick=resolveBoss;
 }
 function resolveBoss(){
@@ -1611,30 +1695,35 @@ function resolveBoss(){
       const d=document.createElement('div');d.className='stamp '+(res.win?'win':'lose');
       d.innerHTML=`<div class="nm">${res.p.name}</div><div class="verdict">${res.win?'守 住 了':'失 守'}</div>`;
       stamps.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));
-      if(res.win){burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#9fd49f'],18)}else{shake()}
+      if(res.win){burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#9fd49f'],18);SFX.play('win')}else{shake();SFX.play('lose')}
     },k*640);
   });
   setTimeout(()=>{
-    let anyWin=false;
-    results.forEach(res=>{
-      if(res.win){res.p.crowns+=1;res.p.wins++;anyWin=true}
-      else{res.p.revenge=Math.max(res.p.revenge,1)}
-    });
     let capTxt='';
-    if(!anyWin){
-      // 全灭：叶王收走全场最强单位
-      let best=null,bestP=null,bestAtk=-1;
-      S.players.forEach(p=>p.army.forEach(inst=>{
-        const a=instBase(inst).atk;
-        if(a>bestAtk){bestAtk=a;best=inst;bestP=p}}));
-      if(best){bestP.army=bestP.army.filter(x=>x!==best);
-        S.captured={pi:bestP.i,inst:best};
-        capTxt=`<p style="color:var(--red2);margin-top:18px">全线失守。叶王把 <b>${UMAP[best.id].n}</b>（${bestP.name} 的单位）带走了——下一幕征募时可花 3 铸币赎回。</p>`;}
+    // 发奖幂等哨兵：结算只做一次。若老师在"发奖后、点继续前"断电续局，
+    // resumePhase 检测 bossResolved 直接走 actEnd，绝不重打/二次发奖/二次扣卡。
+    if(!S.bossResolved){
+      const crownVal=S.act===S.actsTotal?2:1; // 终幕守住与 PvP 对齐（+2），消除终幕王座分断崖
+      let anyWin=false;
+      results.forEach(res=>{
+        if(res.win){res.p.crowns+=crownVal;res.p.wins++;anyWin=true}
+        else{res.p.revenge=Math.max(res.p.revenge,1)}
+      });
+      if(!anyWin){
+        // 全灭：叶王收走全场最强单位
+        let best=null,bestP=null,bestAtk=-1;
+        S.players.forEach(p=>p.army.forEach(inst=>{
+          const a=instBase(inst).atk;
+          if(a>bestAtk){bestAtk=a;best=inst;bestP=p}}));
+        if(best){bestP.army=bestP.army.filter(x=>x!==best);
+          S.captured={pi:bestP.i,inst:best};
+          capTxt=`<p style="color:var(--red2);margin-top:18px">全线失守。叶王把 <b>${UMAP[best.id].n}</b>（${bestP.name} 的单位）带走了——下一幕征募时可花 3 铸币赎回。</p>`;}
+      }
+      S.bossResolved=true;hud();save();
     }
     $('#boss-btnrow').insertAdjacentHTML('beforebegin',capTxt);
     $('#boss-btnrow').innerHTML='<button class="btn gold big" id="btn-boss-done">她走了 · 继续</button>';
     $('#btn-boss-done').onclick=()=>{$('#boss-veil').classList.remove('on');actEnd()};
-    hud();save();
   },results.length*640+700);
 }
 
@@ -1659,7 +1748,7 @@ function finale(){
   });
   drawReport(sorted);
   go('final');
-  flash(false);shake();
+  flash(false);shake();SFX.play('crown');
   burst(innerWidth/2,innerHeight/4,['#c9a64a','#e8c768','#fff','#9cc0e8','#d56060'],44);
   clearSave();
 }
@@ -1798,6 +1887,7 @@ function showMenu(){
   <div class="btnrow" style="flex-direction:column;align-items:center">
     <button class="btn" onclick="closeModal();showHowto()">玩法与课堂说明</button>
     <button class="btn" onclick="closeModal();showUnits()">单位与遗物图鉴</button>
+    <button class="btn" onclick="SFX.toggle();closeModal();showMenu()">${SFX.isMuted()?'🔕 音效：关（点击开启）':'🔔 音效：开（点击静音）'}</button>
     <button class="btn" onclick="closeModal();go('title')">回到标题（进度已存）</button>
     <button class="btn danger" onclick="if(confirm('确定放弃本局？存档将清空')){clearSave();location.reload()}">放弃本局</button>
   </div>`);
