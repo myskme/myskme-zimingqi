@@ -213,21 +213,14 @@ body.playing #hud{display:flex}
 .r-SSR .glyph{color:var(--gold);text-shadow:0 0 12px rgba(201,166,74,.55)}
 .r-UR .glyph{color:#fff;text-shadow:0 0 12px var(--gold),0 0 34px var(--gold)}
 /* UR 呼吸感改由虚线环旋转承担（text-shadow 逐帧动画在投影设备上代价过高，已移除） */
-/* —— 稀有度框材质分级：靠边框/内线/光晕在投屏+偏色+后排下可辨识，不只靠字色 —— */
-.badge.r-R{border-color:rgba(143,184,232,.5);box-shadow:inset 0 0 0 1px rgba(143,184,232,.16)}
-.badge.r-SR{border-color:rgba(157,114,214,.6);
-  box-shadow:inset 0 0 0 1px rgba(157,114,214,.24),0 0 15px rgba(157,114,214,.16)}
+/* —— 稀有度边框：靠边框颜色+粗细+外发光在投屏/偏色/后排下可辨；只在边缘，不遮挡立绘 —— */
+.badge.r-R{border-color:rgba(143,184,232,.6);box-shadow:inset 0 0 0 1px rgba(143,184,232,.32)}
+.badge.r-SR{border-color:rgba(157,114,214,.72);
+  box-shadow:inset 0 0 0 2px rgba(157,114,214,.4),0 0 14px rgba(157,114,214,.2)}
 .badge.r-SSR{border-color:var(--gold);
-  box-shadow:inset 0 0 0 1px rgba(201,166,74,.5),0 0 22px rgba(201,166,74,.32)}
+  box-shadow:inset 0 0 0 2px rgba(201,166,74,.62),0 0 22px rgba(201,166,74,.34)}
 .badge.r-UR{border-color:var(--gold2);
-  box-shadow:inset 0 0 0 1px rgba(232,199,104,.65),0 0 30px rgba(201,166,74,.55)}
-/* SSR 四角金三角（UR 用旋转虚线环作签名，不叠角标） */
-.badge.r-SSR::after{content:'';position:absolute;inset:2px;pointer-events:none;opacity:.8;z-index:3;
-  background:
-    linear-gradient(135deg,var(--gold) 0 6px,transparent 6px) top left/11px 11px no-repeat,
-    linear-gradient(225deg,var(--gold) 0 6px,transparent 6px) top right/11px 11px no-repeat,
-    linear-gradient(45deg,var(--gold) 0 6px,transparent 6px) bottom left/11px 11px no-repeat,
-    linear-gradient(315deg,var(--gold) 0 6px,transparent 6px) bottom right/11px 11px no-repeat}
+  box-shadow:inset 0 0 0 2px rgba(232,199,104,.74),0 0 32px rgba(201,166,74,.6)}
 /* 征募卡整卡光晕：SSR 金晕 / UR 白金晕（投屏一眼看出这是稀有卡） */
 .offer.rare-SSR{box-shadow:0 0 0 1px rgba(201,166,74,.4),0 14px 40px rgba(201,166,74,.14)}
 .offer.rare-UR{box-shadow:0 0 0 1px rgba(232,199,104,.6),0 14px 46px rgba(201,166,74,.24)}
@@ -256,6 +249,10 @@ body.playing #hud{display:flex}
 .bunit .bmove button:hover{border-color:var(--gold);color:var(--gold2)}
 .bunit .bmove button:disabled{opacity:.22;pointer-events:none}
 .bunit .bmove .bx:hover{border-color:var(--red2);color:var(--red2)}
+.bunit .bmove button .ico{width:12px;height:12px;display:block;fill:none;stroke:currentColor;
+  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+/* 护盾标识（SVG 盾，取代 emoji） */
+.u .sh .shico{width:15px;height:15px;display:block;fill:rgba(74,120,180,.85);stroke:#cfe4ff;stroke-width:.8}
 .bunit .front-tag{position:absolute;top:-9px;left:-1px;background:var(--gold3);color:var(--ink);
   font-size:9.5px;letter-spacing:.12em;padding:1px 7px}
 /* 宿敌预告 */
@@ -339,7 +336,8 @@ body.playing #hud{display:flex}
 #boss-veil h1{font-size:clamp(40px,8vw,86px);font-weight:300;letter-spacing:.34em;color:var(--purple);
   text-shadow:0 0 46px rgba(157,114,214,.6);animation:titleIn 1.1s both}
 #boss-veil p{color:var(--ink2);margin-top:16px;letter-spacing:.16em;font-size:15px;line-height:2}
-#boss-veil .snake{font-size:54px;margin-bottom:10px;animation:snakeSway 3s ease-in-out infinite}
+#boss-veil .snake{margin-bottom:10px;color:var(--purple);animation:snakeSway 3s ease-in-out infinite}
+#boss-veil .snake svg{width:92px;height:66px;filter:drop-shadow(0 0 14px rgba(157,114,214,.65))}
 @keyframes snakeSway{50%{transform:rotate(7deg) translateY(-4px)}}
 .stamp-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:26px;max-width:760px}
 .stamp{border:1px solid var(--line);padding:12px 18px;min-width:120px;opacity:0;transform:scale(1.6);background:var(--panel2)}
@@ -1247,9 +1245,9 @@ function renderBench(p){
       <div class="g">${u.n[0]}</div><div class="n">${u.n}</div>
       <div class="st">⚔${st.atk} ♥${st.hp}</div>
       <div class="bmove">
-        <button title="向前排移动" ${ai===0?'disabled':''}>◀</button>
-        <button title="向后排移动" ${ai===p.army.length-1?'disabled':''}>▶</button>
-        <button class="bx" title="出售，返还 ${refund} 铸币">✕</button>
+        <button title="向前排移动" ${ai===0?'disabled':''}><svg class="ico" viewBox="0 0 16 16"><path d="M10.5 3 5.5 8l5 5"/></svg></button>
+        <button title="向后排移动" ${ai===p.army.length-1?'disabled':''}><svg class="ico" viewBox="0 0 16 16"><path d="M5.5 3l5 5-5 5"/></svg></button>
+        <button class="bx" title="出售，返还 ${refund} 铸币"><svg class="ico" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
       </div>`;
     const [bL,bR,bX]=d.querySelectorAll('.bmove button');
     bL.onclick=()=>{snapDraft();[p.army[ai-1],p.army[ai]]=[p.army[ai],p.army[ai-1]];renderDraft();save()};
@@ -1265,7 +1263,7 @@ function renderBench(p){
     const u=UMAP[S.captured.inst.id];
     const chip=document.createElement('span');chip.className='relic-chip';
     chip.style.borderColor='var(--purple)';chip.style.color='var(--purple)';
-    chip.textContent=`🐍 ${u.n} 被叶王扣押 · 点击赎回 3◈`;chip.style.cursor='pointer';
+    chip.textContent=`${u.n} 被叶王扣押 · 点击赎回 3◈`;chip.style.cursor='pointer';
     chip.onclick=()=>{
       if(p.coins<3){toast('铸币不够赎回');return}
       if(p.army.length>=ARMY_CAP[Math.min(S.act,3)]){toast('军团已满，先腾出位置');return}
@@ -1593,7 +1591,7 @@ function unitEl(f){
   d.innerHTML=`<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}</div><span class="n">${f.n}</span>
     <span class="num"><span class="a">⚔${f.atk}</span><span class="h">♥${f.hp}</span></span>
     <div class="hpb"><i style="width:100%"></i></div>
-    <span class="sh" style="display:none">🛡</span>`;
+    <span class="sh" style="display:none"><svg class="shico" viewBox="0 0 16 16"><path d="M8 1.5l5 2v3.8c0 3.3-2.2 5.5-5 6.7-2.8-1.2-5-3.4-5-6.7V3.5z"/></svg></span>`;
   return d;
 }
 function playBattle(pr){
@@ -1736,7 +1734,7 @@ function startBossSequence(){
   const veil=$('#boss-veil');
   const bossArt=artURL('yewang')?`<div id="boss-art"><img src="${artURL('yewang')}" alt=""
     onload="this.parentNode.classList.add('show')" onerror="this.parentNode.remove()"></div>`:'';
-  veil.innerHTML=`${bossArt}<div class="snake">🐍</div><h1>叶 王 乱 入</h1>
+  veil.innerHTML=`${bossArt}<div class="snake"><svg viewBox="0 0 96 70"><path d="M8 42 C 22 18, 36 58, 48 38 C 57 23, 68 34, 76 25" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M76 25 l9 -6 -1 10 z" fill="currentColor"/><path d="M86 20 l7 -3 M86 22 l7 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h1>叶 王 乱 入</h1>
     <p>石墙上的影子终于动了。答错的声音太多，把她引来了。<br>
     本幕演武取消——<b style="color:var(--gold2)">全员各自迎击黑域侵攻</b>，守住的人获得王座分。</p>
     <div class="stamp-list" id="stamps"></div>
