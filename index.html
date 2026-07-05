@@ -515,6 +515,7 @@ body.playing #hud{display:flex}
     <div id="offers"></div>
     <div id="draft-actions">
       <button class="btn" id="btn-reroll">刷新 · 2 铸币</button>
+      <button class="btn" id="btn-draft-undo" style="display:none">↩ 撤销一步</button>
       <button class="btn gold" id="btn-draft-done">本人征募完成</button>
     </div>
     <div id="bench">
@@ -752,56 +753,92 @@ function closeModal(){$('#modal-veil').classList.remove('on')}
 $('#modal-veil').addEventListener('click',e=>{if(e.target.id==='modal-veil')closeModal()});
 
 /* ============================================================
-   音效层 · 零依赖 WebAudio 程序化合成（8-bit 街机质感）
+   音效层 · 零依赖 WebAudio 程序化合成（黑金编年史质感）
+   合成卷积混响 + 五声音阶(古琴/编钟) + 暖音正弦/三角 + 分层打击。
    无外部资源、不循环 BGM（不干扰老师讲话）；静音状态存 localStorage。
    ============================================================ */
 const SFX=(function(){
-  let ctx=null, muted=(localStorage.getItem('zmq_mute')==='1');
-  function ac(){ if(!ctx){ try{const C=window.AudioContext||window.webkitAudioContext;ctx=C?new C():null}catch(e){ctx=null} } return ctx }
+  let ctx=null, master=null, verb=null, wet=null, muted=(localStorage.getItem('zmq_mute')==='1');
+  function build(){
+    const C=window.AudioContext||window.webkitAudioContext; if(!C)return false;
+    ctx=new C();
+    master=ctx.createGain(); master.gain.value=0.5; master.connect(ctx.destination);
+    // 合成卷积混响脉冲（衰减噪声 = 殿堂/古琴余韵，纯离线、无外部文件）
+    verb=ctx.createConvolver();
+    const len=Math.floor(ctx.sampleRate*1.9), ir=ctx.createBuffer(2,len,ctx.sampleRate);
+    for(let ch=0;ch<2;ch++){const d=ir.getChannelData(ch);
+      for(let i=0;i<len;i++){const t=i/len; d[i]=(Math.random()*2-1)*Math.pow(1-t,2.8)}}
+    verb.buffer=ir;
+    wet=ctx.createGain(); wet.gain.value=0.2; verb.connect(wet); wet.connect(master);
+    return true;
+  }
+  function ac(){ if(!ctx){ try{ if(!build())ctx=null }catch(e){ctx=null} } return ctx }
   function unlock(){ const c=ac(); if(c&&c.state==='suspended')c.resume() }
-  function tone(freq,dur,type,vol,when,glide){
+  // 单个"嗓音"：柔和包络 + 低通 + 送混响。o={f,f2,dur,type,vol,atk,cut,when,send,detune}
+  function voice(o){
     const c=ac(); if(!c||muted)return;
-    const t0=c.currentTime+(when||0);
-    const o=c.createOscillator(),g=c.createGain();
-    o.type=type||'square'; o.frequency.setValueAtTime(freq,t0);
-    if(glide)o.frequency.exponentialRampToValueAtTime(Math.max(1,glide),t0+dur);
+    const t0=c.currentTime+(o.when||0), dur=o.dur==null?0.3:o.dur, vol=o.vol==null?0.18:o.vol;
+    const osc=c.createOscillator(), g=c.createGain(), lp=c.createBiquadFilter();
+    osc.type=o.type||'sine'; osc.frequency.setValueAtTime(o.f,t0);
+    if(o.f2)osc.frequency.exponentialRampToValueAtTime(Math.max(1,o.f2),t0+dur);
+    if(o.detune)osc.detune.value=o.detune;
+    lp.type='lowpass'; lp.frequency.value=o.cut||3200;
+    const atk=o.atk==null?0.014:o.atk;
     g.gain.setValueAtTime(0.0001,t0);
-    g.gain.exponentialRampToValueAtTime(vol||0.14,t0+0.008);
+    g.gain.exponentialRampToValueAtTime(vol,t0+atk);
     g.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
-    o.connect(g);g.connect(c.destination);
-    o.start(t0);o.stop(t0+dur+0.03);
+    osc.connect(lp); lp.connect(g); g.connect(master);
+    if(o.send!==0&&verb){const s=c.createGain();s.gain.value=o.send==null?0.5:o.send;g.connect(s);s.connect(verb)}
+    osc.start(t0); osc.stop(t0+dur+0.06);
   }
-  function noise(dur,vol,cut,when){ // 打击/阵亡的噪声层
+  function noise(o){ // 打击/涌动的噪声层。o={dur,vol,cut,shape,when,send,bp,q}
     const c=ac(); if(!c||muted)return;
-    const t0=c.currentTime+(when||0),n=Math.max(1,Math.floor(c.sampleRate*dur));
-    const buf=c.createBuffer(1,n,c.sampleRate),d=buf.getChannelData(0);
-    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);
-    const s=c.createBufferSource();s.buffer=buf;
-    const g=c.createGain();g.gain.value=vol||0.2;
-    const lp=c.createBiquadFilter();lp.type='lowpass';lp.frequency.value=cut||900;
-    s.connect(lp);lp.connect(g);g.connect(c.destination);s.start(t0);
+    const t0=c.currentTime+(o.when||0), dur=o.dur||0.2, n=Math.max(1,Math.floor(c.sampleRate*dur));
+    const buf=c.createBuffer(1,n,c.sampleRate), d=buf.getChannelData(0);
+    for(let i=0;i<n;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/n,o.shape||2);
+    const src=c.createBufferSource(); src.buffer=buf;
+    const g=c.createGain(); g.gain.value=o.vol==null?0.18:o.vol;
+    const f=c.createBiquadFilter(); f.type=o.bp?'bandpass':'lowpass'; f.frequency.value=o.cut||1000; if(o.q)f.Q.value=o.q;
+    src.connect(f); f.connect(g); g.connect(master);
+    if(o.send&&verb){const s=c.createGain();s.gain.value=o.send;g.connect(s);s.connect(verb)}
+    src.start(t0);
   }
-  const seq=(notes,type,vol,step)=>notes.forEach((f,i)=>tone(f,(step||0.12)*1.15,type||'triangle',vol||0.12,i*(step||0.12)));
+  const chord=(freqs,o)=>freqs.forEach((f,i)=>voice(Object.assign({},o,{f,when:(o.when||0)+i*(o.stagger||0)})));
+  // 五声音阶（宫商角徵羽），根音 C —— 编钟/古琴式的东方雅致
+  const P={C4:261.63,D4:293.66,E4:329.63,G4:392.00,A4:440.00,C5:523.25,D5:587.33,E5:659.25,G5:783.99,A5:880.00,C6:1046.50};
   const lib={
-    hit(){ tone(200+Math.random()*40,0.07,'square',0.09) },
-    crit(){ tone(880,0.05,'square',0.15); tone(1320,0.11,'square',0.13,0.04) },
-    kill(){ noise(0.24,0.28,1200); tone(140,0.2,'sawtooth',0.12,0,60) },
-    shield(){ tone(520,0.13,'triangle',0.10,0,760) },
-    heal(){ tone(600,0.1,'sine',0.09,0,780); tone(780,0.12,'sine',0.08,0.06) },
-    coin(){ tone(880,0.05,'square',0.10); tone(1180,0.09,'square',0.09,0.05) },
-    merge(){ seq([523,659,784,1047],'triangle',0.13,0.07) },
-    revive(){ tone(392,0.16,'sine',0.10,0,470); tone(523,0.18,'sine',0.10,0.09,620) },
-    boss(){ tone(70,0.7,'sawtooth',0.20,0,40); noise(0.5,0.18,600) },
-    rage(){ tone(190,0.14,'square',0.14); tone(190,0.14,'square',0.14,0.2) },
-    win(){ seq([523,659,784,1047,1319],'triangle',0.14,0.09) },
-    crown(){ seq([392,523,659,784,1047],'sine',0.13,0.13); tone(1568,0.5,'sine',0.12,0.66) },
-    lose(){ tone(300,0.2,'sawtooth',0.12,0,150) },
-    click(){ tone(330,0.04,'square',0.06) },
+    click(){ voice({f:660,dur:0.05,type:'sine',vol:0.07,cut:2600,send:0.2}) },
+    // 答对/铸币：温润玻璃"叮"，纯五度上行
+    coin(){ voice({f:P.G5,dur:0.13,type:'sine',vol:0.13,send:0.55}); voice({f:P.C6,dur:0.5,type:'sine',vol:0.10,when:0.05,send:0.7}) },
+    // 普攻：闷响拳感——低频身体 + 短噪声，无刺耳蜂鸣
+    hit(){ voice({f:150,f2:80,dur:0.12,type:'sine',vol:0.15,cut:600,send:0.1}); noise({dur:0.08,vol:0.09,cut:1400,send:0.12}) },
+    // 暴击：明亮编钟泛音 + 一点脆响
+    crit(){ voice({f:P.C6,dur:0.55,type:'triangle',vol:0.12,cut:5200,send:0.85}); voice({f:P.G5,dur:0.35,type:'sine',vol:0.09,send:0.7}); noise({dur:0.05,vol:0.07,cut:3200,send:0.2}) },
+    // 阵亡：低沉钝响 + 下沉，肃穆不刺耳
+    kill(){ voice({f:180,f2:66,dur:0.5,type:'triangle',vol:0.15,cut:700,send:0.5}); noise({dur:0.3,vol:0.15,cut:480,shape:3,send:0.3}) },
+    // 护盾：柔和上扬光晕
+    shield(){ voice({f:P.E5,f2:P.A5,dur:0.4,type:'triangle',vol:0.09,cut:3000,send:0.7}) },
+    // 治疗：温柔大二度上行
+    heal(){ voice({f:P.G4,dur:0.3,type:'sine',vol:0.09,send:0.6}); voice({f:P.A4,dur:0.45,type:'sine',vol:0.09,when:0.08,send:0.7}) },
+    // 合星：五声琶音上行 + 顶部微光，魔法感
+    merge(){ chord([P.C5,P.D5,P.E5,P.G5,P.C6],{dur:0.5,type:'sine',vol:0.10,stagger:0.075,send:0.8}); voice({f:P.C6*1.5,dur:0.6,type:'sine',vol:0.045,when:0.4,send:1}) },
+    // 复活：温暖上行滑音
+    revive(){ voice({f:P.E4,f2:P.C5,dur:0.55,type:'sine',vol:0.11,cut:2600,send:0.8}) },
+    // 叶王：低沉不祥双音拍频 + 缓慢噪声涌起，电影级压迫
+    boss(){ voice({f:55,dur:1.5,type:'sawtooth',vol:0.13,cut:210,send:0.4}); voice({f:58.3,dur:1.5,type:'sawtooth',vol:0.11,cut:210,send:0.4}); noise({dur:1.2,vol:0.09,cut:380,shape:1,send:0.5}); voice({f:P.C4,dur:1.1,type:'sine',vol:0.08,when:0.12,send:0.6}) },
+    // 暴走临界：低沉脉冲告警（两下），紧张不尖锐
+    rage(){ voice({f:P.C4,dur:0.22,type:'triangle',vol:0.12,cut:900,send:0.4}); voice({f:P.C4,dur:0.22,type:'triangle',vol:0.12,cut:900,when:0.26,send:0.4}) },
+    // 胜利：温暖钟和弦（根+五度+八度）
+    win(){ chord([P.C5,P.G5,P.C6],{dur:0.9,type:'sine',vol:0.11,stagger:0.045,send:0.8}); voice({f:P.E5,dur:0.7,type:'triangle',vol:0.07,when:0.04,send:0.7}) },
+    // 加冕：庄严五声上行 + 长余韵编钟
+    crown(){ chord([P.C5,P.E5,P.G5,P.C6],{dur:0.5,type:'sine',vol:0.10,stagger:0.14,send:0.7}); voice({f:P.C6,dur:1.9,type:'sine',vol:0.12,when:0.6,send:1}); voice({f:P.G5,dur:1.7,type:'triangle',vol:0.06,when:0.62,send:0.9}) },
+    // 失利：柔和下行二音
+    lose(){ voice({f:P.E4,dur:0.3,type:'triangle',vol:0.10,cut:1600,send:0.5}); voice({f:P.C4,dur:0.5,type:'triangle',vol:0.10,when:0.12,cut:1400,send:0.6}) },
   };
   return {
     play(n){ try{ if(!muted&&lib[n])lib[n]() }catch(e){} },
     unlock,
-    toggle(){ muted=!muted; localStorage.setItem('zmq_mute',muted?'1':'0'); return muted },
+    toggle(){ muted=!muted; localStorage.setItem('zmq_mute',muted?'1':'0'); if(!muted)unlock(); return muted },
     isMuted(){ return muted },
   };
 })();
@@ -873,7 +910,7 @@ function newState(names,acts,rageMax,eventsOn){
     v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn,
     waveJudge:0, hornUsed:false, freeRerollNext:false,
     players:names.map((n,i)=>({i, name:n, coins:3, crowns:0, wins:0,
-      army:[], relics:[], revenge:0, savedCoins:0})),
+      army:[], relics:[], revenge:0, savedCoins:0, pity:0})),
     // 征募运行时
     draftQueue:[], draftIdx:0, offers:[], offersSold:[], rerollFreeUsed:false,
     // 演武运行时
@@ -1064,7 +1101,7 @@ function hasRelic(p,id){return p.relics.includes(id)}
 
 /* —— 开局点将：人人免费领一名低费学员（Hades 起手祝福式，保证首幕人人有兵） —— */
 function startOriginDraft(){
-  S.phase='origin';save();setPhase('开局点将');
+  S.phase='origin';save();setPhase('开局点将');draftHist=[];
   S.draftQueue=S.players.map(p=>p.i);S.draftIdx=0;
   S.offers=genOriginOffers();S.offersSold=[false,false,false];
   renderDraft();go('draft');hud();
@@ -1078,7 +1115,7 @@ function genOriginOffers(){
 }
 
 function startDraft(){
-  S.phase='draft';save();setPhase('征募');
+  S.phase='draft';save();setPhase('征募');draftHist=[];
   // 落后者先选
   S.draftQueue=[...S.players].sort((a,b)=>a.crowns-b.crowns||a.coins-b.coins||ri(3)-1).map(p=>p.i);
   S.draftIdx=0;
@@ -1103,21 +1140,44 @@ function startDraft(){
 }
 function curDrafter(){return S.players[S.draftQueue[S.draftIdx]]}
 
+/* 征募撤销：每次会改动状态的操作前存一份整局快照（本轮征募内有效，防点错） */
+let draftHist=[];
+function snapDraft(){try{draftHist.push(JSON.stringify(S));if(draftHist.length>15)draftHist.shift()}catch(e){}}
+function draftUndo(){
+  if(!draftHist.length){toast('没有可撤销的操作');return}
+  S=JSON.parse(draftHist.pop());
+  if(S.phase!=='draft'&&S.phase!=='origin')S.phase='draft';
+  SFX.play('click');renderDraft();hud();save();toast('已撤销上一步');
+}
+
 function genOffers(p){
-  const mult={1:{N:1.3,R:1.2,SR:.9,SSR:.55,UR:.3},2:{N:1,R:1,SR:1,SSR:1,UR:1},
-              3:{N:.6,R:.9,SR:1.1,SSR:1.3,UR:1.6}}[Math.min(S.act,3)];
-  const pool=UNITS.map(u=>({u,w:u.w*(mult[u.rar]||1)}));
+  const act=Math.min(S.act,3);
+  // 缓和第一幕高稀有吝啬（SSR .55→.7 / UR .3→.45），二三幕不变
+  const mult={1:{N:1.3,R:1.2,SR:.9,SSR:.7,UR:.45},2:{N:1,R:1,SR:1,SSR:1,UR:1},
+              3:{N:.6,R:.9,SR:1.1,SSR:1.3,UR:1.6}}[act];
+  const isHigh=u=>u.rar==='SSR'||u.rar==='UR';
+  // 软保底：连续 pity 轮没出高稀有 → SSR/UR 权重逐步提升（每轮×1.6，封顶×4）
+  const pity=p.pity||0;
+  const soft=Math.min(4,Math.pow(1.6,pity));
+  const pool=UNITS.map(u=>({u,w:u.w*(mult[u.rar]||1)*(isHigh(u)?soft:1)}));
   const total=pool.reduce((s,x)=>s+x.w,0);
+  const draw=()=>{let r=rng()*total,ch=pool[0].u;for(const x of pool){r-=x.w;if(r<=0){ch=x.u;break}}return ch};
   const offers=[];
-  for(let i=0;i<3;i++){
-    let r=rng()*total,chosen=pool[0].u;
-    for(const x of pool){r-=x.w;if(r<=0){chosen=x.u;break}}
-    offers.push({type:'unit',id:chosen.id});
-  }
+  for(let i=0;i<3;i++)offers.push({type:'unit',id:draw().id});
   // 22% 第三格换成遗物
   const owned=new Set(p.relics);
   const avail=RELICS.filter(r=>!owned.has(r.id));
   if(avail.length&&rng()<0.22) offers[2]={type:'relic',id:pick(avail).id};
+  // 硬保底：pity≥3 且这轮单位格没有高稀有 → 强制把一个单位格换成加权 SSR/UR
+  const unitSlots=offers.map((o,i)=>o.type==='unit'?i:-1).filter(i=>i>=0);
+  if(pity>=3 && unitSlots.length && !unitSlots.some(i=>isHigh(UMAP[offers[i].id]))){
+    const highs=UNITS.filter(isHigh), hw=u=>u.w*(u.rar==='UR'?0.45:1);
+    let ht=highs.reduce((s,u)=>s+hw(u),0), r=rng()*ht, hc=highs[0];
+    for(const u of highs){r-=hw(u);if(r<=0){hc=u;break}}
+    offers[pick(unitSlots)]={type:'unit',id:hc.id};
+  }
+  // 更新 pity：这轮最终出了高稀有则清零，否则+1
+  p.pity=offers.some(o=>o.type==='unit'&&isHigh(UMAP[o.id]))?0:pity+1;
   return offers;
 }
 function unitPrice(p,u){let c=u.cost;
@@ -1131,6 +1191,7 @@ function renderDraft(fresh){
   $('#draft-sub').textContent=origin?'开局礼：每人免费领一名学员入队':'按排名从后往前挑 · 落后者先选';
   $('#btn-reroll').style.display=origin?'none':'';
   $('#btn-draft-done').style.display=origin?'none':'';
+  $('#btn-draft-undo').style.display=draftHist.length?'':'none';
   $('#draft-order').innerHTML=S.draftQueue.map((pi,k)=>{
     const cls=k<S.draftIdx?'done':(k===S.draftIdx?'cur':'');
     return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
@@ -1191,9 +1252,9 @@ function renderBench(p){
         <button class="bx" title="出售，返还 ${refund} 铸币">✕</button>
       </div>`;
     const [bL,bR,bX]=d.querySelectorAll('.bmove button');
-    bL.onclick=()=>{[p.army[ai-1],p.army[ai]]=[p.army[ai],p.army[ai-1]];renderDraft();save()};
-    bR.onclick=()=>{[p.army[ai+1],p.army[ai]]=[p.army[ai],p.army[ai+1]];renderDraft();save()};
-    bX.onclick=()=>{p.army.splice(ai,1);p.coins+=refund;
+    bL.onclick=()=>{snapDraft();[p.army[ai-1],p.army[ai]]=[p.army[ai],p.army[ai-1]];renderDraft();save()};
+    bR.onclick=()=>{snapDraft();[p.army[ai+1],p.army[ai]]=[p.army[ai],p.army[ai+1]];renderDraft();save()};
+    bX.onclick=()=>{snapDraft();p.army.splice(ai,1);p.coins+=refund;
       toast(`${u.n} 离队，返还 ${refund} 铸币`);renderDraft();save()};
     bx.appendChild(d);
   });
@@ -1208,6 +1269,7 @@ function renderBench(p){
     chip.onclick=()=>{
       if(p.coins<3){toast('铸币不够赎回');return}
       if(p.army.length>=ARMY_CAP[Math.min(S.act,3)]){toast('军团已满，先腾出位置');return}
+      snapDraft();
       p.coins-=3;p.army.push(S.captured.inst);S.captured=null;
       toast(`${u.n} 归队了`);renderDraft();save();
     };
@@ -1218,6 +1280,7 @@ function buyUnit(idx,u,price){
   const p=curDrafter();
   // 开局点将：免费领一名，选完自动轮到下一位
   if(S.phase==='origin'){
+    snapDraft();
     p.army.push(mkInst(u.id));
     toast(`${p.name} 点将：${u.n} 入队`);
     S.draftIdx++;
@@ -1229,6 +1292,7 @@ function buyUnit(idx,u,price){
   const cap=ARMY_CAP[Math.min(S.act,3)];
   const mergeTarget=p.army.find(a=>a.id===u.id&&a.star===1);
   if(!mergeTarget&&p.army.length>=cap){toast('军团已满：点下方成员可出售腾位');return}
+  snapDraft();
   p.coins-=price;S.offersSold[idx]=true;
   if(mergeTarget){mergeTarget.star=2;
     flash(false);shake();toast(`★ ${u.n} 合星！属性大幅提升`,2600);SFX.play('merge');
@@ -1239,16 +1303,19 @@ function buyUnit(idx,u,price){
 function buyRelic(idx,r){
   const p=curDrafter();
   if(p.coins<3){toast('铸币不够');return}
+  snapDraft();
   p.coins-=3;p.relics.push(r.id);S.offersSold[idx]=true;
   toast(`遗物入手：${r.n}`);renderDraft();hud();save();
 }
 $('#btn-reroll').onclick=()=>{
   const p=curDrafter();
+  if(p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed)||p.coins>=2)snapDraft();
   if(p._freeRr>0){p._freeRr--}
   else if(hasRelic(p,'astro')&&!p._astroUsed){p._astroUsed=true}
   else{if(p.coins<2){toast('铸币不够刷新');return}p.coins-=2}
   S.offers=genOffers(p);S.offersSold=[false,false,false];renderDraft();save();
 };
+$('#btn-draft-undo').onclick=draftUndo;
 $('#btn-draft-done').onclick=()=>{
   const p=curDrafter();p.revenge=0;
   S.draftIdx++;
