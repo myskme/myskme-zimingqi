@@ -121,7 +121,10 @@ body.playing #hud{display:flex}
 #hud .standings b{color:var(--gold2);font-weight:500}
 
 /* ============ 标题页 ============ */
-#scr-title{text-align:center;padding-top:9vh}
+#scr-title{text-align:center;padding-top:9vh;position:relative}
+.brand-seal{position:absolute;top:4px;right:6px;width:82px;height:82px;opacity:.85;pointer-events:none;
+  filter:drop-shadow(0 0 14px rgba(201,166,74,.3))}
+@media(max-width:760px){.brand-seal{width:56px;top:2px;right:2px}}
 .title-mark{width:76px;height:76px;margin:0 auto 22px;border:1px solid var(--gold);position:relative;
   display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at center,rgba(201,166,74,.14),transparent 70%)}
@@ -443,6 +446,7 @@ body.playing #hud{display:flex}
 <main>
   <!-- 标题 -->
   <section class="scr on" id="scr-title">
+    <img class="brand-seal" id="brand-seal" alt="MYSKME · Make Yourself Special & Kind">
     <div id="title-kv"><img alt=""></div>
     <div class="title-mark"><span>鸣</span></div>
     <h1 class="title-hero">自<em>鸣</em>棋</h1>
@@ -897,6 +901,38 @@ function setScene(act){
   im.onerror=()=>im.classList.remove('show');
   im.src=u;
 }
+
+/* ============================================================
+   MYSKME 印章徽章（程序化复刻，零依赖 · 与品牌章同源）
+   用于：战报卡水印 + 标题页品牌徽记
+   ============================================================ */
+function sealArc(g,txt,cx,cy,r,a0,a1,size,flip){
+  g.font='900 '+size+'px "Arial Black","Helvetica Neue",sans-serif';
+  g.textAlign='center';g.textBaseline='middle';
+  const n=txt.length;
+  for(let i=0;i<n;i++){const t=n===1?.5:i/(n-1),a=a0+(a1-a0)*t;
+    g.save();g.translate(cx+Math.cos(a)*r,cy+Math.sin(a)*r);
+    g.rotate(a+Math.PI/2+(flip?Math.PI:0));g.fillText(txt[i],0,0);g.restore();}
+}
+function buildSeal(color,size){
+  const c=document.createElement('canvas');c.width=c.height=size;
+  const g=c.getContext('2d'),cx=size/2,cy=size/2,R=size/2;
+  g.strokeStyle=color;g.fillStyle=color;
+  g.lineWidth=R*.05;g.beginPath();g.arc(cx,cy,R*.95,0,7);g.stroke();    // 外环
+  g.lineWidth=R*.02;g.beginPath();g.arc(cx,cy,R*.855,0,7);g.stroke();   // 内细环
+  const d2r=Math.PI/180;
+  sealArc(g,'MAKE YOURSELF',cx,cy,R*.70,(-90-62)*d2r,(-90+62)*d2r,R*.145,false);
+  sealArc(g,'SPECIAL & KIND',cx,cy,R*.70,(90+62)*d2r,(90-62)*d2r,R*.145,true);
+  g.lineWidth=R*.042;
+  g.beginPath();g.arc(cx,cy,R*.50,(-90-58)*d2r,(-90+58)*d2r);g.stroke();// 上弧
+  g.beginPath();g.arc(cx,cy,R*.50,(90-58)*d2r,(90+58)*d2r);g.stroke();  // 下弧
+  g.font='900 '+(R*.34)+'px "Arial Narrow","Arial Black",sans-serif';
+  g.textAlign='center';g.textBaseline='middle';
+  g.save();g.translate(cx,cy);g.scale(1.1,1.42);g.fillText('MYSKME',0,1);g.restore();
+  return c;
+}
+let _sealCv=null;
+function sealCanvas(){if(!_sealCv)_sealCv=buildSeal('#e8c768',400);return _sealCv;}
 
 /* ============================================================
    全局状态
@@ -1863,9 +1899,14 @@ async function drawReport(sorted){
   blob(W*.2,H*.16,320,'rgba(150,190,230,.10)');
   blob(W*.85,H*.5,360,'rgba(201,166,74,.08)');
   blob(W*.4,H*.9,400,'rgba(201,166,74,.09)');
+  // MYSKME 印章水印（淡·盖章质感，内容画于其上）
+  const _seal=sealCanvas();
+  ctx.save();ctx.globalAlpha=.05;const _sw=W*.64;ctx.drawImage(_seal,(W-_sw)/2,(H-_sw)/2-20,_sw,_sw);ctx.restore();
   // 金框
   ctx.strokeStyle='rgba(201,166,74,.8)';ctx.lineWidth=3;ctx.strokeRect(28,28,W-56,H-56);
   ctx.strokeStyle='rgba(201,166,74,.28)';ctx.lineWidth=1;ctx.strokeRect(40,40,W-80,H-80);
+  // 右上角品牌钤印（清晰）
+  ctx.save();ctx.globalAlpha=.92;ctx.drawImage(_seal,W-190,60,120,120);ctx.restore();
   const gold='#e8c768',ink='#eee8d8',ink2='#a8a294';
   const serif=(s,w)=>`${w||400} ${s}px "Noto Serif SC","Songti SC","STSong",serif`;
   ctx.textAlign='center';
@@ -2000,6 +2041,8 @@ $('#btn-menu').onclick=showMenu;
 (function boot(){
   if(loadSave())$('#btn-continue').style.display='';
   renderSetup();
+  // 标题品牌钤印（程序化印章）
+  try{const bs=$('#brand-seal');if(bs)bs.src=sealCanvas().toDataURL()}catch(e){}
   // 标题主视觉：assets/title-kv.webp 存在则亮出
   const kv=$('#title-kv'),u=artURL('title');
   if(kv&&u){const im=kv.querySelector('img');
