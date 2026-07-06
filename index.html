@@ -276,6 +276,25 @@ body.playing #hud{display:flex}
 #pair-preview .pp-lab{color:var(--gold2);letter-spacing:.2em;font-size:12px}
 #pair-preview .pp-pair{border:1px solid var(--line2);padding:3px 12px;letter-spacing:.08em;background:rgba(0,0,0,.22)}
 #pair-preview .pp-pair i{color:var(--red2);font-style:normal;font-size:11px;margin:0 5px}
+/* 宿敌情报：侦察→针对的闭环入口（数据幕初已锁定，只是端上桌） */
+#foe-intel{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;
+  margin:2px auto 14px;padding:7px 16px;max-width:720px;border:1px solid var(--line2);
+  background:rgba(0,0,0,.22);font-size:13px;color:var(--ink2)}
+#foe-intel:empty{display:none}
+#foe-intel .fi-lab{color:var(--red2);letter-spacing:.22em;font-size:11.5px}
+#foe-intel .fi-name{color:var(--ink);letter-spacing:.08em}
+#foe-intel .fi-hint{color:var(--gold2);font-size:12px;letter-spacing:.05em}
+#foe-intel .mini-army{display:flex;gap:5px;flex-wrap:wrap}
+/* 赛后伤害复盘条（谁是carry一目了然，反哺下一幕征募决策） */
+.dmg-recap{width:min(380px,82vw);margin:22px auto 0;display:flex;flex-direction:column;gap:7px}
+.dmg-recap .dr-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}
+.dmg-recap .dr-n{min-width:64px;text-align:right;letter-spacing:.08em}
+.dmg-recap i{display:block;height:10px;background:linear-gradient(90deg,var(--gold3),var(--gold2));
+  box-shadow:0 0 10px rgba(201,166,74,.35);transition:width .6s cubic-bezier(.16,1,.3,1)}
+.dmg-recap b{font-family:var(--mono);color:var(--gold2);font-weight:500;min-width:30px}
+/* 致命收尾特写 */
+.u.final-blow{animation:finalBlow .9s cubic-bezier(.16,1,.3,1)}
+@keyframes finalBlow{0%{transform:scale(1)}30%{transform:scale(1.14);filter:brightness(1.8)}100%{transform:scale(1)}}
 #relic-shelf{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
 .relic-chip{border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px;letter-spacing:.1em;cursor:help}
 /* 羁绊进度（让"发现协同"可见）：未激活灰 / 2档紫 / 大档金晕 */
@@ -580,6 +599,7 @@ body.playing #hud{display:flex}
       <span id="drafter-name">轮到 <em>—</em></span>
       <span id="draft-coins">◈ 0</span>
     </div>
+    <div id="foe-intel"></div>
     <div id="offers"></div>
     <div id="draft-actions">
       <button class="btn" id="btn-tier">牌力 ↑</button>
@@ -1509,8 +1529,34 @@ function renderDraft(fresh){
     box.appendChild(d);
   });
   renderBench(p);
+  renderFoeIntel(p);
   const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
   $('#btn-reroll').textContent=freeRr?'刷新 · 免费':'刷新 · 2 铸币';
+}
+/* 宿敌情报条：征募时看得见本幕要打谁——征募从「买好卡」升级成「针对宿敌构筑」 */
+function renderFoeIntel(p){
+  const el=$('#foe-intel');if(!el)return;
+  if(S.phase==='origin'){el.innerHTML='';return}
+  let name='',chips='',army=null,ghostUnits=null;
+  if(S.solo){name=soloFoeName(S.round);army=S.soloFoe||[]}
+  else{
+    const pr=(S.pairs||[]).find(x=>x.a===p.i||x.b===p.i);
+    if(!pr){el.innerHTML='';return}
+    if(pr.b===-1){name=GHOSTS[Math.min(S.act,3)].n+'（幽灵军）';ghostUnits=GHOSTS[Math.min(S.act,3)].units}
+    else{const foe=S.players[pr.a===p.i?pr.b:pr.a];name=foe.name;army=foe.army}
+  }
+  if(ghostUnits)chips=ghostUnits.map(g=>`<span class="mini-u" title="${g.n}">${g.glyph}</span>`).join('');
+  else chips=(army||[]).map(a=>{const u=UMAP[a.id];
+    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}</span>`}).join('')
+    ||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>';
+  let hint='';
+  if(army&&army.length){
+    const counts={};army.forEach(a=>{const f=UMAP[a.id].fac;counts[f]=(counts[f]||0)+1});
+    const main=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
+    const killer=Object.keys(FAC_COUNTER).find(k=>FAC_COUNTER[k]===main);
+    hint=killer?`主打${FACS[main].n} —— ${FACS[killer].n}克它 +15%`:`主打${FACS[main].n} —— 不参与相克`;
+  }else if(ghostUnits)hint='幽灵军 —— 不参与相克';
+  el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${name}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
 }
 function renderBench(p){
   const cap=ARMY_CAP[Math.min(S.act,3)];
@@ -2081,10 +2127,19 @@ function playBattle(pr){
   const bn=pb?pb.name:GHOSTS[Math.min(S.act,3)].n;
   const mods={wind:!!S.evFlags.wind,fog:!!S.evFlags.fog,echo:!!S.evFlags.echo};
   const battleRng=mulberry32(S.seed+S.act*131+S.battleIdx*17+7);
-  runPlayback(A,B,fA,fB,`<b>${pa.name}</b> 对阵 <b>${bn}</b>`,mods,battleRng,result=>finishBattle(pr,result,A,B));
+  // 赛前对峙：亮双方羁绊，给全班口头押注留一拍（预测=课堂参与感的免费杠杆）
+  const bondLine=(p)=>{if(!p)return '幽灵军';
+    const bs=Object.keys(BONDS).map(f=>({f,t:bondTier(p,f)})).filter(x=>x.t>0)
+      .map(x=>FACS[x.f].n+(x.t>=2?'·满档':''));
+    return bs.length?bs.join(' / '):'无羁绊'};
+  const faceoff=`<b>${pa.name}</b> <span style="color:var(--ink3)">${bondLine(pa)}</span>
+    　<span style="color:var(--red2)">VS</span>　<b>${bn}</b> <span style="color:var(--ink3)">${bondLine(pb)}</span>
+    <br><span style="color:var(--gold2);letter-spacing:.2em">立下你的预测——谁会赢？</span>`;
+  runPlayback(A,B,fA,fB,`<b>${pa.name}</b> 对阵 <b>${bn}</b>`,mods,battleRng,result=>finishBattle(pr,result,A,B),faceoff);
 }
-/* 战斗渲染+演算+回放核心（多人与单人共用）；结算逻辑由 onEnd 注入 */
-function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd){
+/* 战斗渲染+演算+回放核心（多人与单人共用）；结算逻辑由 onEnd 注入；
+   faceoffHTML 非空 = 赛前对峙屏（渲染双方后暂停，老师点「开战」放行） */
+function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
   // 快照供 DOM（sim 会改动 fighter，因此先渲染再模拟）
   $('#pairings').style.display='none';$('#battle-next-row').style.display='none';
   $('#stage').style.display='';PB.skip=false;
@@ -2094,14 +2149,22 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd){
   A.forEach(f=>L.prepend(unitEl(f)));
   B.forEach(f=>R.appendChild(unitEl(f)));
   $('#blog').textContent='战斗开始——';
-  const result=simulateBattle(A,B,fA,fB,battleRng,mods);
-  // 播放 log
   const nameOf={};
   [...A,...B].forEach(f=>{nameOf[f.uid]=f.n});
   const hpNow={},hpMax={};
   [...A,...B].forEach(f=>{hpNow[f.uid]=f.maxhp;hpMax[f.uid]=f.maxhp});
-  let i=0;
-  const stepDelay=()=>PB.skip?0:(PB.speed===2?260:560);
+  let result=null,i=0;
+  // 峰值整形：普通步压短、暴击/击杀加顿帧、收尾斩慢镜——总时长不涨，只重新分配
+  const delayFor=(e,isFinal)=>{
+    if(PB.skip)return 0;
+    const sp=PB.speed===2?0.5:1;
+    let d=420;
+    if(e.t==='round')d=300;
+    else if(e.t==='dmg'){d=420+(e.crit?160:0)+(e.kill?260:0);if(isFinal)d*=2.2}
+    else if(e.t==='die')d=210;
+    else d=380;
+    return d*sp;
+  };
   function el(uid){return document.querySelector(`.u[data-uid="${uid}"]`)}
   function applyEntry(e,animate){
     const blog=$('#blog');
@@ -2146,12 +2209,33 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd){
     if(i>=result.log.length){onEnd(result);return}
     const e=result.log[i++];
     if(e.t==='end'){onEnd(result);return}
+    // 收尾斩：这次击杀之后再无伤害步 = 终结一击 → 慢镜 + 特写
+    const isFinal=e.t==='dmg'&&e.kill&&!result.log.slice(i).some(x=>x.t==='dmg');
+    if(isFinal&&!PB.skip){const t=el(e.d);if(t)t.classList.add('final-blow')}
     applyEntry(e,!PB.skip);
-    if(PB.skip){step()}else{PB.timer=setTimeout(step,e.t==='round'?stepDelay()*0.7:stepDelay())}
+    if(PB.skip){step()}else{PB.timer=setTimeout(step,delayFor(e,isFinal))}
   }
-  setTimeout(step,PB.skip?0:600);
+  const begin=()=>{result=simulateBattle(A,B,fA,fB,battleRng,mods);setTimeout(step,PB.skip?0:500)};
+  if(faceoffHTML){
+    $('#blog').innerHTML=faceoffHTML;
+    const go=document.createElement('button');
+    go.className='btn gold';go.id='btn-faceoff-go';go.textContent='开 战';
+    $('#battle-ctl').prepend(go);
+    go.onclick=()=>{go.remove();$('#blog').textContent='战斗开始——';begin()};
+  }else begin();
 }
 
+/* 赛后伤害复盘条：本场 top3 输出（TFT 伤害面板的课堂版，反哺下一幕征募决策） */
+function dmgRecap(result,A,B){
+  const all=[...A,...B];
+  const rows=Object.entries(result.dmgByUid||{})
+    .map(([uid,amt])=>({f:all.find(x=>String(x.uid)===String(uid)),amt}))
+    .filter(r=>r.f&&r.amt>0).sort((a,b)=>b.amt-a.amt).slice(0,3);
+  if(!rows.length)return '';
+  const mx=rows[0].amt;
+  return `<div class="dmg-recap">`+rows.map(r=>
+    `<div class="dr-row"><span class="dr-n">${r.f.n}</span><i style="width:${Math.max(8,Math.round(r.amt/mx*100))}%"></i><b>${r.amt}</b></div>`).join('')+`</div>`;
+}
 function finishBattle(pr,result,A,B){
   clearTimeout(PB.timer);
   const pa=S.players[pr.a], pb=pr.b===-1?null:S.players[pr.b];
@@ -2189,9 +2273,11 @@ function finishBattle(pr,result,A,B){
   });
   pr.done=true;pr.r=txt.split(' · ')[0];
   hud();save();
-  // 胜利横幅
+  // 绝地翻盘：1 打 N 守到最后
+  const comeback=result.winner>=0&&(result.surv[result.winner]||[]).length===1&&[A,B][1-result.winner].length>=3;
+  // 胜利横幅 + 伤害复盘
   const b=document.createElement('div');b.className='result-banner';
-  b.innerHTML=`<h1>${winName?winName+' 胜':'平 局'}</h1><p>${txt}</p><p class="hint">点击任意处继续</p>`;
+  b.innerHTML=`${comeback?'<p style="color:var(--red2);letter-spacing:.3em;margin-bottom:6px">绝 地 翻 盘</p>':''}<h1>${winName?winName+' 胜':'平 局'}</h1><p>${txt}</p>${dmgRecap(result,A,B)}<p class="hint">点击任意处继续</p>`;
   document.body.appendChild(b);
   flash(false);if(winName){burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],32);SFX.play('win')}else{SFX.play('lose')}
   b.onclick=()=>{b.remove();renderPairings()};
@@ -2280,12 +2366,12 @@ function soloResolve(result,A,B){
   const banner=document.createElement('div');banner.className='result-banner';
   if(win){
     you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;
-    banner.innerHTML=`<h1>第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p><p class="hint">点击继续</p>`;
+    banner.innerHTML=`<h1>第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p>${dmgRecap(result,A,B)}<p class="hint">点击继续</p>`;
     document.body.appendChild(banner);flash(false);
     burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],28);SFX.play('win');
     banner.onclick=()=>{banner.remove();S.round++;soloRound()};
   }else{
-    banner.innerHTML=`<h1>试炼终结</h1><p>止步第 ${S.round} 关</p><p class="hint">点击查看战报</p>`;
+    banner.innerHTML=`<h1>试炼终结</h1><p>止步第 ${S.round} 关</p>${dmgRecap(result,A,B)}<p class="hint">点击查看战报</p>`;
     document.body.appendChild(banner);flash(false);SFX.play('lose');
     banner.onclick=()=>{banner.remove();soloEnd()};
   }
