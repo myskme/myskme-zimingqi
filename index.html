@@ -194,6 +194,7 @@ body.playing #hud{display:flex}
 #draft-order span.done{opacity:.38;text-decoration:line-through}
 #offers{display:grid;grid-template-columns:repeat(3,minmax(200px,300px));gap:16px;justify-content:center}
 .offer{background:var(--panel2);padding:16px 14px 13px;text-align:center;cursor:default;
+  display:flex;flex-direction:column;                          /* 列布局 + 按钮 margin-top:auto = 三卡「征募」按钮同底对齐 */
   transition:transform .3s cubic-bezier(.16,1,.3,1),box-shadow .3s}
 .offer:hover{transform:translateY(-5px)}
 .offer.sold{opacity:.32;pointer-events:none;filter:grayscale(.8)}
@@ -239,7 +240,7 @@ body.playing #hud{display:flex}
 .arch-p{color:#9cc0e8} .arch-t{color:#d9964a} /* 穿透蓝 / 嘲讽暖橙——与派系金、暴击金分离 */
 .arch-mini{position:absolute;top:-8px;right:-3px;font-size:8px;letter-spacing:.1em;padding:0 4px;border:1px solid currentColor;background:rgba(0,0,0,.55);z-index:3}
 .arch-mini.p{color:#9cc0e8}.arch-mini.t{color:#d9964a}
-.offer .cost-btn{width:100%}
+.offer .cost-btn{width:100%;margin-top:auto}
 .offer.relic-offer .badge{border-color:var(--gold)}
 #draft-actions{display:flex;gap:12px;justify-content:center;margin-top:18px;flex-wrap:wrap}
 #bench{max-width:820px;margin:22px auto 0}
@@ -410,7 +411,7 @@ body.playing #hud{display:flex}
 #title-kv{max-width:720px;margin:0 auto 26px;display:none}
 #title-kv.show{display:block;animation:scrIn .8s both}
 #title-kv img{width:100%;display:block;border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.45)}
-.badge .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top center;z-index:2}
+.badge .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;z-index:2}/* 42% 聚焦脸/上半身：把不少立绘顶部的金色光环推出框，避免小徽章里裁成「金色斜块」 */
 .u .face{position:relative;height:112px;margin:-8px -4px 3px;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.35);
   -webkit-mask:linear-gradient(#000 80%,transparent);mask:linear-gradient(#000 80%,transparent)}
 .u .face .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
@@ -1328,13 +1329,43 @@ function genOffers(p){
 function unitPrice(p,u){let c=u.cost;
   if(u.fac==='dark'&&hasRelic(p,'mask'))c=Math.max(1,c-1);return c}
 function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
+// 单位详情弹窗（点立绘/长按触发，新手友好）。inst 可选(带 star/gAtk/gHp 则显示实际属性)
+function showUnitDetail(id,inst){
+  const u=UMAP[id]; if(!u)return;
+  const star=inst?(inst.star||1):1, b=inst?instBase(inst):{atk:u.atk,hp:u.hp,spd:u.spd};
+  const arch=archOf(u);
+  const archTxt=arch?(arch.c==='p'
+      ?'<b style="color:#9cc0e8">穿透</b> —— 绕过前排，直取敌方<b>最后排</b>，无视嘲讽'
+      :'<b style="color:#d9964a">嘲讽</b> —— 敌方近战优先打它，替后排<b>挡刀</b>')
+    :'<b>近战</b> —— 攻击敌方最前排';
+  const kf=FAC_COUNTER[u.fac], bkf=Object.keys(FAC_COUNTER).find(k=>FAC_COUNTER[k]===u.fac);
+  const clashTxt=kf?`克制 <b style="color:var(--teal)">${FACS[kf].n}</b>（基本攻击 +15%）· 被 <b style="color:#9a9686">${FACS[bkf].n}</b> 克制（-15%）`:'不参与星象相克';
+  modal(`<h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}</span></h3>
+    <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
+    <div style="display:flex;justify-content:center;gap:22px;font-family:var(--mono);font-size:17px;margin-bottom:6px">
+      <span style="color:var(--red2)">⚔ ${b.atk}</span><span style="color:#9fd49f">♥ ${b.hp}</span><span style="color:#9cc0e8">» ${b.spd}</span></div>
+    <h4>作战方式</h4>${archTxt}
+    <h4>技能</h4>${u.skill.t}
+    <h4>星象相克</h4>${clashTxt}
+    <h4>档案</h4><i style="color:var(--ink3)">${u.lore}</i>`);
+}
+// 点击 + 长按 均触发 fn（长按供触屏，误触少）
+function bindDetail(el,fn){
+  el.style.cursor='pointer';
+  el.addEventListener('click',e=>{e.stopPropagation();fn()});
+  let tm=null;
+  const start=()=>{tm=setTimeout(()=>{tm=null;fn()},420)}, cancel=()=>{if(tm){clearTimeout(tm);tm=null}};
+  el.addEventListener('touchstart',start,{passive:true});
+  el.addEventListener('touchmove',cancel,{passive:true});
+  el.addEventListener('touchend',cancel);
+}
 
 function renderDraft(fresh){
   const p=curDrafter();
   const origin=S.phase==='origin';
   if(!origin&&(fresh||!S.offers.length)){S.offers=genOffers(p);S.offersSold=[false,false,false]}
   $('#draft-title').innerHTML=origin?'开 局 <em>点 将</em>':'征 募 · <em>三 选 一</em>';
-  $('#draft-sub').textContent=origin?'开局礼：每人免费领一名学员入队':'按排名从后往前挑 · 落后者先选';
+  $('#draft-sub').textContent=(origin?'开局礼：每人免费领一名学员入队':'按排名从后往前挑 · 落后者先选')+' · 点立绘看详情';
   $('#btn-reroll').style.display=origin?'none':'';
   $('#btn-draft-done').style.display=origin?'none':'';
   $('#btn-draft-undo').style.display=draftHist.length?'':'none';
@@ -1363,6 +1394,7 @@ function renderDraft(fresh){
         <div class="lore">${u.lore}</div>
         <button class="btn mini gold cost-btn">${origin?'免费 · 入队':`征募 · ${price} 铸币`}</button>`;
       d.querySelector('.cost-btn').onclick=()=>buyUnit(idx,u,price);
+      bindDetail(d.querySelector('.badge'),()=>showUnitDetail(u.id)); // 点/长按立绘看详情
     }else{
       const r=RMAP[o.id];
       d.innerHTML=`
@@ -1404,6 +1436,7 @@ function renderBench(p){
     bR.onclick=()=>{snapDraft();[p.army[ai+1],p.army[ai]]=[p.army[ai],p.army[ai+1]];renderDraft();save()};
     bX.onclick=()=>{snapDraft();p.army.splice(ai,1);p.coins+=refund;
       toast(`${u.n} 离队，返还 ${refund} 铸币`);renderDraft();save()};
+    bindDetail(d.querySelector('.g'),()=>showUnitDetail(a.id,a)); // 点字看详情（带实际属性）
     bx.appendChild(d);
   });
   $('#relic-shelf').innerHTML=p.relics.map(rid=>{const r=RMAP[rid];
@@ -1857,6 +1890,7 @@ function unitEl(f){
     <span class="num"><span class="a">⚔${f.atk}</span><span class="h">♥${f.hp}</span></span>
     <div class="hpb"><i style="width:100%"></i></div>
     <span class="sh" style="display:none"><svg class="shico" viewBox="0 0 16 16"><path d="M8 1.5l5 2v3.8c0 3.3-2.2 5.5-5 6.7-2.8-1.2-5-3.4-5-6.7V3.5z"/></svg></span>`;
+  if(UMAP[f.id])bindDetail(d,()=>showUnitDetail(f.id,{star:f.star,gAtk:0,gHp:0})); // 点战斗单位看详情(幽灵无档案跳过)
   return d;
 }
 function playBattle(pr){
