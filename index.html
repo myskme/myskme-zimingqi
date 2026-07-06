@@ -2426,9 +2426,12 @@ async function drawReport(sorted){
   // MYSKME 印章水印（淡·盖章质感，内容画于其上）
   const _seal=sealCanvas();
   ctx.save();ctx.globalAlpha=.05;const _sw=W*.64;ctx.drawImage(_seal,(W-_sw)/2,(H-_sw)/2-20,_sw,_sw);ctx.restore();
-  // 金框
+  // 金框 + 碑铭四角（与网页 .ornate 同语言）
   ctx.strokeStyle='rgba(201,166,74,.8)';ctx.lineWidth=3;ctx.strokeRect(28,28,W-56,H-56);
   ctx.strokeStyle='rgba(201,166,74,.28)';ctx.lineWidth=1;ctx.strokeRect(40,40,W-80,H-80);
+  ctx.strokeStyle='#e8c768';ctx.lineWidth=3;
+  const cor=(x,y,dx,dy)=>{ctx.beginPath();ctx.moveTo(x+dx*26,y);ctx.lineTo(x,y);ctx.lineTo(x,y+dy*26);ctx.stroke()};
+  cor(28,28,1,1);cor(W-28,28,-1,1);cor(28,H-28,1,-1);cor(W-28,H-28,-1,-1);
   // 右上角品牌钤印（清晰）
   ctx.save();ctx.globalAlpha=.92;ctx.drawImage(_seal,W-190,60,120,120);ctx.restore();
   const gold='#e8c768',ink='#eee8d8',ink2='#a8a294';
@@ -2441,10 +2444,11 @@ async function drawReport(sorted){
   ctx.fillText((S&&S.solo?'MYSKME 自鸣棋 · 单人试炼战报 · ':'MYSKME 自鸣棋 · 演武战报 · ')+new Date().toLocaleDateString('zh-CN'),W/2,196);
   // 分隔
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,232);ctx.lineTo(W-120,232);ctx.stroke();
-  // 冠军
+  // 冠军（名字带一次性金辉）
   const champ=sorted[0];
   ctx.fillStyle=gold;ctx.font=serif(40);ctx.fillText('♛',W/2,300);
-  ctx.fillStyle=ink;ctx.font=serif(64,500);ctx.fillText(champ.name,W/2,372);
+  ctx.save();ctx.shadowColor='#e8c768';ctx.shadowBlur=18;
+  ctx.fillStyle=ink;ctx.font=serif(64,500);ctx.fillText(champ.name,W/2,372);ctx.restore();
   ctx.fillStyle=ink2;ctx.font=serif(26);
   ctx.fillText(`王座分 ${champ.crowns} · 战胜 ${champ.wins} 场 · 铸币 ${champ.coins}`,W/2,412);
   // 冠军军团徽章
@@ -2468,7 +2472,8 @@ async function drawReport(sorted){
     ctx.strokeStyle='rgba(201,166,74,.25)';ctx.lineWidth=1;ctx.strokeRect(x0+7,459,bw-14,bw-14);
     if(inst.star>=2){ctx.save();ctx.textAlign='center';ctx.fillStyle=inst.star===3?'#fff':gold;ctx.font=serif(inst.star===3?20:22);
       if(inst.star===3){ctx.shadowColor=gold;ctx.shadowBlur=6}ctx.fillText('★'.repeat(inst.star),x0+bw/2,452+26);ctx.restore()}
-    ctx.fillStyle=ink2;ctx.font=serif(20);ctx.fillText(u.n,x0+bw/2,452+bw+30);
+    const facCol={dark:'#b48ae0',sea:'#8fd0c2',sky:'#9cc0e8',academy:'#e8c768',swing:'#b8b2a4',novice:'#9fd49f'};
+    ctx.fillStyle=facCol[u.fac]||ink2;ctx.font=serif(20);ctx.fillText(u.n,x0+bw/2,452+bw+30); // 军团名带阵营色，一眼读出流派
     x0+=bw+gap;
   });
   let y=army.length?660:520;
@@ -2477,8 +2482,10 @@ async function drawReport(sorted){
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,y);ctx.lineTo(W-120,y);ctx.stroke();
   y+=64;
   ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('本局 MVP 单位',W/2,y);y+=52;
+  const mvpTxt=mvp?`${mvp.n} —— 总输出 ${mvp.amt}（${mvp.owner} 麾下）`:'战场太安静，无人称雄';
   ctx.fillStyle=ink;ctx.font=serif(40,500);
-  ctx.fillText(mvp?`${mvp.n} —— 总输出 ${mvp.amt}（${mvp.owner} 麾下）`:'战场太安静，无人称雄',W/2,y);
+  if(ctx.measureText(mvpTxt).width>W-200)ctx.font=serif(32,500); // 长名不顶金框
+  ctx.fillText(mvpTxt,W/2,y);
   y+=70;
   // 命运回放
   ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('命运回放',W/2,y);y+=46;
@@ -2486,13 +2493,37 @@ async function drawReport(sorted){
   const evs=(S.evLog||[]).slice(-4);
   ctx.fillText(evs.length?evs.join(' · '):'诸神今日沉默',W/2,y);
   y+=72;
-  // 排名
+  // 排名：左右对齐 + 点线引导（≥6人自动双列，绝不压页脚金句）
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,y-30);ctx.lineTo(W-120,y-30);ctx.stroke();
   ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('终 榜',W/2,y+14);y+=64;
-  sorted.forEach((p,k)=>{
-    ctx.fillStyle=k===0?gold:ink;ctx.font=serif(30,k===0?500:400);
-    ctx.fillText(`${k+1} · ${p.name} —— ♛${p.crowns}　◈${p.coins}`,W/2,y);y+=46;
-  });
+  const rankRow=(p,k,xL,xR,yy,fs)=>{
+    const nameTxt=(k===0?'♛ ':'')+`${k+1} · ${p.name}`, scoreTxt=`♛${p.crowns}　◈${p.coins}`;
+    ctx.font=serif(fs,k===0?500:400);ctx.fillStyle=k===0?gold:ink;
+    ctx.textAlign='left';ctx.fillText(nameTxt,xL,yy);
+    const nw=ctx.measureText(nameTxt).width;
+    ctx.textAlign='right';ctx.fillText(scoreTxt,xR,yy);
+    const sw=ctx.measureText(scoreTxt).width;
+    ctx.save();ctx.strokeStyle='rgba(201,166,74,.25)';ctx.lineWidth=1;ctx.setLineDash([2,6]);
+    ctx.beginPath();ctx.moveTo(xL+nw+16,yy-9);ctx.lineTo(xR-sw-16,yy-9);ctx.stroke();ctx.restore();
+    ctx.textAlign='center';
+  };
+  if(sorted.length<=5){
+    sorted.forEach((p,k)=>{rankRow(p,k,150,W-210,y,30);y+=46}); // 右缘避开右下二维码区
+  }else{
+    const half=Math.ceil(sorted.length/2), yStart=y;
+    sorted.forEach((p,k)=>{const col=k<half?0:1;
+      rankRow(p,k, col?W/2+44:84, col?W-84:W/2-44, yStart+(k%half)*40, 24)});
+    y=yStart+half*40;
+  }
+  // 二维码：离线硬编码常量位图（29×29 → https://myskme.github.io/myskme-zimingqi/）
+  // 战报进家长群 = 二维码进家长群：课堂散场 → 回家单人试炼的传播桥
+  const QR=['1fc5447f','1058d441','1759235d','175dbb5d','17411e5d','104dd841','1fd5557f','155200','1054ccce','17172e36','1e6a3960','1a74188','1fdb1261','122bbf73','fc9202c','e2f31d5','1e529aac','1729bb77','1dce2f19','14aa5140','16d509f7','1ef318','1fccff5c','10419312','1749b3fa','174b3ead','1741fdfe','104c80fd','1fd28a64'];
+  const QN=29,qs=4,qsz=QN*qs,qx=W-74-qsz,qy=H-96-qsz;
+  ctx.fillStyle='#f2ecdc';ctx.fillRect(qx-10,qy-10,qsz+20,qsz+20);
+  ctx.fillStyle='#141414';
+  for(let ry=0;ry<QN;ry++){const bits=parseInt(QR[ry],16).toString(2).padStart(QN,'0');
+    for(let rx=0;rx<QN;rx++)if(bits[rx]==='1')ctx.fillRect(qx+rx*qs,qy+ry*qs,qs,qs);}
+  ctx.fillStyle=ink2;ctx.font=serif(15);ctx.fillText('扫码 · 单人试炼',qx+qsz/2,qy+qsz+28);
   // 页脚
   ctx.fillStyle=ink2;ctx.font=serif(22);
   ctx.fillText('「拒绝一切死板的教条。世界值得有趣地活一次。」',W/2,H-140);
