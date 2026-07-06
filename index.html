@@ -171,7 +171,8 @@ body.playing #hud{display:flex}
 .pcard .mini-army{display:flex;gap:5px;margin-bottom:10px;min-height:26px;flex-wrap:wrap}
 .mini-u{width:26px;height:26px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
   font-size:14px;position:relative;background:rgba(0,0,0,.25)}
-.mini-u.star2::after{content:'★';position:absolute;top:-7px;right:-5px;font-size:9px;color:var(--gold2)}
+.mini-u.star2::after{content:'★★';position:absolute;top:-7px;right:-5px;font-size:8px;color:var(--gold2)}
+.mini-u.star3::after{content:'★★★';position:absolute;top:-7px;right:-6px;font-size:7.5px;color:#fff;text-shadow:0 0 5px var(--gold)}
 .mini-u.f-dark{border-color:rgba(157,114,214,.5)}
 .judge{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .judge .btn{padding:8px 4px;font-size:13.5px;letter-spacing:.06em;text-align:center}
@@ -244,7 +245,8 @@ body.playing #hud{display:flex}
 .bunit:hover{border-color:var(--gold)}
 .bunit .g{font-size:21px} .bunit .n{font-size:11px;color:var(--ink2);letter-spacing:.08em}
 .bunit .st{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
-.bunit.star2 .g::after{content:' ★';font-size:11px;color:var(--gold2)}
+.bunit.star2 .g::after{content:' ★★';font-size:10px;color:var(--gold2)}
+.bunit.star3 .g::after{content:' ★★★';font-size:9px;color:#fff;text-shadow:0 0 6px var(--gold)}
 /* 站位编辑：◀▶ 调整（左=前排），✕ 出售 */
 .bunit .bmove{display:flex;gap:3px;justify-content:center;margin-top:5px}
 .bunit .bmove button{font-family:var(--serif);cursor:pointer;background:rgba(0,0,0,.35);
@@ -300,7 +302,8 @@ body.playing #hud{display:flex}
 .u{width:88px;padding:8px 4px 6px;text-align:center;position:relative;background:var(--panel2);
   border:2px solid var(--ink4);box-shadow:3px 3px 0 rgba(0,0,0,.45);transition:transform .18s}
 .u .g{font-size:30px;line-height:1.25;display:block}
-.u.star2 .g::after{content:'★';font-size:11px;color:var(--gold2);vertical-align:top}
+.u.star2 .g::after{content:'★★';font-size:9px;color:var(--gold2);vertical-align:top}
+.u.star3 .g::after{content:'★★★';font-size:8px;color:#fff;text-shadow:0 0 6px var(--gold);vertical-align:top}
 .u .n{font-size:11px;color:var(--ink2);letter-spacing:.06em;display:block;margin-top:1px}
 .u .num{font-family:var(--mono);font-size:11.5px;margin-top:3px;display:flex;justify-content:center;gap:7px}
 .u .num .a{color:var(--red2)} .u .num .h{color:#9fd49f}
@@ -991,9 +994,14 @@ function loadSave(){try{const j=localStorage.getItem('dyyw1');return j?JSON.pars
 
 /* 单位实例 */
 function mkInst(id){return {uid:uidSeq++, id, star:1, gAtk:0, gHp:0}}
-function instBase(inst){const u=UMAP[inst.id];
-  const m=inst.star===2?1.8:1;
-  return {atk:Math.round(u.atk*m)+inst.gAtk, hp:Math.round(u.hp*m)+inst.gHp, spd:u.spd};}
+// 三档星级：hp 倍率略低于 atk，防 3★ 龟缩被 30 回合血量比裁决偏袒；spd 不随星，速度留给站位/技能
+const STAR_ATK=[1,1.6,2.2], STAR_HP=[1,1.5,1.9];
+function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;
+  return {atk:Math.round(u.atk*(STAR_ATK[s]||1))+inst.gAtk, hp:Math.round(u.hp*(STAR_HP[s]||1))+inst.gHp, spd:u.spd};}
+// 技能数值随星步进（浅拷贝，绝不污染 UNITS 原型）；乘算类(firstCrit)与成长类(growth)不参与
+const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1, slowFast:1, growAtk:1, firstPlus:1, buffAdj:1, boostLin:1, pairYu:1};
+function skillFor(u,star){const s=u.skill, sv=(SKILL_SV[s.k]||0)*((star||1)-1);
+  return sv? {...s, v:(s.v||0)+sv} : s;}
 
 /* 屏幕切换 */
 function go(id){document.querySelectorAll('.result-banner').forEach(x=>x.remove()); // 清跳屏后残留的胜利横幅
@@ -1111,7 +1119,7 @@ function renderWave(){
     d.innerHTML=`<h4>${p.name} <span class="crown">♛${p.crowns}</span></h4>
       <div class="res"><span>铸币 <b>◈${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
-        return `<span class="mini-u ${a.star===2?'star2':''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
+        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
         <button class="btn ok"   data-a="ok">答对 +2</button>
         <button class="btn hard" data-a="hard">难题 +3</button>
@@ -1299,11 +1307,11 @@ function renderDraft(fresh){
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
       if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
-      const willMerge=!origin&&p.army.some(a=>a.id===u.id&&a.star===1);
+      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===2)?' · ★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · ★★可合星':''));
       d.innerHTML=`
         <div class="fac f-${u.fac}">${FACS[u.fac].n}</div>
         <div class="badge r-${u.rar} ${u.rar==='UR'?'ur':''}"><span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
-        <h3>${u.n}</h3><div class="rar-tag">${u.rar}${willMerge?' · ★可合星':''}</div>
+        <h3>${u.n}</h3><div class="rar-tag">${u.rar}${mergeHint}</div>
         <div class="stats"><span class="atk">⚔${u.atk}</span><span class="hp">♥${u.hp}</span><span class="spd">»${u.spd}</span></div>
         <div class="skill">${u.skill.t}</div>
         <div class="lore">${u.lore}</div>
@@ -1334,8 +1342,8 @@ function renderBench(p){
   if(!p.army.length)bx.innerHTML='<span style="color:var(--ink4);font-size:12px;letter-spacing:.2em;align-self:center">虚位以待</span>';
   p.army.forEach((a,ai)=>{
     const u=UMAP[a.id];const st=instBase(a);
-    const refund=a.star===2?u.cost*2:u.cost;
-    const d=document.createElement('div');d.className='bunit'+(a.star===2?' star2':'');
+    const refund=[u.cost,u.cost*2,u.cost*3][(a.star||1)-1]; // 3★退 cost*3 < 4张购入价，卖出净亏，杜绝套现
+    const d=document.createElement('div');d.className='bunit'+(a.star>=2?' star'+a.star:'');
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       <div class="g">${u.n[0]}</div><div class="n">${u.n}</div>
       <div class="st">⚔${st.atk} ♥${st.hp}</div>
@@ -1389,12 +1397,20 @@ function buyUnit(idx,u,price){
   }
   if(p.coins<price){toast('铸币不够——先答题赚钱去');return}
   const cap=ARMY_CAP[Math.min(S.act,3)];
-  const mergeTarget=p.army.find(a=>a.id===u.id&&a.star===1);
+  const twin2=p.army.find(a=>a.id===u.id&&a.star===2); // 优先喂高星，避免出现两个 ★★
+  const twin1=p.army.find(a=>a.id===u.id&&a.star===1);
+  const mergeTarget=twin2||twin1;
   if(!mergeTarget&&p.army.length>=cap){toast('军团已满：点下方成员可出售腾位');return}
   snapDraft();
   p.coins-=price;S.offersSold[idx]=true;
-  if(mergeTarget){mergeTarget.star=2;
-    flash(false);shake();toast(`★ ${u.n} 合星！属性大幅提升`,2600);SFX.play('merge');
+  if(twin2){ // 喂 ★★：再集齐 2 张碎片 → ★★★ 三星觉醒
+    twin2.frag=(twin2.frag||0)+1;
+    if(twin2.frag>=2){twin2.star=3;twin2.frag=0;
+      flash(false);shake();toast(`★★★ ${u.n} 三星觉醒！属性质变`,3000);SFX.play('merge');
+      burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#fff'],42);
+    }else{toast(`${u.n} 融入 ★★（碎片 ${twin2.frag}/2 → ★★★）`,2400);SFX.play('coin')}
+  }else if(twin1){twin1.star=2;
+    flash(false);shake();toast(`★★ ${u.n} 合星！属性提升`,2600);SFX.play('merge');
     burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#fff'],30);
   }else{p.army.push(mkInst(u.id));toast(`${u.n} 入队`)}
   renderDraft();hud();save();
@@ -1503,7 +1519,7 @@ function buildFighters(p, evFlags){
     const u=UMAP[inst.id];const b=instBase(inst);
     return {uid:inst.uid, id:inst.id, n:u.n, glyph:u.n[0], fac:u.fac, star:inst.star,
       atk:b.atk, hp:b.hp, maxhp:b.hp, spd:b.spd, shield:0, alive:true,
-      first:true, usedRevive:false, skill:u.skill, ix};
+      first:true, usedRevive:false, skill:skillFor(u,inst.star), ix};
   });
   // 阵营羁绊
   if(synCount(p,'academy')>=2) fs.forEach(f=>{f.hp+=3;f.maxhp+=3});
@@ -1649,6 +1665,47 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
 /*SIM-END*/
 
 /* ============================================================
+   #selftest 回归网 —— 访问 index.html#selftest 触发，不进战斗热路径
+   所有改数值/机制的支柱都在此加断言，防静默破坏平衡
+   ============================================================ */
+function runSelftest(){
+  const res=[], ok=(name,cond)=>res.push({name,pass:!!cond});
+  const lin=(star)=>({uid:0,id:'lin',star,gAtk:0,gHp:0});
+  // —— 星级三档倍率 ——
+  const b1=instBase(lin(1)),b2=instBase(lin(2)),b3=instBase(lin(3));
+  ok('lin ★1 atk=3/hp=10', b1.atk===3&&b1.hp===10);
+  ok('lin ★★ atk=round(3*1.6)=5', b2.atk===Math.round(3*1.6));
+  ok('lin ★★★ atk=round(3*2.2)=7 / hp=round(10*1.9)=19', b3.atk===Math.round(3*2.2)&&b3.hp===Math.round(10*1.9));
+  ok('hp倍率<atk倍率（防3★龟缩）', STAR_HP[2]<STAR_ATK[2]);
+  // —— 技能值随星步进，且不污染 UNITS 原型 ——
+  const s1=skillFor(UMAP['lin'],1), s3=skillFor(UMAP['lin'],3);
+  ok('lin 护盾 ★1 v=2', s1.v===2);
+  ok('lin 护盾 ★★★ v=2+1*2=4', s3.v===4);
+  ok('UNITS原型未被污染 lin.skill.v===2', UMAP['lin'].skill.v===2);
+  ok('乘算类firstCrit不给sv', !SKILL_SV['firstCrit']);
+  // —— 卖出返还：3★净亏，杜绝套现 ——
+  const rf=(cost,star)=>[cost,cost*2,cost*3][star-1];
+  ok('3★卖出(cost*3=9) < 4张购入价(cost*4=12)', rf(3,3) < 3*4);
+  // —— 战斗可复现 & 收束 ——
+  const mkA=ids=>ids.map(id=>({uid:uidSeq++,id,star:1,gAtk:0,gHp:0}));
+  const A=()=>buildFighters({army:mkA(['lin','yu','nuo']),relics:[]},{});
+  const B=()=>buildFighters({army:mkA(['hang','xuan','wolf']),relics:[]},{});
+  const r1=simulateBattle(A(),B(),{},{},mulberry32(42),{});
+  const r2=simulateBattle(A(),B(),{},{},mulberry32(42),{});
+  ok('同种子对局可复现（winner一致）', r1.winner===r2.winner);
+  ok('战斗30回合内收束', r1.winner===0||r1.winner===1||r1.winner===-1);
+  ok('伤害台账非负', Object.values(r1.dmgByUid).every(v=>v>=0));
+  // —— 渲染 ——
+  const pass=res.filter(r=>r.pass).length, total=res.length;
+  document.title=`#selftest ${pass}/${total}`;
+  document.body.innerHTML=`<div style="font:14px ui-monospace,Menlo,monospace;color:#e8c768;background:#0a0a0c;padding:34px;min-height:100vh">
+    <h2 style="letter-spacing:.1em">自鸣棋 · #selftest &nbsp; ${pass}/${total} &nbsp;${pass===total?'✅ ALL PASS':'❌ 有失败'}</h2>`
+    +res.map(r=>`<div style="margin:5px 0;color:${r.pass?'#9fd49f':'#d56060'}">${r.pass?'✓':'✗'} ${r.name}</div>`).join('')
+    +`<p style="color:#6d685c;margin-top:24px">移除 URL 里的 #selftest 并刷新即回到游戏</p></div>`;
+  return {pass,total};
+}
+
+/* ============================================================
    演武 · 配对与流程
    ============================================================ */
 function startBattlePhase(){
@@ -1697,7 +1754,7 @@ $('#btn-skipb').onclick=()=>{PB.skip=true};
 
 function unitEl(f){
   const d=document.createElement('div');
-  d.className='u'+(f.star===2?' star2':'');d.dataset.uid=f.uid;
+  d.className='u'+(f.star>=2?' star'+f.star:'');d.dataset.uid=f.uid;
   d.innerHTML=`<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}</div><span class="n">${f.n}</span>
     <span class="num"><span class="a">⚔${f.atk}</span><span class="h">♥${f.hp}</span></span>
     <div class="hpb"><i style="width:100%"></i></div>
@@ -1877,7 +1934,7 @@ function soloPreBattle(){
   $('#battle-act-tag').textContent='第 '+S.round+' 关';
   $('#battle-sub').textContent=`单人试炼 · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
   const you=S.players[0], foe=S.soloFoe||[];
-  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star===2?'star2':''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
+  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
   const box=$('#pairings');box.style.display='';
   box.innerHTML=`<div class="pairrow"><span class="who">${you.name}<div class="mini-army">${mini(you.army)}</div></span><span class="vs">VS</span><span class="who right">${soloFoeName(S.round)}<div class="mini-army" style="justify-content:flex-end">${mini(foe)}</div></span></div>`;
   $('#battle-next-row').style.display='';
@@ -2147,7 +2204,7 @@ function showHowto(){
   题在老师手里（口头 / 试卷 / 黑板都行），屏幕上只做判定：答对 +2 铸币、难题 +3、抢答再 +1；
   答错不扣分，但喂满「暴走槽」会引来叶王乱入。
   <h4>征募（三选一）</h4>
-  按排名<b>从后往前</b>轮流选卡——落后者先挑。买到同名第二张自动<b>合星 ★2</b>（属性 ×1.8）。
+  按排名<b>从后往前</b>轮流选卡——落后者先挑。<b>星级合成</b>：同名第 2 张→<b>★★合星</b>；★★ 再集 2 张碎片→<b>★★★三星觉醒</b>（属性质变、技能随星增强）。合成把 4 张压成 1 格、越深越强。
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。
   <h4>站位（一句话策略）</h4>
   军团从左到右站队：<b>最左是前排，先挨打</b>；狙击类技能专打最后排。
@@ -2192,6 +2249,7 @@ $('#btn-howto').onclick=showHowto;
 $('#btn-menu').onclick=showMenu;
 
 (function boot(){
+  if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
   if(loadSave())$('#btn-continue').style.display='';
   renderSetup();
   // 标题品牌钤印（程序化印章）
