@@ -234,6 +234,11 @@ body.playing #hud{display:flex}
 .offer .stats .atk{color:var(--red2)} .offer .stats .hp{color:#9fd49f} .offer .stats .spd{color:#9cc0e8}
 .offer .skill{font-size:12.5px;color:var(--ink2);line-height:1.65;min-height:3.3em;padding:0 4px}
 .offer .lore{font-size:11px;color:var(--ink3);font-style:italic;margin:4px 0 10px;letter-spacing:.06em}
+/* 目标 archetype 标签（穿透/嘲讽），让站位策略可见 */
+.arch-tag{display:inline-block;font-size:10px;letter-spacing:.18em;padding:1px 8px;margin:2px 0 4px;border:1px solid currentColor;border-radius:2px}
+.arch-p{color:#9cc0e8} .arch-t{color:#e8c768}
+.bunit .arch-mini{position:absolute;top:-8px;left:-2px;font-size:8px;letter-spacing:.1em;padding:0 4px;border:1px solid currentColor;background:rgba(0,0,0,.5)}
+.bunit .arch-mini.p{color:#9cc0e8}.bunit .arch-mini.t{color:#e8c768}
 .offer .cost-btn{width:100%}
 .offer.relic-offer .badge{border-color:var(--gold)}
 #draft-actions{display:flex;gap:12px;justify-content:center;margin-top:18px;flex-wrap:wrap}
@@ -633,37 +638,37 @@ const UNITS = [
   skill:{k:'healLow', v:2, t:'每回合：治疗血量最低的友军 2'}, lore:'独立受教，带来哼唱'},
  {id:'wolf', n:'狼先生',fac:'academy', cost:5, atk:2, hp:8,  spd:2, rar:'UR',  w:2,  beast:'◐',
   skill:{k:'aura11', t:'光环：其余友军 +1 攻 +1 速（他自己只喝茶）'}, lore:'「我只让你们变得有趣一点。」'},
- {id:'guard',n:'谷地守望',fac:'academy',cost:1, atk:1, hp:8,  spd:2, rar:'N',   w:12, beast:'🛡',
+ {id:'guard',n:'谷地守望',fac:'academy',cost:1, atk:1, hp:8,  spd:2, rar:'N',   w:12, taunt:true, beast:'🛡',
   skill:{k:'none', t:'无技能。便宜、扛打、忠诚'}, lore:'学院墙上第一盏不灭的灯'},
  {id:'carter',n:'星尘车夫',fac:'academy',cost:1,atk:1, hp:6,  spd:5, rar:'N',   w:11, beast:'✦',
   skill:{k:'coinDeath', v:1, t:'阵亡时：主人 +1 铸币（车翻了，货还在）'}, lore:'拉着星尘车跑遍谷地'},
  // —— 天之国系 ——
- {id:'nuo',  n:'诺',   fac:'sky',     cost:3, atk:4, hp:6,  spd:7, rar:'SSR', w:7,  beast:'🦉',
+ {id:'nuo',  n:'诺',   fac:'sky',     cost:3, atk:4, hp:6,  spd:7, rar:'SSR', w:7,  tg:'pierce', beast:'🦉',
   skill:{k:'snipeBack', v:3, t:'开战时：狙击敌方最后排 3 伤'}, lore:'小猫头鹰。每天看天，看另一边的云'},
  {id:'crane',n:'白鹤侍从',fac:'sky',  cost:1, atk:2, hp:4,  spd:6, rar:'R',   w:11, beast:'🕊',
   skill:{k:'shieldSelf', v:2, t:'开战时：自身 +2 护盾'}, lore:'宰相门下，步子比云还轻'},
- {id:'scout',n:'断云斥候',fac:'sky',  cost:2, atk:3, hp:4,  spd:8, rar:'R',   w:10, beast:'☁',
+ {id:'scout',n:'断云斥候',fac:'sky',  cost:2, atk:3, hp:4,  spd:8, rar:'R',   w:10, tg:'pierce', beast:'☁',
   skill:{k:'firstPlus', v:2, t:'首次攻击 +2（云层里先手一刀）'}, lore:'在断云缝隙里长大的孩子'},
- {id:'pigeon',n:'信鸽', fac:'sky',    cost:1, atk:1, hp:3,  spd:9, rar:'N',   w:10, beast:'✉',
+ {id:'pigeon',n:'信鸽', fac:'sky',    cost:1, atk:1, hp:3,  spd:9, rar:'N',   w:10, tg:'pierce', beast:'✉',
   skill:{k:'none', t:'无技能。全场最快，命最薄'}, lore:'脚环上系过一片紫色蛇鳞'},
  // —— 海族系 ——
  {id:'yu',   n:'屿',   fac:'sea',     cost:3, atk:4, hp:7,  spd:5, rar:'SSR', w:7,  beast:'🐟',
   skill:{k:'splashDeath', v:2, t:'阵亡时：爆炸炮弹，敌方全体 2 伤'}, lore:'翻车鱼少年。炮弹锁在角落，是提醒'},
- {id:'qi',   n:'麒',   fac:'sea',     cost:2, atk:3, hp:7,  spd:3, rar:'SR',  w:9,  beast:'🌊',
+ {id:'qi',   n:'麒',   fac:'sea',     cost:2, atk:3, hp:7,  spd:3, rar:'SR',  w:9,  taunt:true, beast:'🌊',
   skill:{k:'pairYu', v:2, t:'开战时：若屿在场，兄弟二人各 +2 攻'}, lore:'屿的哥哥，浪来了先站在前面'},
  {id:'mist', n:'海雾行者',fac:'sea',  cost:2, atk:2, hp:8,  spd:4, rar:'R',   w:10, beast:'🌫',
   skill:{k:'slowFast', v:2, t:'开战时：敌方最快单位 -2 速'}, lore:'从上岸那天起就没干过'},
  // —— 摇摆队④ ——
  {id:'wei',  n:'炜',   fac:'swing',   cost:1, atk:2, hp:5,  spd:4, rar:'R',   w:11, beast:'☯',
   skill:{k:'none', t:'无技能。阵营未定，价格好谈'}, lore:'摇摆队④。谁赢帮谁'},
- {id:'rong', n:'荣',   fac:'swing',   cost:1, atk:1, hp:7,  spd:3, rar:'R',   w:11, beast:'☯',
+ {id:'rong', n:'荣',   fac:'swing',   cost:1, atk:1, hp:7,  spd:3, rar:'R',   w:11, taunt:true, beast:'☯',
   skill:{k:'none', t:'无技能。站得稳，看得远'}, lore:'摇摆队④。观望是一种武艺'},
  {id:'yang', n:'洋',   fac:'swing',   cost:2, atk:2, hp:6,  spd:5, rar:'SR',  w:9,  beast:'☯',
   skill:{k:'growAtk', v:1, t:'每回合：自身 +1 攻（越打越来劲）'}, lore:'摇摆队④里最先动摇的那个'},
  // —— 黑域系 ——
  {id:'wan',  n:'菀',   fac:'dark',    cost:3, atk:4, hp:6,  spd:5, rar:'SSR', w:6,  beast:'📏',
   skill:{k:'snipeBack', v:4, t:'开战时：理性尺精准斩后排 4 伤'}, lore:'尺的零刻度，曾对着诺的座位'},
- {id:'xuan', n:'璇',   fac:'dark',    cost:3, atk:5, hp:5,  spd:6, rar:'SR',  w:8,  beast:'🐆',
+ {id:'xuan', n:'璇',   fac:'dark',    cost:3, atk:5, hp:5,  spd:6, rar:'SR',  w:8,  tg:'pierce', beast:'🐆',
   skill:{k:'firstCrit', t:'首次攻击必定暴击 ×2（猞猁突袭）'}, lore:'大耳猞猁，从不打第二声招呼'},
  {id:'hui',  n:'慧',   fac:'dark',    cost:2, atk:2, hp:6,  spd:4, rar:'SR',  w:9,  beast:'🍂',
   skill:{k:'buffAdj', v:2, t:'阵亡时：相邻友军 +2 攻（低语留下了）'}, lore:'「她只是让我们停止说服自己。」'},
@@ -719,18 +724,18 @@ const GHOSTS = {
     {id:'g1',n:'黑域游兵',glyph:'蛇',atk:2,hp:6,spd:4,skill:{k:'none'}},
     {id:'g2',n:'蛇纹卫',glyph:'纹',atk:3,hp:5,spd:5,skill:{k:'none'}}]},
  2:{n:'黑域战团', units:[
-    {id:'g3',n:'紫甲兵',glyph:'甲',atk:3,hp:8,spd:4,skill:{k:'none'}},
+    {id:'g3',n:'紫甲兵',glyph:'甲',atk:3,hp:8,spd:4,taunt:true,skill:{k:'none'}},
     {id:'g1',n:'黑域游兵',glyph:'蛇',atk:3,hp:6,spd:5,skill:{k:'none'}},
     {id:'g4',n:'低语者',glyph:'语',atk:4,hp:6,spd:6,skill:{k:'firstPlus',v:2}},
     {id:'g2',n:'蛇纹卫',glyph:'纹',atk:3,hp:7,spd:5,skill:{k:'none'}}]},
  3:{n:'鹦鹉学派亲卫', units:[
     {id:'g5',n:'鹦鹉教授',glyph:'鹦',atk:4,hp:12,spd:4,skill:{k:'echoAll',v:1,t:'复读噪音'}},
     {id:'g6',n:'童声复读机',glyph:'机',atk:3,hp:9,spd:3,skill:{k:'revive1',t:'复读'}},
-    {id:'g3',n:'紫甲兵',glyph:'甲',atk:4,hp:8,spd:5,skill:{k:'none'}},
+    {id:'g3',n:'紫甲兵',glyph:'甲',atk:4,hp:8,spd:5,taunt:true,skill:{k:'none'}},
     {id:'g1',n:'黑域游兵',glyph:'蛇',atk:3,hp:7,spd:5,skill:{k:'none'}}]},
 };
 const BOSS_WAVE = (act)=>({n:'叶王 · 乱入', units:[
-  {id:'yewang',n:'叶王',glyph:'叶',atk:4+act,hp:10+act*4,spd:6,skill:{k:'weakenTop',v:1,t:'蛇缠：每回合敌方最高攻 -1'}},
+  {id:'yewang',n:'叶王',glyph:'叶',atk:4+act,hp:10+act*4,spd:6,tg:'pierce',skill:{k:'weakenTop',v:1,t:'蛇缠：每回合敌方最高攻 -1'}},
   ...(act>=2?[{id:'g4',n:'低语者',glyph:'语',atk:2+act,hp:4+act,spd:6,skill:{k:'none'}}]:[]),
   {id:'g2',n:'蛇纹卫',glyph:'纹',atk:act>1?3:2,hp:5+act,spd:4,skill:{k:'none'}},
 ]});
@@ -1283,6 +1288,7 @@ function genOffers(p){
 }
 function unitPrice(p,u){let c=u.cost;
   if(u.fac==='dark'&&hasRelic(p,'mask'))c=Math.max(1,c-1);return c}
+function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
 
 function renderDraft(fresh){
   const p=curDrafter();
@@ -1313,6 +1319,7 @@ function renderDraft(fresh){
         <div class="badge r-${u.rar} ${u.rar==='UR'?'ur':''}"><span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
         <h3>${u.n}</h3><div class="rar-tag">${u.rar}${mergeHint}</div>
         <div class="stats"><span class="atk">⚔${u.atk}</span><span class="hp">♥${u.hp}</span><span class="spd">»${u.spd}</span></div>
+        ${(a=>a?`<div class="arch-tag arch-${a.c}">${a.t}</div>`:'')(archOf(u))}
         <div class="skill">${u.skill.t}</div>
         <div class="lore">${u.lore}</div>
         <button class="btn mini gold cost-btn">${origin?'免费 · 入队':`征募 · ${price} 铸币`}</button>`;
@@ -1345,6 +1352,7 @@ function renderBench(p){
     const refund=[u.cost,u.cost*2,u.cost*3][(a.star||1)-1]; // 3★退 cost*3 < 4张购入价，卖出净亏，杜绝套现
     const d=document.createElement('div');d.className='bunit'+(a.star>=2?' star'+a.star:'');
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
+      ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
       <div class="g">${u.n[0]}</div><div class="n">${u.n}</div>
       <div class="st">⚔${st.atk} ♥${st.hp}</div>
       <div class="bmove">
@@ -1519,6 +1527,7 @@ function buildFighters(p, evFlags){
     const u=UMAP[inst.id];const b=instBase(inst);
     return {uid:inst.uid, id:inst.id, n:u.n, glyph:u.n[0], fac:u.fac, star:inst.star,
       atk:b.atk, hp:b.hp, maxhp:b.hp, spd:b.spd, shield:0, alive:true,
+      tg:u.tg||'melee', taunt:!!u.taunt,
       first:true, usedRevive:false, skill:skillFor(u,inst.star), ix};
   });
   // 阵营羁绊
@@ -1537,7 +1546,17 @@ function buildFighters(p, evFlags){
 function ghostFighters(list){
   return list.map((g,ix)=>({uid:'g'+ix+'_'+g.id, id:g.id, n:g.n, glyph:g.glyph, fac:'ghost', star:1,
     atk:g.atk, hp:g.hp, maxhp:g.hp, spd:g.spd, shield:0, alive:true,
+    tg:g.tg||'melee', taunt:!!g.taunt,
     first:true, usedRevive:false, skill:g.skill||{k:'none'}, ix}));
+}
+/* 基本攻击选靶（纯函数，#selftest 可测）。首发只 melee/pierce 两种 archetype：
+   melee 优先打嘲讽单位、否则前排；pierce 打后排且无视嘲讽（穿透与点名的独立价值）。
+   注：技能类寻址(snipeBack/splashDeath/weakenTop 等)保持各自逻辑，不受 taunt/tg 影响 */
+function resolveTarget(f, foes){
+  if(!foes||!foes.length)return null;
+  if((f.tg||'melee')==='pierce')return foes[foes.length-1]; // 后排 C 位，穿透无视嘲讽
+  const tk=foes.find(x=>x.taunt);                            // 近战被嘲讽拉住
+  return tk||foes[0];
 }
 function sideFlags(p){ // 边级效果
   if(!p) return {seaSyn:false,shards:false,ruler:false,quill:false,goldleaf:false};
@@ -1638,7 +1657,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     if(mods.fog){order.sort(()=>rand()-0.5)}else{order.sort((x,y)=>y[1].spd-x[1].spd||rand()-0.5)}
     for(const [s,f] of order){
       if(!f.alive)continue;
-      const t=front(1-s);if(!t)break;
+      const t=resolveTarget(f,alive(1-s));if(!t)break; // 目标 archetype：melee打前排/被嘲讽拉住，pierce穿透后排
       let amt=f.atk,crit=false;
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
@@ -1695,6 +1714,16 @@ function runSelftest(){
   ok('同种子对局可复现（winner一致）', r1.winner===r2.winner);
   ok('战斗30回合内收束', r1.winner===0||r1.winner===1||r1.winner===-1);
   ok('伤害台账非负', Object.values(r1.dmgByUid).every(v=>v>=0));
+  // —— 站位目标 archetype ——
+  const foes=[{taunt:false},{taunt:false},{taunt:false}];
+  ok('melee 打前排', resolveTarget({tg:'melee'},foes)===foes[0]);
+  ok('pierce 打后排 C 位', resolveTarget({tg:'pierce'},foes)===foes[2]);
+  const foesT=[{taunt:false},{taunt:true},{taunt:false}];
+  ok('melee 被嘲讽拉住', resolveTarget({tg:'melee'},foesT)===foesT[1]);
+  ok('pierce 无视嘲讽仍打后排', resolveTarget({tg:'pierce'},foesT)===foesT[2]);
+  ok('无敌人返回 null', resolveTarget({tg:'melee'},[])===null);
+  ok('scout 穿透 / guard 嘲讽（数据挂载）', UMAP['scout'].tg==='pierce'&&UMAP['guard'].taunt===true);
+  ok('技能寻址不受影响：诺 snipeBack 仍在（tg 与技能正交）', UMAP['nuo'].skill.k==='snipeBack');
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2207,8 +2236,10 @@ function showHowto(){
   按排名<b>从后往前</b>轮流选卡——落后者先挑。<b>星级合成</b>：同名第 2 张→<b>★★合星</b>；★★ 再集 2 张碎片→<b>★★★三星觉醒</b>（属性质变、技能随星增强）。合成把 4 张压成 1 格、越深越强。
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。
   <h4>站位（一句话策略）</h4>
-  军团从左到右站队：<b>最左是前排，先挨打</b>；狙击类技能专打最后排。
-  征募时用 ◀ ▶ 调站位——坦克顶前面、脆皮藏后面、怕狙击就别把宝贝放最后。
+  军团从左到右站队：<b>最左是前排，先挨打</b>。单位有<b>作战方式</b>：普通近战打前排；
+  <b>嘲讽</b>（守望/麒/荣）会把敌方近战全拉到自己身上，替后排挡刀；<b>穿透</b>（斥候/信鸽/诺/璇）
+  绕过前排直取<b>最后排 C 位</b>、还无视嘲讽。
+  征募时用 ◀ ▶ 调站位——坦克顶前面吸火，怕穿透就<b>别把宝贝放最后一位</b>（前不挨打、后被穿透，中间最稳）。
   <h4>演武（自动对战）</h4>
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
   胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
