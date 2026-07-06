@@ -546,6 +546,7 @@ body.playing #hud{display:flex}
     </div>
     <div id="offers"></div>
     <div id="draft-actions">
+      <button class="btn" id="btn-tier">牌力 ↑</button>
       <button class="btn" id="btn-reroll">刷新 · 2 铸币</button>
       <button class="btn" id="btn-draft-undo" style="display:none">↩ 撤销一步</button>
       <button class="btn gold" id="btn-draft-done">本人征募完成</button>
@@ -996,7 +997,7 @@ function newState(names,acts,rageMax,eventsOn){
     v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn,
     waveJudge:0, hornUsed:false, freeRerollNext:false,
     players:names.map((n,i)=>({i, name:n, coins:3, crowns:0, wins:0,
-      army:[], relics:[], revenge:0, savedCoins:0, pity:0})),
+      army:[], relics:[], revenge:0, savedCoins:0, pity:0, tier:1})),
     // 征募运行时
     draftQueue:[], draftIdx:0, offers:[], offersSold:[], rerollFreeUsed:false,
     // 演武运行时
@@ -1298,11 +1299,19 @@ function draftUndo(){
   SFX.play('click');renderDraft();hud();save();toast('已撤销上一步');
 }
 
+// 断云牌力：花铸币升级，驱动征募稀有度。幕数免费保底 + 花钱买超前 = 金币消耗出口 + 高稀有门控
+const TIER_MULT={
+  1:{N:1.3,R:1.2,SR:.9, SSR:.6, UR:.35},
+  2:{N:1.1,R:1.15,SR:1, SSR:.85,UR:.6},
+  3:{N:1,  R:1,   SR:1, SSR:1,  UR:1},
+  4:{N:.7, R:.95, SR:1.1,SSR:1.3,UR:1.5},
+  5:{N:.5, R:.85, SR:1.2,SSR:1.5,UR:2},
+};
+function tierFloor(){return Math.min(3, S.act||1)}            // 幕数免费保底（单人 S.act 随关数成长）
+function effTier(p){return Math.min(5, Math.max(p.tier||1, tierFloor()))}
+function nextTierCost(p){const nt=effTier(p)+1; return nt>5?null:[0,0,6,8,10,12][nt]}
 function genOffers(p){
-  const act=Math.min(S.act,3);
-  // 缓和第一幕高稀有吝啬（SSR .55→.7 / UR .3→.45），二三幕不变
-  const mult={1:{N:1.3,R:1.2,SR:.9,SSR:.7,UR:.45},2:{N:1,R:1,SR:1,SSR:1,UR:1},
-              3:{N:.6,R:.9,SR:1.1,SSR:1.3,UR:1.6}}[act];
+  const mult=TIER_MULT[effTier(p)]; // 牌力(非幕数)驱动稀有度
   const isHigh=u=>u.rar==='SSR'||u.rar==='UR';
   // 软保底：连续 pity 轮没出高稀有 → SSR/UR 权重逐步提升（每轮×1.6，封顶×4）
   const pity=p.pity||0;
@@ -1378,6 +1387,13 @@ function renderDraft(fresh){
   $('#btn-reroll').style.display=origin?'none':'';
   $('#btn-draft-done').style.display=origin?'none':'';
   $('#btn-draft-undo').style.display=draftHist.length?'':'none';
+  // 牌力升级按钮
+  const bt=$('#btn-tier');
+  if(origin){bt.style.display='none';}
+  else{bt.style.display='';const et=effTier(p),cost=nextTierCost(p);
+    bt.disabled=false;
+    bt.textContent=cost==null?`牌力 ${et} · 满`:`牌力 ${et} ↑ · ${cost} 铸币`;
+    bt.classList.toggle('gold',cost!=null&&p.coins>=cost);}
   $('#draft-order').innerHTML=S.draftQueue.map((pi,k)=>{
     const cls=k<S.draftIdx?'done':(k===S.draftIdx?'cur':'');
     return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
@@ -1522,6 +1538,17 @@ $('#btn-reroll').onclick=()=>{
   S.offers=genOffers(p);S.offersSold=[false,false,false];renderDraft();save();
 };
 $('#btn-draft-undo').onclick=draftUndo;
+$('#btn-tier').onclick=()=>{
+  const p=curDrafter(), cost=nextTierCost(p);
+  if(cost==null){toast('牌力已满级 5');return}
+  if(p.coins<cost){toast(`升级牌力需 ${cost} 铸币`);return}
+  snapDraft();
+  p.coins-=cost; p.tier=effTier(p)+1; // 提到当前有效牌力之上一级
+  flash(false);shake();SFX.play('merge');toast(`断云牌力 → ${p.tier} 级！征募出高稀有更容易`,2600);
+  // 升级后立刻刷新一次当前三选一，体现变化（不额外扣费）
+  S.offers=genOffers(p);S.offersSold=[false,false,false];
+  renderDraft();hud();save();
+};
 $('#btn-draft-done').onclick=()=>{
   const p=curDrafter();p.revenge=0;
   if(S.solo){S.offers=[];soloPreBattle();return} // 单人：征募完 → 迎战本关 AI
@@ -1835,6 +1862,14 @@ function runSelftest(){
   ok('同名不叠：琳×2 仍算1名→无羁绊', bondTier(parmy('lin','lin'),'academy')===0);
   ok('学院4档 开战全队+2盾', buildFighters(parmy('lin','yin','lu','guard'),{}).every(f=>f.shield>=2));
   ok('海族档位入 sideFlags.seaTier', sideFlags(parmy('yu','qi','mist')).seaTier===2);
+  // —— 断云牌力（金币消耗出口 + 高稀有门控）——
+  S={act:3};
+  ok('牌力保底=幕数（act3→3级）', tierFloor()===3);
+  ok('effTier 取 max(付费,保底)：act3+付费1=3', effTier({tier:1})===3);
+  ok('花钱买超前：act3+付费5=5', effTier({tier:5})===5);
+  ok('effTier 封顶 5', effTier({tier:9})===5);
+  ok('牌力5档 SSR 权重 > 1档', TIER_MULT[5].SSR>TIER_MULT[1].SSR);
+  ok('升级花费递增（→2 < →5）', nextTierCost({tier:1})<nextTierCost({tier:4}));
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2349,6 +2384,10 @@ function showHowto(){
   <h4>征募（三选一）</h4>
   按排名<b>从后往前</b>轮流选卡——落后者先挑。<b>星级合成</b>：同名第 2 张→<b>★★合星</b>；★★ 再集 2 张碎片→<b>★★★三星觉醒</b>（属性质变、技能随星增强）。合成把 4 张压成 1 格、越深越强。
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。
+  <h4>断云牌力（花钱买强卡·治金币溢出）</h4>
+  征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕≥2级、第三幕≥3级），
+  也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 6/8/10/12 递增）——中后期铸币多，与其溢出，
+  不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i>
   <h4>站位（一句话策略）</h4>
   军团从左到右站队：<b>最左是前排，先挨打</b>。单位有<b>作战方式</b>：普通近战打前排；
   <b>嘲讽</b>（守望/麒/荣）会把敌方近战全拉到自己身上，替后排挡刀；<b>穿透</b>（斥候/信鸽/诺/璇）
