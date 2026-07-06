@@ -1007,6 +1007,14 @@ function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;
 const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1, slowFast:1, growAtk:1, firstPlus:1, buffAdj:1, boostLin:1, pairYu:1};
 function skillFor(u,star){const s=u.skill, sv=(SKILL_SV[s.k]||0)*((star||1)-1);
   return sv? {...s, v:(s.v||0)+sv} : s;}
+// 星象三相环（单环相克）：学院→海族→黑域→学院。克 ×1.15 / 被克 ×0.85，只作用基本攻击、只染色不破盾
+const FAC_COUNTER={academy:'sea', sea:'dark', dark:'academy'};
+function factionMult(srcFac,tgtFac){
+  if(!srcFac||!tgtFac)return 1;                    // 空值守卫：undefined 会让下面 ===undefined 误判为克
+  if(FAC_COUNTER[srcFac]===tgtFac)return 1.15;   // 我克敌
+  if(FAC_COUNTER[tgtFac]===srcFac)return 0.85;   // 我被敌克
+  return 1;                                       // 天之国/摇摆/挑战者/幽灵 一律 1（不参与相克）
+}
 
 /* 屏幕切换 */
 function go(id){document.querySelectorAll('.result-banner').forEach(x=>x.remove()); // 清跳屏后残留的胜利横幅
@@ -1575,14 +1583,16 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   const tally=(uid,amt)=>{if(uid!=null)dmgByUid[uid]=(dmgByUid[uid]||0)+amt};
   const deathQ=[];
 
-  function dealDmg(srcSide,src,tgt,amt,tag,crit){
+  function dealDmg(srcSide,src,tgt,amt,tag,crit,isBasic){
     if(!tgt||!tgt.alive)return;
+    let eff=1;
+    if(isBasic&&src){eff=factionMult(src.fac,tgt.fac); if(eff!==1)amt=Math.max(1,Math.round(amt*eff))} // 相克只调基本攻击、不破盾
     let rest=amt;
     if(tgt.shield>0){const ab=Math.min(tgt.shield,rest);tgt.shield-=ab;rest-=ab;
       if(ab>0)log.push({t:'shieldHit',d:tgt.uid,amt:ab})}
     if(rest>0){tgt.hp-=rest;tally(src?src.uid:null,rest)}
     const kill=tgt.hp<=0;
-    log.push({t:'dmg',s:src?src.uid:null,d:tgt.uid,amt,hpDmg:rest,crit:!!crit,kill,tag});
+    log.push({t:'dmg',s:src?src.uid:null,d:tgt.uid,amt,hpDmg:rest,crit:!!crit,kill,tag,eff});
     if(kill){tgt.alive=false;tgt.hp=0;deathQ.push(tgt)}
   }
   function dieSideOf(f){return sides[0].includes(f)?0:1}
@@ -1665,17 +1675,20 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
-      dealDmg(s,f,t,amt,'攻击',crit);processDeaths();
+      dealDmg(s,f,t,amt,'攻击',crit,true);processDeaths(); // isBasic=true：仅基本攻击吃相克
       if(!alive(1-s).length)break;
     }
   }
   const a0=alive(0).length,a1=alive(1).length;
   if(a0&&!a1)winner=0;else if(a1&&!a0)winner=1;
   else if(!a0&&!a1)winner=-1;
-  else{ // 30 回合未分：按剩余血量比
+  else{ // 30 回合未分：多因子裁决——先比存活人数，再比本场总输出（奖励进攻），最后才血量比，破龟缩偏袒
+    const dmg=s=>sides[s].reduce((t,f)=>t+(dmgByUid[f.uid]||0),0);
     const hpr=s=>alive(s).reduce((t,f)=>t+f.hp,0)/sides[s].reduce((t,f)=>t+f.maxhp,0);
-    const h0=hpr(0),h1=hpr(1);
-    winner=h0>h1?0:(h1>h0?1:-1);
+    if(a0!==a1)winner=a0>a1?0:1;
+    else{const d0=dmg(0),d1=dmg(1);
+      if(d0!==d1)winner=d0>d1?0:1;
+      else{const h0=hpr(0),h1=hpr(1);winner=h0>h1?0:(h1>h0?1:-1)}}
   }
   log.push({t:'end',winner});
   return {winner,log,dmgByUid,coinsGain,
@@ -1724,6 +1737,13 @@ function runSelftest(){
   ok('无敌人返回 null', resolveTarget({tg:'melee'},[])===null);
   ok('scout 穿透 / guard 嘲讽（数据挂载）', UMAP['scout'].tg==='pierce'&&UMAP['guard'].taunt===true);
   ok('技能寻址不受影响：诺 snipeBack 仍在（tg 与技能正交）', UMAP['nuo'].skill.k==='snipeBack');
+  // —— 星象三相环相克 ——
+  ok('学院克海族 ×1.15', factionMult('academy','sea')===1.15);
+  ok('海族被学院克 ×0.85', factionMult('sea','academy')===0.85);
+  ok('三相成环 学院→海族→黑域→学院', factionMult('sea','dark')===1.15&&factionMult('dark','academy')===1.15);
+  ok('学院被黑域克 ×0.85', factionMult('academy','dark')===0.85);
+  ok('环外系不参与（天之国vs摇摆=1）', factionMult('sky','swing')===1);
+  ok('幽灵/未知一律1、不 NaN', factionMult('ghost','academy')===1&&factionMult(undefined,undefined)===1);
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -1835,7 +1855,8 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd){
         tgt.querySelector('.hpb').classList.toggle('low',pct<32);
         tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
         if(animate){tgt.classList.remove('hit');void tgt.offsetWidth;tgt.classList.add('hit');
-          floatNum(tgt,'-'+e.amt+(e.crit?'!':''),e.crit?'#ffd075':'var(--red2)',e.crit);
+          const eff=e.eff||1; // 相克：克染金标「克」、被克淡化，不刷屏
+          floatNum(tgt,'-'+e.amt+(e.crit?'!':'')+(eff>1?' 克':''),e.crit?'#ffd075':(eff>1?'#e8c768':(eff<1?'#9a9686':'var(--red2)')),e.crit);
           if(e.s){const src=el(e.s);if(src){src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
           blog.innerHTML=`<b>${nameOf[e.s]||e.tag||'——'}</b> ${e.tag||'攻击'} <b>${nameOf[e.d]}</b>，造成 ${e.amt}${e.crit?' 暴击!':''}`;
           SFX.play(e.crit?'crit':'hit');
@@ -2240,9 +2261,14 @@ function showHowto(){
   <b>嘲讽</b>（守望/麒/荣）会把敌方近战全拉到自己身上，替后排挡刀；<b>穿透</b>（斥候/信鸽/诺/璇）
   绕过前排直取<b>最后排 C 位</b>、还无视嘲讽。
   征募时用 ◀ ▶ 调站位——坦克顶前面吸火，怕穿透就<b>别把宝贝放最后一位</b>（前不挨打、后被穿透，中间最稳）。
+  <h4>星象三相环（属性相克）</h4>
+  三系成环：<b style="color:var(--gold2)">学院 → 海族 → 黑域 → 学院</b>（箭头指向被克方）。
+  基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +15%（金字·克）</b>、打到<b>克自己</b>的敌人时 -15%（淡字）。
+  天之国 / 摇摆 / 挑战者不参与相克。构筑时可针对宿敌的主系选克制它的阵容。
   <h4>演武（自动对战）</h4>
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
   胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
+  <i style="color:var(--ink3)">（30 回合仍未分：先看存活多的、再看总输出高的——龟缩不再稳赢。）</i>
   <h4>六系羁绊（同系 2 名不同单位即触发）</h4>
   学院：全队 +3 生命 ｜ 天之国：全队 +1 速 ｜ 海族：阵亡溅射 ｜
   摇摆队：每幕 +2 铸币 ｜ 黑域：黑域 +2 攻但每幕 -1 币 ｜ 挑战者队：成长翻倍
