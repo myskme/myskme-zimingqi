@@ -753,13 +753,33 @@ function flash(red){const f=$('#flash');f.className=red?'red':'';void f.offsetWi
 function floatNum(host,txt,color,crit){const f=document.createElement('div');
   f.className='float-num'+(crit?' crit':'');f.textContent=txt;f.style.color=color;
   host.appendChild(f);setTimeout(()=>f.remove(),950)}
-function burst(x,y,colors,n=24){for(let i=0;i<n;i++){const p=document.createElement('div');
-  p.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:7px;height:7px;pointer-events:none;z-index:90;background:${colors[i%colors.length]};border-radius:${i%2?'50%':'0'}`;
-  document.body.appendChild(p);
-  const a=Math.random()*Math.PI*2,v=3+Math.random()*5;let vx=Math.cos(a)*v,vy=Math.sin(a)*v-3,px=x,py=y,life=60;
-  (function tick(){vy+=0.18;px+=vx;py+=vy;life--;
-    p.style.transform=`translate(${px-x}px,${py-y}px) rotate(${life*8}deg)`;p.style.opacity=life/60;
-    life>0?requestAnimationFrame(tick):p.remove()})();}}
+// 金色火星流光（取代彩纸屑烟花）：细长发光、朝速度方向、减速消散 + 一道冲击波环
+function burst(x,y,_colors,n=24){
+  const pal=['#e8c768','#f3dd8f','#fff6d8','#c9a64a'];
+  for(let i=0;i<n;i++){
+    const p=document.createElement('div');
+    const w=1.4+Math.random()*2, h=w*(4+Math.random()*4), c=pal[i%pal.length];
+    p.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${h}px;pointer-events:none;z-index:90;`
+      +`background:linear-gradient(${c},rgba(232,199,104,0));border-radius:${w}px;box-shadow:0 0 ${4+w*2}px ${c};will-change:transform,opacity`;
+    document.body.appendChild(p);
+    const a=Math.random()*Math.PI*2, v=4+Math.random()*8;
+    let vx=Math.cos(a)*v, vy=Math.sin(a)*v-2.5, px=x, py=y, max=46+Math.random()*26, life=max;
+    (function tick(){ vy+=0.13; vx*=0.955; vy*=0.975; px+=vx; py+=vy; life--;
+      p.style.transform=`translate(${px-x}px,${py-y}px) rotate(${Math.atan2(vy,vx)*57.3+90}deg)`;
+      p.style.opacity=Math.max(0,(life/max)*(life/max));
+      life>0?requestAnimationFrame(tick):p.remove(); })();
+  }
+  shockwave(x,y);
+}
+function shockwave(x,y){
+  const r=document.createElement('div');
+  r.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:20px;height:20px;margin:-10px 0 0 -10px;`
+    +`border:2px solid rgba(232,199,104,.85);border-radius:50%;pointer-events:none;z-index:89;will-change:transform,opacity`;
+  document.body.appendChild(r);
+  let t=0;
+  (function tick(){ t++; r.style.transform=`scale(${1+t*0.72})`; r.style.opacity=Math.max(0,1-t/26);
+    t<26?requestAnimationFrame(tick):r.remove(); })();
+}
 function modal(html){$('#modal-box').innerHTML=html+'<div class="btnrow"><button class="btn gold" onclick="closeModal()">关 闭</button></div>';
   $('#modal-veil').classList.add('on')}
 function closeModal(){$('#modal-veil').classList.remove('on')}
