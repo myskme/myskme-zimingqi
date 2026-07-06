@@ -633,10 +633,10 @@ body.playing #hud{display:flex}
 // 六系阵营
 const FACS = {
   academy:{n:'学院',    syn:'学院之谊：2名 全队+3生命 ｜ 4名 再+开战全队2护盾'},
-  sky:    {n:'天之国',  syn:'云上风向：2名 全队+1速 ｜ 4名 全队+2速'},
+  sky:    {n:'天之国',  syn:'云上风向：2名 全队+1速 ｜ 4名 全队+2速·穿透单位+1攻'},
   sea:    {n:'海族',    syn:'海雾同悲：2名 阵亡溅射敌1 ｜ 3名 溅射2'},
   swing:  {n:'摇摆队',  syn:'骑墙之利：2名 每幕+2币 ｜ 3名 再+免费刷新1次'},
-  dark:   {n:'黑域',    syn:'紫光加身：2名 黑域+2攻 ｜ 4名 黑域+3攻（每幕-1币）'},
+  dark:   {n:'黑域',    syn:'紫光加身：2名 黑域+2攻（每幕-1币）｜ 4名 +3攻'},
   novice: {n:'挑战者队',syn:'新徒疯长：2名 成长翻倍 ｜ 4名 再+全队本场+1攻'},
 };
 
@@ -651,7 +651,7 @@ const UNITS = [
  {id:'lu',   n:'璐',   fac:'academy', cost:2, atk:2, hp:6,  spd:3, rar:'SR',  w:9,  beast:'♬',
   skill:{k:'healLow', v:2, t:'每回合：治疗血量最低的友军 2'}, lore:'独立受教，带来哼唱'},
  {id:'wolf', n:'狼先生',fac:'academy', cost:5, atk:2, hp:8,  spd:2, rar:'UR',  w:2,  beast:'◐',
-  skill:{k:'aura11', t:'光环：其余友军 +1 攻 +1 速（他自己只喝茶）'}, lore:'「我只让你们变得有趣一点。」'},
+  skill:{k:'aura11', t:'光环：其余友军 +2 攻 +1 速（他自己只喝茶）'}, lore:'「我只让你们变得有趣一点。」'},
  {id:'guard',n:'谷地守望',fac:'academy',cost:1, atk:1, hp:8,  spd:2, rar:'N',   w:12, taunt:true, beast:'🛡',
   skill:{k:'none', t:'无技能。便宜、扛打、忠诚'}, lore:'学院墙上第一盏不灭的灯'},
  {id:'carter',n:'星尘车夫',fac:'academy',cost:1,atk:1, hp:6,  spd:5, rar:'N',   w:11, beast:'✦',
@@ -708,10 +708,10 @@ const RELICS = [
  {id:'letter', n:'诺的信',     t:'全队 +1 速度（没寄出去，但一直带着）', icon:'✉'},
  {id:'shards', n:'爆炸残片',   t:'己方单位阵亡时，敌方全体 1 伤', icon:'💥'},
  {id:'ruler',  n:'理性尺刻度', t:'每场战斗你方首次攻击 +3', icon:'📏'},
- {id:'mask',   n:'紫光面具碎片',t:'黑域单位征募费 -1，航不再吞币', icon:'🎭'},
- {id:'dustbag',n:'星尘袋',     t:'存币利息上限 +2', icon:'👝'},
+ {id:'mask',   n:'紫光面具碎片',t:'黑域单位征募费 -1（航除外），航不再吞币', icon:'🎭'},
+ {id:'dustbag',n:'星尘袋',     t:'存币每 4 币生 1 息（原为 5 币）', icon:'👝'},
  {id:'goldleaf',n:'金叶徽章',  t:'演武战败额外 +2 铸币（把战败也酿成茶）', icon:'🍁'},
- {id:'quill',  n:'战报羽笔',   t:'开战时：随机敌人 -1 攻', icon:'🪶'},
+ {id:'quill',  n:'战报羽笔',   t:'开战时：敌方最高攻单位 -2 攻', icon:'🪶'},
 ];
 const RMAP = Object.fromEntries(RELICS.map(r=>[r.id,r]));
 
@@ -724,7 +724,7 @@ const EVENTS = [
  {id:'ev_crane', n:'白鹤调停', icon:'🕊', d:'宰相亲自走过云阶。本幕演武败者的复仇火种翻倍（+4 铸币 + 2 次免费刷新）。', w:9, catchup:true},
  {id:'ev_purple',n:'紫光低语', icon:'💜', d:'面具在石头上泛着光。本幕演武：黑域单位 +2 攻。', w:9},
  {id:'ev_tea',   n:'谷地茶会', icon:'🫖', d:'狼先生烧了水。每拥有一名学院单位 +1 铸币。', w:9},
- {id:'ev_market',n:'商路开通', icon:'🏮', d:'断云水道通航。下一幕征募：所有刷新免费。', w:8},
+ {id:'ev_market',n:'商路开通', icon:'🏮', d:'断云水道通航。下一幕征募：每人免费刷新 4 次。', w:8},
  {id:'ev_fog',   n:'迷雾',     icon:'🌫', d:'雾从海上来。本幕演武：出手顺序完全随机，速度失效。', w:8},
  {id:'ev_horn',  n:'号角',     icon:'📯', d:'远处有人替落后者吹响号角。当前最后一名 +3 铸币。', w:9, once:true, catchup:true},
  {id:'ev_maze',  n:'星轨错位', icon:'🌀', d:'星图今晚不作数。本幕演武配对完全随机，不按排名。', w:8},
@@ -778,19 +778,29 @@ function floatNum(host,txt,color,crit){const f=document.createElement('div');
 // 金色火星流光（取代彩纸屑烟花）：细长发光、朝速度方向、减速消散 + 一道冲击波环
 function burst(x,y,_colors,n=24){
   const pal=['#e8c768','#f3dd8f','#fff6d8','#c9a64a'];
+  const parts=[];
   for(let i=0;i<n;i++){
-    const p=document.createElement('div');
+    const el=document.createElement('div');
     const w=1.4+Math.random()*2, h=w*(4+Math.random()*4), c=pal[i%pal.length];
-    p.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${h}px;pointer-events:none;z-index:90;`
+    el.style.cssText=`position:fixed;left:${x}px;top:${y}px;width:${w}px;height:${h}px;pointer-events:none;z-index:90;`
       +`background:linear-gradient(${c},rgba(232,199,104,0));border-radius:${w}px;box-shadow:0 0 ${4+w*2}px ${c};will-change:transform,opacity`;
-    document.body.appendChild(p);
-    const a=Math.random()*Math.PI*2, v=4+Math.random()*8;
-    let vx=Math.cos(a)*v, vy=Math.sin(a)*v-2.5, px=x, py=y, max=46+Math.random()*26, life=max;
-    (function tick(){ vy+=0.13; vx*=0.955; vy*=0.975; px+=vx; py+=vy; life--;
-      p.style.transform=`translate(${px-x}px,${py-y}px) rotate(${Math.atan2(vy,vx)*57.3+90}deg)`;
-      p.style.opacity=Math.max(0,(life/max)*(life/max));
-      life>0?requestAnimationFrame(tick):p.remove(); })();
+    document.body.appendChild(el);
+    const a=Math.random()*Math.PI*2, v=4+Math.random()*8, max=46+Math.random()*26;
+    parts.push({el,vx:Math.cos(a)*v,vy:Math.sin(a)*v-2.5,px:x,py:y,max,life:max});
   }
+  // 单驱动循环：一个 rAF 更新全部粒子（老投影机/教室一体机上 40+ 个独立 rAF 是 jank 高发点）
+  (function tick(){
+    let liveN=0;
+    for(const p of parts){
+      if(p.life<=0)continue;
+      p.vy+=0.13; p.vx*=0.955; p.vy*=0.975; p.px+=p.vx; p.py+=p.vy; p.life--;
+      if(p.life<=0){p.el.remove();continue}
+      liveN++;
+      p.el.style.transform=`translate(${p.px-x}px,${p.py-y}px) rotate(${Math.atan2(p.vy,p.vx)*57.3+90}deg)`;
+      p.el.style.opacity=Math.max(0,(p.life/p.max)*(p.life/p.max));
+    }
+    if(liveN)requestAnimationFrame(tick);
+  })();
   shockwave(x,y);
 }
 function shockwave(x,y){
@@ -932,10 +942,15 @@ const ART={
   // 场景（1600×900 横版）
   title:'title-kv.webp', bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
-function artURL(key){return ART[key]?ART_DIR+ART[key]:null}
+// 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
+const ART_VER='20260707a';
+function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
+  return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
+function cardURL(id){const u=ART_DIR+'card-'+id+'.webp';
+  return location.protocol!=='file:'?u+'?v='+ART_VER:u}
 // 返回内嵌 <img>，加载失败自动移除自己（露出下层字形徽章）
 function artTag(key,cls){const u=artURL(key);
-  return u?`<img class="${cls||'art'}" src="${u}" alt="" onerror="this.remove()">`:''}
+  return u?`<img class="${cls||'art'}" src="${u}" alt="" decoding="async" onerror="this.remove()">`:''}
 // canvas 用：预载图片，1.2s 超时/失败/file协议（避免污染画布）都回退 null
 function loadArt(key){return new Promise(res=>{
   const u=artURL(key);
@@ -997,19 +1012,23 @@ function newState(names,acts,rageMax,eventsOn){
     v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn,
     waveJudge:0, hornUsed:false, freeRerollNext:false,
     players:names.map((n,i)=>({i, name:n, coins:3, crowns:0, wins:0,
-      army:[], relics:[], revenge:0, savedCoins:0, pity:0, tier:1})),
+      army:[], relics:[], revenge:0, pity:0, tier:1})),
     // 征募运行时
-    draftQueue:[], draftIdx:0, offers:[], offersSold:[], rerollFreeUsed:false,
+    draftQueue:[], draftIdx:0, offers:[], offersSold:[],
     // 演武运行时
     pairs:[], battleIdx:0, actEvent:null, evFlags:{},
-    dmgTally:{}, mvp:null, evLog:[], bossPending:false, bossDone:false, bossResolved:false,
+    dmgTally:{}, evLog:[], bossPending:false, bossDone:false, bossResolved:false,
     eventResolved:false, undoStack:[],
     seed: Date.now()%2147483647,
   };
 }
-function save(){try{if(S){S.rngState=rng.state();S.uidSeq=uidSeq}localStorage.setItem('dyyw1',JSON.stringify(S))}catch(e){}}
+function save(){try{if(S){S.rngState=rng.state();S.uidSeq=uidSeq}
+  const cur=localStorage.getItem('dyyw1'); if(cur)localStorage.setItem('dyyw1_bak',cur); // 双槽轮写：留上一份好档兜底
+  localStorage.setItem('dyyw1',JSON.stringify(S))}catch(e){}}
 function clearSave(){localStorage.removeItem('dyyw1')}
-function loadSave(){try{const j=localStorage.getItem('dyyw1');return j?JSON.parse(j):null}catch(e){return null}}
+function validSave(s){return s&&s.v===1&&Array.isArray(s.players)&&s.players.length?s:null} // schema 门：可解析但已损坏的档一律拒收
+function loadSave(){try{return validSave(JSON.parse(localStorage.getItem('dyyw1')))}catch(e){return null}}
+function loadBak(){try{return validSave(JSON.parse(localStorage.getItem('dyyw1_bak')))}catch(e){return null}}
 
 /* 单位实例 */
 function mkInst(id){return {uid:uidSeq++, id, star:1, gAtk:0, gHp:0}}
@@ -1092,16 +1111,22 @@ $('#btn-start').onclick=()=>{
     setAct(1);hud();startOriginDraft();save();
   }
 };
-$('#btn-continue').onclick=()=>{const s=loadSave();if(!s){toast('没有找到存档');return}
-  S=s;
-  // 还原 uid 发号器：否则续局后新单位 uid 从1重发、与幸存旧单位撞号→MVP/成长/战斗DOM 错乱
-  if(S.uidSeq)uidSeq=S.uidSeq;
-  else uidSeq=1+S.players.reduce((m,p)=>Math.max(m,p.army.reduce((mm,a)=>Math.max(mm,+a.uid||0),0)), S.captured&&S.captured.inst?(+S.captured.inst.uid||0):0); // 旧档兜底：取现存最大 uid+1（+a.uid||0 过滤幽灵 'g' 前缀）
-  // 还原 rng 内部状态，续局后抽卡/事件序列与不续局完全一致；旧档无 rngState 时回退旧公式
-  if(S.rngState!=null){rng=mulberry32(0);rng.restore(S.rngState)}
-  else rng=mulberry32(S.seed+S.act*97+S.waveJudge);
-  setAct(Math.min(S.act,3));hud();
-  resumePhase();toast('已恢复上局进度')};
+$('#btn-continue').onclick=()=>{const s=loadSave();if(!s&&!loadBak()){toast('没有找到存档');return}
+  const attempt=(st)=>{S=st;
+    // 还原 uid 发号器：否则续局后新单位 uid 从1重发、与幸存旧单位撞号→MVP/成长/战斗DOM 错乱
+    if(S.uidSeq)uidSeq=S.uidSeq;
+    else uidSeq=1+S.players.reduce((m,p)=>Math.max(m,p.army.reduce((mm,a)=>Math.max(mm,+a.uid||0),0)), S.captured&&S.captured.inst?(+S.captured.inst.uid||0):0); // 旧档兜底：取现存最大 uid+1（+a.uid||0 过滤幽灵 'g' 前缀）
+    // 还原 rng 内部状态，续局后抽卡/事件序列与不续局完全一致；旧档无 rngState 时回退旧公式
+    if(S.rngState!=null){rng=mulberry32(0);rng.restore(S.rngState)}
+    else rng=mulberry32(S.seed+S.act*97+S.waveJudge);
+    setAct(Math.min(S.act,3));hud();
+    resumePhase()};
+  // 三级降级：主档 → 备份档 → 清档回标题（课堂上绝不白屏死局）
+  try{attempt(s||loadBak());toast('已恢复上局进度')}
+  catch(e){const bak=s?loadBak():null;
+    if(bak){try{attempt(bak);toast('主存档受损，已从备份恢复',3000);return}catch(e2){}}
+    clearSave();S=null;hud();go('title');toast('存档已损坏，只能重新开局',3200)}
+};
 function resumePhase(){
   const map={
     origin:()=>{setPhase('开局点将');renderDraft();go('draft')},
@@ -1236,7 +1261,7 @@ function hasRelic(p,id){return p.relics.includes(id)}
 // 羁绊双阈值 th=[小,大]（海族/摇摆仅3单位→大阈值=3，其余=4）；d 供 UI 描述两档
 const BONDS={
   academy:{n:'学院之谊', th:[2,4], d:['全队 +3 生命','全队 +3 生命 · 开战全队 +2 护盾']},
-  sky:    {n:'云上风向', th:[2,4], d:['全队 +1 速','全队 +2 速']},
+  sky:    {n:'云上风向', th:[2,4], d:['全队 +1 速','全队 +2 速 · 穿透单位 +1 攻']},
   sea:    {n:'海雾同悲', th:[2,3], d:['阵亡溅射敌 1 伤','阵亡溅射敌 2 伤']},
   swing:  {n:'骑墙之利', th:[2,3], d:['每幕 +2 铸币','每幕 +2 铸币 · 免费刷新 1 次']},
   dark:   {n:'紫光加身', th:[2,4], d:['黑域 +2 攻 · 每幕 -1 币','黑域 +3 攻 · 每幕 -1 币']},
@@ -1269,9 +1294,9 @@ function startDraft(){
     const notes=[];
     // 单人试炼：无老师判定，本关自动收入（随关数增长，难度影响）
     if(S.solo){const inc=Math.max(2,5+S.round+[2,0,-1][S.difficulty]);p.coins+=inc;notes.push(`第${S.round}关收入+${inc}`)}
-    // 利息：每存 5 币 +1（上限 3，星尘袋 +2）
-    const cap=3+(hasRelic(p,'dustbag')?2:0);
-    const interest=Math.min(cap,Math.floor(p.coins/5));
+    // 利息：每存 5 币 +1（上限 3）；星尘袋改善汇率：每 4 币生 1 息（持币 8 就有体感，与囤币流真正挂钩）
+    const per=hasRelic(p,'dustbag')?4:5;
+    const interest=Math.min(3,Math.floor(p.coins/per));
     if(interest>0){p.coins+=interest;notes.push(`利息+${interest}`)}
     if(hasRelic(p,'teapot')){p.coins+=2;notes.push('茶壶+2')}
     const swT=bondTier(p,'swing');
@@ -1279,7 +1304,7 @@ function startDraft(){
     if(bondTier(p,'dark')>=1){p.coins=Math.max(0,p.coins-1);notes.push('黑域-1')}
     if(p.army.some(a=>a.id==='hang')&&!hasRelic(p,'mask')){p.coins=Math.max(0,p.coins-1);notes.push('航吞币-1')}
     if(p.revenge>0){const dbl=p.revenge>=2;p.coins+=dbl?4:2;notes.push(dbl?'复仇火种×2 +4':'复仇火种+2')}
-    p._freeRr=(p.revenge>0?p.revenge:0)+(S.freeRerollNext?99:0)+(swT>=2?1:0); // 免费刷新：复仇火种 + 市场事件 + 摇摆4档
+    p._freeRr=(p.revenge>0?p.revenge:0)+(S.freeRerollNext?4:0)+(swT>=2?1:0); // 免费刷新：复仇火种 + 商路4次（无限刷会把课堂节奏拖爆）+ 摇摆大档
     p._astroUsed=false;
     p._notes=notes;
   });
@@ -1309,7 +1334,7 @@ const TIER_MULT={
 };
 function tierFloor(){return Math.min(3, S.act||1)}            // 幕数免费保底（单人 S.act 随关数成长）
 function effTier(p){return Math.min(5, Math.max(p.tier||1, tierFloor()))}
-function nextTierCost(p){const nt=effTier(p)+1; return nt>5?null:[0,0,6,8,10,12][nt]}
+function nextTierCost(p){const nt=effTier(p)+1; return nt>5?null:[0,0,4,6,8,10][nt]} // 低两档：2级在第一幕买得起有独享期，4/5级第三幕来得及回本
 function genOffers(p){
   const mult=TIER_MULT[effTier(p)]; // 牌力(非幕数)驱动稀有度
   const isHigh=u=>u.rar==='SSR'||u.rar==='UR';
@@ -1341,7 +1366,7 @@ function genOffers(p){
   return offers;
 }
 function unitPrice(p,u){let c=u.cost;
-  if(u.fac==='dark'&&hasRelic(p,'mask'))c=Math.max(1,c-1);return c}
+  if(u.fac==='dark'&&u.rar!=='UR'&&hasRelic(p,'mask'))c=Math.max(1,c-1);return c} // 减费排除航：面具只免吞币，不再叠双折扣
 function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
 // 拥有扑克 SP 典藏立绘的高级角色
 const SP_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen']);
@@ -1357,7 +1382,7 @@ function showUnitDetail(id,inst){
   const kf=FAC_COUNTER[u.fac], bkf=Object.keys(FAC_COUNTER).find(k=>FAC_COUNTER[k]===u.fac);
   const clashTxt=kf?`克制 <b style="color:var(--teal)">${FACS[kf].n}</b>（基本攻击 +15%）· 被 <b style="color:#9a9686">${FACS[bkf].n}</b> 克制（-15%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
-  modal(`<div class="udetail-card"><img src="assets/card-${id}.webp" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
+  modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}</span></h3>
     <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
     <div style="display:flex;justify-content:center;gap:22px;font-family:var(--mono);font-size:17px;margin-bottom:6px">
@@ -1501,7 +1526,7 @@ function buyUnit(idx,u,price){
     else{S.offers=genOriginOffers();S.offersSold=[false,false,false];renderDraft()}
     hud();save();return;
   }
-  if(p.coins<price){toast('铸币不够——先答题赚钱去');return}
+  if(p.coins<price){toast(S.solo?'铸币不够——过关自有进账':'铸币不够——先答题赚钱去');return}
   const cap=ARMY_CAP[Math.min(S.act,3)];
   if(p.army.some(a=>a.id===u.id&&a.star===3)){toast(`${u.n} 已 ★★★ 满级，无需再练`,2200);return} // 防已满级再买造出 ★1 破坏同名≤2
   const twin2=p.army.find(a=>a.id===u.id&&a.star===2); // 优先喂高星，避免出现两个 ★★
@@ -1571,7 +1596,7 @@ function startEvent(){
   S.phase='event';
   // 抽取本幕事件（仅本幕抽一次；续局走 resumePhase 复用已存事件，不重抽、不重发）
   const gap=crownGap();
-  const pool=EVENTS.filter(e=>!(e.once&&S.hornUsed));
+  const pool=EVENTS.filter(e=>!(e.once&&S.hornUsed)&&!(e.id==='ev_gaze'&&!S.rageMax)); // 暴走关闭时「叶王的注视」是空事件，不进池
   const weights=pool.map(e=>e.w*(e.catchup&&gap>=2?2.2:1));
   const total=weights.reduce((a,b)=>a+b,0);
   let r=rng()*total,ev=pool[0];
@@ -1607,7 +1632,7 @@ function applyEvent(ev){
     case 'ev_horn': {const lp=lastPlace();lp.coins+=3;S.hornUsed=true;toast(`号角为 ${lp.name} 而鸣：+3 铸币`)}break;
     case 'ev_tea': S.players.forEach(p=>{const n=p.army.filter(a=>UMAP[a.id].fac==='academy').length;
       if(n)p.coins+=n});toast('学院单位的主人们领了茶钱');break;
-    case 'ev_market': S.freeRerollNext=true;toast('下一幕征募：刷新全部免费');break;
+    case 'ev_market': S.freeRerollNext=true;toast('下一幕征募：每人免费刷新 4 次');break;
     case 'ev_swing': {const lp=lastPlace();
       const cap=ARMY_CAP[Math.min(S.act,3)];
       const u=pick(UNITS.filter(u=>u.fac==='swing'));
@@ -1648,15 +1673,15 @@ function buildFighters(p, evFlags){
   if(bt.academy>=1){fs.forEach(f=>{f.hp+=3;f.maxhp+=3});}
   if(bt.academy>=2){fs.forEach(f=>{f.shield+=2});}           // 4档：开战全队 +2 护盾（初始盾带入 sim）
   if(bt.sky>=1)     fs.forEach(f=>f.spd+=1);
-  if(bt.sky>=2)     fs.forEach(f=>f.spd+=1);                 // 4档：再 +1（共 +2 速）
+  if(bt.sky>=2)     fs.forEach(f=>{f.spd+=1;if((f.tg||'melee')==='pierce')f.atk+=1}); // 4档：再+1速·穿透+1攻（速度边际收益趋零，大档要有实感）
   if(bt.dark>=1)    fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
   if(bt.dark>=2)    fs.forEach(f=>{if(f.fac==='dark')f.atk+=1}); // 4档：黑域再 +1（共 +3 攻）
   if(bt.novice>=2)  fs.forEach(f=>f.atk+=1);                 // 4档：全队本场 +1 攻
   // 遗物
   if(hasRelic(p,'tassel')&&fs[0]){fs[0].hp+=4;fs[0].maxhp+=4}
   if(hasRelic(p,'letter')) fs.forEach(f=>f.spd+=1);
-  // 狼先生光环
-  if(fs.some(f=>f.id==='wolf')) fs.forEach(f=>{if(f.id!=='wolf'){f.atk+=1;f.spd+=1}});
+  // 狼先生光环（UR 5币的牌面：+2攻+1速，光环净值才配得上价格）
+  if(fs.some(f=>f.id==='wolf')) fs.forEach(f=>{if(f.id!=='wolf'){f.atk+=2;f.spd+=1}});
   // 事件：紫光低语
   if(evFlags&&evFlags.purple) fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
   return fs;
@@ -1747,9 +1772,10 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     if(k==='pairYu'){const yu=alive(s).find(x=>x.id==='yu');
       if(yu){yu.atk+=f.skill.v;f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'兄弟羁绊 +2⚔'})}}
   }
-  // 战报羽笔
-  [0,1].forEach(s=>{if(flags[s].quill){const e=pickR(foesOf(s));
-    if(e){e.atk=Math.max(0,e.atk-1);log.push({t:'debuff',d:e.uid,txt:'-1⚔ 羽笔'})}}});
+  // 战报羽笔：确定性点名敌方最高攻（随机-1 是没人选的废遗物）
+  [0,1].forEach(s=>{if(flags[s].quill){const fo=foesOf(s);
+    if(fo.length){const e=fo.reduce((m,x)=>x.atk>m.atk?x:m,fo[0]);
+      e.atk=Math.max(0,e.atk-2);log.push({t:'debuff',d:e.uid,txt:'-2⚔ 羽笔'})}}});
 
   // —— 回合循环 ——
   let winner=-1;
@@ -1870,6 +1896,59 @@ function runSelftest(){
   ok('effTier 封顶 5', effTier({tier:9})===5);
   ok('牌力5档 SSR 权重 > 1档', TIER_MULT[5].SSR>TIER_MULT[1].SSR);
   ok('升级花费递增（→2 < →5）', nextTierCost({tier:1})<nextTierCost({tier:4}));
+  // —— 狼先生光环 +2攻+1速（UR 牌面）——
+  {const fs=buildFighters(parmy('wolf','guard'),{});
+   const g=fs.find(f=>f.id==='guard');
+   ok('狼先生光环：友军 +2 攻', g.atk===UMAP['guard'].atk+2);
+   ok('狼先生自己不吃光环', fs.find(f=>f.id==='wolf').atk===UMAP['wolf'].atk);}
+  // —— 天之国 4 档：全队+2速 · 穿透+1攻 ——
+  {const fs=buildFighters(parmy('nuo','crane','scout','pigeon'),{});
+   const sc=fs.find(f=>f.id==='scout'), cr=fs.find(f=>f.id==='crane');
+   ok('天之国4档：穿透单位 +1 攻', sc.atk===UMAP['scout'].atk+1);
+   ok('天之国4档：非穿透不加攻、全队+2速', cr.atk===UMAP['crane'].atk&&cr.spd===UMAP['crane'].spd+2);}
+  // —— 战报羽笔：确定性点名敌方最高攻 -2 ——
+  {const A=buildFighters(parmy('lin'),{});
+   const B=buildFighters(parmy('hang','guard'),{});
+   const hangUid=B.find(f=>f.id==='hang').uid;
+   const r=simulateBattle(A,B,{quill:true},{},mulberry32(9),{});
+   const q=r.log.find(e=>e.t==='debuff'&&/羽笔/.test(e.txt||''));
+   ok('羽笔点名最高攻(-2⚔)', q&&q.d===hangUid&&/-2/.test(q.txt));}
+  // —— 技能伤害不吃相克（isBasic 正交）——
+  {const A=buildFighters(parmy('wan'),{});           // 黑域·狙击后排
+   const B=buildFighters(parmy('lin','guard'),{});   // 学院（黑域克学院，仅基本攻击+15%）
+   const r=simulateBattle(A,B,{},{},mulberry32(11),{});
+   const snipe=r.log.find(e=>e.t==='dmg'&&e.tag==='狙击');
+   ok('狙击技能 eff=1 不吃相克、伤害=技能面值', snipe&&snipe.eff===1&&snipe.amt===UMAP['wan'].skill.v);}
+  // —— 护盾结算：先扣盾再扣血 ——
+  {const A=buildFighters(parmy('lin'),{});           // 琳开战全队+2盾
+   const gB={uid:'g0_t',id:'gt',n:'试剑',glyph:'试',fac:'ghost',star:1,atk:1,hp:6,maxhp:6,spd:9,shield:0,alive:true,tg:'melee',taunt:false,first:true,usedRevive:false,skill:{k:'none'},ix:0};
+   const r=simulateBattle(A,[gB],{},{},mulberry32(13),{});
+   const sh=r.log.find(e=>e.t==='shieldHit');
+   const firstHit=r.log.find(e=>e.t==='dmg'&&e.d===A[0].uid);
+   ok('护盾先吸收（shieldHit 记账、首击 hpDmg=0）', sh&&firstHit&&firstHit.hpDmg===0);}
+  // —— 复读机只复活一次 ——
+  {const A=buildFighters(parmy('lin','yu','nuo','wan'),{});
+   const gR={uid:'g0_r',id:'g6',n:'复读机',glyph:'机',fac:'ghost',star:1,atk:1,hp:3,maxhp:3,spd:1,shield:0,alive:true,tg:'melee',taunt:false,first:true,usedRevive:false,skill:{k:'revive1'},ix:0};
+   const r=simulateBattle(A,[gR],{},{},mulberry32(17),{});
+   ok('revive1 恰好复活 1 次后可被击杀', r.log.filter(e=>e.t==='revive').length===1&&r.winner===0);}
+  // —— 30 回合裁决：存活数相同时比总输出（奖励进攻，破龟缩）——
+  {const mk=(uid,atk)=>({uid,id:'x',n:'铁',glyph:'铁',fac:'ghost',star:1,atk,hp:999,maxhp:999,spd:5,shield:0,alive:true,tg:'melee',taunt:false,first:true,usedRevive:false,skill:{k:'none'},ix:0});
+   const r=simulateBattle([mk('t1',2)],[mk('t2',1)],{},{},mulberry32(19),{});
+   ok('平局裁决按总输出（攻2 胜 攻1）', r.winner===0);}
+  // —— 保底 pity：≥3 轮必出高稀有并清零 ——
+  {S={act:1};const _r=rng;rng=mulberry32(123);
+   const p={pity:3,relics:[],tier:1};
+   const offers=genOffers(p);
+   const hasHigh=offers.some(o=>o.type==='unit'&&(UMAP[o.id].rar==='SSR'||UMAP[o.id].rar==='UR'));
+   ok('硬保底：pity=3 必出 SSR/UR 且 pity 清零', hasHigh&&p.pity===0);rng=_r;}
+  // —— 单人难度曲线：后期敌军战力不封顶 ——
+  {S={act:3};const _r=rng;
+   const pw=army=>army.reduce((t,a)=>{const b=instBase(a);return t+b.atk+b.hp},0);
+   rng=mulberry32(5);const f8=soloBuildFoe(8,2);
+   rng=mulberry32(5);const f20=soloBuildFoe(20,2);
+   ok('宗师第20关敌军战力 > 第8关（无平台期）', pw(f20)>pw(f8));
+   rng=mulberry32(5);S={act:1};const f1=soloBuildFoe(1,2);
+   ok('第1-2关护栏：无UR、无高费单位', f1.every(a=>UMAP[a.id].rar!=='UR'&&UMAP[a.id].cost<=3));rng=_r;}
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2091,12 +2170,16 @@ function soloBuildFoe(round,diff){
   while(spent<power && army.length<cap && guard++<40){
     let cand=UNITS.filter(u=>u.fac===mainFac);
     if(!cand.length||rng()<0.4)cand=UNITS;
+    if(round<3){const early=cand.filter(u=>u.rar!=='UR'&&u.cost<=3);if(early.length)cand=early} // 早期护栏：第1-2关不摸UR/高费，宗师死于经营而非开局抽签
     const u=cand[ri(cand.length)];
     army.push(mkInst(u.id)); spent+=unitPow(u);
   }
   if(!army.length)army.push(mkInst('guard'));
   let extra=power-spent, si=0;                        // 预算富余 → 升星补强
   while(extra>2.5 && si<army.length){ if(army[si].star===1){army[si].star=2;extra-=3} si++; }
+  // 满员满星后仍有预算 → 灌成长属性：后期敌军不封顶，难度曲线不倒挂（确定性轮灌，不吃 rng）
+  let gi=0;
+  while(extra>1.2 && army.length){ const t=army[gi%army.length]; (gi%2)?(t.gHp+=2):(t.gAtk+=1); extra-=1.5; gi++; }
   return army;
 }
 function soloRound(){
@@ -2365,10 +2448,12 @@ async function drawReport(sorted){
   ctx.fillText('MYSKME · Mr. Wang',W/2,H-64);
 }
 $('#btn-save-report').onclick=()=>{
-  const a=document.createElement('a');
-  a.download='MYSKME自鸣棋战报_'+new Date().toISOString().slice(0,10)+'.png';
-  a.href=$('#report-canvas').toDataURL('image/png');a.click();
-  toast('战报卡已保存——发到家长群里去吧');
+  try{
+    const a=document.createElement('a');
+    a.download='MYSKME自鸣棋战报_'+new Date().toISOString().slice(0,10)+'.png';
+    a.href=$('#report-canvas').toDataURL('image/png');a.click();
+    toast('战报卡已保存——发到家长群里去吧');
+  }catch(e){toast('保存失败：图片污染了画布，请直接截图保存',3200)}
 };
 
 /* ============================================================
@@ -2379,20 +2464,21 @@ function showHowto(){
   <h4>一局怎么跑（一节课 30–40 分钟）</h4>
   开局每人<b>免费点将</b>一名学员。之后三幕循环：<b>答题波 → 征募 → 命运事件 → 演武</b>。
   每幕开局公布<b>宿敌预告</b>（本幕演武打谁）——答题赚钱、征募补强，都冲着那一场去。
-  题在老师手里（口头 / 试卷 / 黑板都行），屏幕上只做判定：答对 +2 铸币、难题 +3、抢答再 +1；
+  题在老师手里（口头 / 试卷 / 黑板都行），屏幕上只做判定：答对 +2 铸币、难题 +3、抢答 +1（独立判定，适合基础抢答题）；
   答错不扣分，但喂满「暴走槽」会引来叶王乱入。
   <h4>征募（三选一）</h4>
   按排名<b>从后往前</b>轮流选卡——落后者先挑。<b>星级合成</b>：同名第 2 张→<b>★★合星</b>；★★ 再集 2 张碎片→<b>★★★三星觉醒</b>（属性质变、技能随星增强）。合成把 4 张压成 1 格、越深越强。
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。
   <h4>断云牌力（花钱买强卡·治金币溢出）</h4>
   征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕≥2级、第三幕≥3级），
-  也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 6/8/10/12 递增）——中后期铸币多，与其溢出，
+  也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 4/6/8/10 递增）——中后期铸币多，与其溢出，
   不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i>
   <h4>站位（一句话策略）</h4>
   军团从左到右站队：<b>最左是前排，先挨打</b>。单位有<b>作战方式</b>：普通近战打前排；
   <b>嘲讽</b>（守望/麒/荣）会把敌方近战全拉到自己身上，替后排挡刀；<b>穿透</b>（斥候/信鸽/诺/璇）
   绕过前排直取<b>最后排 C 位</b>、还无视嘲讽。
   征募时用 ◀ ▶ 调站位——坦克顶前面吸火，怕穿透就<b>别把宝贝放最后一位</b>（前不挨打、后被穿透，中间最稳）。
+  开战狙击（诺 / 菀）同样点名后排——<b>护盾能挡狙击</b>：琳的全队盾、白鹤的自体盾都是明牌反制。
   <h4>星象三相环（属性相克）</h4>
   三系成环：<b style="color:var(--gold2)">学院 → 海族 → 黑域 → 学院</b>（箭头指向被克方）。
   基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +15%（金字·克）</b>、打到<b>克自己</b>的敌人时 -15%（淡字）。
@@ -2402,8 +2488,8 @@ function showHowto(){
   胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
   <i style="color:var(--ink3)">（30 回合仍未分：先看存活多的、再看总输出高的——龟缩不再稳赢。）</i>
   <h4>六系羁绊（<b>双阈值</b>：同系 2 名触发一档，凑满 4 名（海族/摇摆 3 名）再升一档）</h4>
-  学院：2名+3生命／4名再+开战2护盾 ｜ 天之国：2名+1速／4名+2速 ｜ 海族：2名溅射1／3名溅射2 ｜
-  摇摆队：2名+2币／3名再+免费刷新 ｜ 黑域：2名+2攻／4名+3攻（每幕-1币）｜ 挑战者队：2名成长翻倍／4名再+全队本场+1攻。
+  学院：2名+3生命／4名再+开战2护盾 ｜ 天之国：2名+1速／4名+2速·穿透+1攻 ｜ 海族：2名溅射1／3名溅射2 ｜
+  摇摆队：2名+2币／3名再+免费刷新 ｜ 黑域：2名+2攻·每幕-1币／4名+3攻 ｜ 挑战者队：2名成长翻倍／4名再+全队本场+1攻。
   征募面板底部有<b>羁绊进度条</b>（紫=已触发一档、金=满档）——凑羁绊是构筑的核心乐趣。
   <h4>老师小抄</h4>
   · 课堂节奏慢：调低暴走阈值到 6，乱入更早出现，气氛立刻紧张<br>
@@ -2448,7 +2534,14 @@ $('#btn-menu').onclick=showMenu;
   const kv=$('#title-kv'),u=artURL('title');
   if(kv&&u){const im=kv.querySelector('img');
     im.onload=()=>kv.classList.add('show');im.src=u}
+  // 空闲预热立绘：标题页停留的几秒把24张单位图拉进缓存，首轮征募不再字形→立绘跳变
+  if(location.protocol!=='file:'){
+    const warm=()=>{try{UNITS.forEach(x=>{const i=new Image();i.src=artURL(x.id)})}catch(e){}};
+    ('requestIdleCallback' in window)?requestIdleCallback(warm,{timeout:3000}):setTimeout(warm,800);
+  }
 })();
+// 课堂兜底：未捕获异常至少可见、可续，不静默白屏
+window.addEventListener('error',e=>{try{toast('出了点状况：'+(e.message||'未知错误'),3000)}catch(_){}});
 </script>
 </body>
 </html>
