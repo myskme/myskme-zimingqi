@@ -273,6 +273,12 @@ body.playing #hud{display:flex}
 #pair-preview .pp-pair i{color:var(--red2);font-style:normal;font-size:11px;margin:0 5px}
 #relic-shelf{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
 .relic-chip{border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px;letter-spacing:.1em;cursor:help}
+/* 羁绊进度（让"发现协同"可见）：未激活灰 / 2档紫 / 大档金晕 */
+#bond-shelf{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:9px;align-items:center}
+.bond-lab{color:var(--ink3);font-size:11px;letter-spacing:.24em}
+.bond-chip{font-size:11px;padding:2px 9px;border:1px solid var(--line2);letter-spacing:.05em;color:var(--ink3);cursor:help}
+.bond-chip.bond-t1{border-color:rgba(157,114,214,.55);color:var(--purple)}
+.bond-chip.bond-t2{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 9px rgba(201,166,74,.28)}
 
 /* ============ 命运事件 ============ */
 #scr-event{text-align:center;padding-top:5vh}
@@ -541,6 +547,7 @@ body.playing #hud{display:flex}
     <div id="bench">
       <h5>—— 军 团 ——</h5>
       <div id="bench-units"></div>
+      <div id="bond-shelf"></div>
       <div id="relic-shelf"></div>
     </div>
   </section>
@@ -618,12 +625,12 @@ body.playing #hud{display:flex}
 
 // 六系阵营
 const FACS = {
-  academy:{n:'学院',    syn:'学院之谊：全队 +3 最大生命'},
-  sky:    {n:'天之国',  syn:'云上风向：全队 +1 速度'},
-  sea:    {n:'海族',    syn:'海雾同悲：己方单位阵亡时，溅射随机敌人 1 伤'},
-  swing:  {n:'摇摆队',  syn:'骑墙之利：每幕征募开始 +2 铸币'},
-  dark:   {n:'黑域',    syn:'紫光加身：黑域单位 +2 攻，但每幕征募开始你 -1 铸币'},
-  novice: {n:'挑战者队',syn:'新徒疯长：战后成长翻倍'},
+  academy:{n:'学院',    syn:'学院之谊：2名 全队+3生命 ｜ 4名 再+开战全队2护盾'},
+  sky:    {n:'天之国',  syn:'云上风向：2名 全队+1速 ｜ 4名 全队+2速'},
+  sea:    {n:'海族',    syn:'海雾同悲：2名 阵亡溅射敌1 ｜ 3名 溅射2'},
+  swing:  {n:'摇摆队',  syn:'骑墙之利：2名 每幕+2币 ｜ 3名 再+免费刷新1次'},
+  dark:   {n:'黑域',    syn:'紫光加身：2名 黑域+2攻 ｜ 4名 黑域+3攻（每幕-1币）'},
+  novice: {n:'挑战者队',syn:'新徒疯长：2名 成长翻倍 ｜ 4名 再+全队本场+1攻'},
 };
 
 // 单位池（cost=征募价 / atk攻 hp血 spd速 / rar稀有度 / w=出现权重）
@@ -1205,7 +1212,26 @@ $('#btn-wheel-go').onclick=()=>{
    ============================================================ */
 function synCount(p,fac){ // 阵营计数（同名只算一次）
   const ids=new Set(p.army.filter(a=>UMAP[a.id].fac===fac).map(a=>a.id));return ids.size;}
+function renderBonds(p){ // 军团面板羁绊进度：未激活灰/2档紫/大档金
+  const el=$('#bond-shelf'); if(!el)return;
+  const chips=Object.keys(BONDS).map(f=>{
+    const c=synCount(p,f); if(!c)return '';
+    const th=BONDS[f].th, tier=bondTier(p,f), cls=tier>=2?'bond-t2':(tier>=1?'bond-t1':'');
+    return `<span class="bond-chip ${cls}" title="${BONDS[f].n}：${BONDS[f].d[Math.max(0,tier-1)]}">${FACS[f].n} ${c}/${th[0]}·${th[1]}</span>`;
+  }).filter(Boolean).join('');
+  el.innerHTML=chips?`<span class="bond-lab">羁绊</span>${chips}`:'';
+}
 function hasRelic(p,id){return p.relics.includes(id)}
+// 羁绊双阈值 th=[小,大]（海族/摇摆仅3单位→大阈值=3，其余=4）；d 供 UI 描述两档
+const BONDS={
+  academy:{n:'学院之谊', th:[2,4], d:['全队 +3 生命','全队 +3 生命 · 开战全队 +2 护盾']},
+  sky:    {n:'云上风向', th:[2,4], d:['全队 +1 速','全队 +2 速']},
+  sea:    {n:'海雾同悲', th:[2,3], d:['阵亡溅射敌 1 伤','阵亡溅射敌 2 伤']},
+  swing:  {n:'骑墙之利', th:[2,3], d:['每幕 +2 铸币','每幕 +2 铸币 · 免费刷新 1 次']},
+  dark:   {n:'紫光加身', th:[2,4], d:['黑域 +2 攻 · 每幕 -1 币','黑域 +3 攻 · 每幕 -1 币']},
+  novice: {n:'新徒疯长', th:[2,4], d:['战后成长翻倍','成长翻倍 · 全队本场 +1 攻']},
+};
+function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1]?2:(c>=th[0]?1:0)}
 
 /* —— 开局点将：人人免费领一名低费学员（Hades 起手祝福式，保证首幕人人有兵） —— */
 function startOriginDraft(){
@@ -1237,11 +1263,12 @@ function startDraft(){
     const interest=Math.min(cap,Math.floor(p.coins/5));
     if(interest>0){p.coins+=interest;notes.push(`利息+${interest}`)}
     if(hasRelic(p,'teapot')){p.coins+=2;notes.push('茶壶+2')}
-    if(synCount(p,'swing')>=2){p.coins+=2;notes.push('摇摆+2')}
-    if(synCount(p,'dark')>=2){p.coins=Math.max(0,p.coins-1);notes.push('黑域-1')}
+    const swT=bondTier(p,'swing');
+    if(swT>=1){p.coins+=2;notes.push(swT>=2?'摇摆+2·免费刷新':'摇摆+2')}
+    if(bondTier(p,'dark')>=1){p.coins=Math.max(0,p.coins-1);notes.push('黑域-1')}
     if(p.army.some(a=>a.id==='hang')&&!hasRelic(p,'mask')){p.coins=Math.max(0,p.coins-1);notes.push('航吞币-1')}
     if(p.revenge>0){const dbl=p.revenge>=2;p.coins+=dbl?4:2;notes.push(dbl?'复仇火种×2 +4':'复仇火种+2')}
-    p._freeRr=(p.revenge>0?p.revenge:0)+(S.freeRerollNext?99:0); // 免费刷新次数
+    p._freeRr=(p.revenge>0?p.revenge:0)+(S.freeRerollNext?99:0)+(swT>=2?1:0); // 免费刷新：复仇火种 + 市场事件 + 摇摆4档
     p._astroUsed=false;
     p._notes=notes;
   });
@@ -1377,6 +1404,7 @@ function renderBench(p){
   });
   $('#relic-shelf').innerHTML=p.relics.map(rid=>{const r=RMAP[rid];
     return `<span class="relic-chip" title="${r.t}">${r.icon} ${r.n}</span>`}).join('');
+  renderBonds(p);
   // 被叶王收走的单位 · 赎回
   if(S.captured&&S.captured.pi===p.i){
     const u=UMAP[S.captured.inst.id];
@@ -1538,10 +1566,15 @@ function buildFighters(p, evFlags){
       tg:u.tg||'melee', taunt:!!u.taunt,
       first:true, usedRevive:false, skill:skillFor(u,inst.star), ix};
   });
-  // 阵营羁绊
-  if(synCount(p,'academy')>=2) fs.forEach(f=>{f.hp+=3;f.maxhp+=3});
-  if(synCount(p,'sky')>=2)     fs.forEach(f=>f.spd+=1);
-  if(synCount(p,'dark')>=2)    fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
+  // 阵营羁绊（双阈值 2/4，海族·摇摆 2/3）
+  const bt={}; Object.keys(BONDS).forEach(f=>bt[f]=bondTier(p,f));
+  if(bt.academy>=1){fs.forEach(f=>{f.hp+=3;f.maxhp+=3});}
+  if(bt.academy>=2){fs.forEach(f=>{f.shield+=2});}           // 4档：开战全队 +2 护盾（初始盾带入 sim）
+  if(bt.sky>=1)     fs.forEach(f=>f.spd+=1);
+  if(bt.sky>=2)     fs.forEach(f=>f.spd+=1);                 // 4档：再 +1（共 +2 速）
+  if(bt.dark>=1)    fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
+  if(bt.dark>=2)    fs.forEach(f=>{if(f.fac==='dark')f.atk+=1}); // 4档：黑域再 +1（共 +3 攻）
+  if(bt.novice>=2)  fs.forEach(f=>f.atk+=1);                 // 4档：全队本场 +1 攻
   // 遗物
   if(hasRelic(p,'tassel')&&fs[0]){fs[0].hp+=4;fs[0].maxhp+=4}
   if(hasRelic(p,'letter')) fs.forEach(f=>f.spd+=1);
@@ -1567,8 +1600,8 @@ function resolveTarget(f, foes){
   return tk||foes[0];
 }
 function sideFlags(p){ // 边级效果
-  if(!p) return {seaSyn:false,shards:false,ruler:false,quill:false,goldleaf:false};
-  return {seaSyn:synCount(p,'sea')>=2, shards:hasRelic(p,'shards'),
+  if(!p) return {seaTier:0,shards:false,ruler:false,quill:false,goldleaf:false};
+  return {seaTier:bondTier(p,'sea'), shards:hasRelic(p,'shards'),
     ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf')};
 }
 
@@ -1612,7 +1645,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
           adj.atk+=f.skill.v;log.push({t:'buff',d:adj.uid,txt:'+'+f.skill.v+'⚔ 低语'})}}
       if(f.skill.k==='coinDeath'){coinsGain[s]+=f.skill.v||1;log.push({t:'coin',side:s,amt:f.skill.v||1})}
       // 边级：海雾同悲 / 爆炸残片
-      if(flags[s].seaSyn){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,1,'海雾')}
+      if(flags[s].seaTier){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,flags[s].seaTier>=2?2:1,'海雾')}
       if(flags[s].shards){foesOf(s).forEach(e=>dealDmg(s,null,e,1,'残片'))}
     }
   }
@@ -1744,6 +1777,14 @@ function runSelftest(){
   ok('学院被黑域克 ×0.85', factionMult('academy','dark')===0.85);
   ok('环外系不参与（天之国vs摇摆=1）', factionMult('sky','swing')===1);
   ok('幽灵/未知一律1、不 NaN', factionMult('ghost','academy')===1&&factionMult(undefined,undefined)===1);
+  // —— 羁绊双阈值 ——
+  const parmy=(...ids)=>({army:ids.map(id=>({uid:uidSeq++,id,star:1,gAtk:0,gHp:0})),relics:[]});
+  ok('学院 2名→档1', bondTier(parmy('lin','yin'),'academy')===1);
+  ok('学院 4名→档2', bondTier(parmy('lin','yin','lu','guard'),'academy')===2);
+  ok('海族 3名(全)→档2（阈值2/3）', bondTier(parmy('yu','qi','mist'),'sea')===2);
+  ok('同名不叠：琳×2 仍算1名→无羁绊', bondTier(parmy('lin','lin'),'academy')===0);
+  ok('学院4档 开战全队+2盾', buildFighters(parmy('lin','yin','lu','guard'),{}).every(f=>f.shield>=2));
+  ok('海族档位入 sideFlags.seaTier', sideFlags(parmy('yu','qi','mist')).seaTier===2);
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2269,9 +2310,10 @@ function showHowto(){
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
   胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
   <i style="color:var(--ink3)">（30 回合仍未分：先看存活多的、再看总输出高的——龟缩不再稳赢。）</i>
-  <h4>六系羁绊（同系 2 名不同单位即触发）</h4>
-  学院：全队 +3 生命 ｜ 天之国：全队 +1 速 ｜ 海族：阵亡溅射 ｜
-  摇摆队：每幕 +2 铸币 ｜ 黑域：黑域 +2 攻但每幕 -1 币 ｜ 挑战者队：成长翻倍
+  <h4>六系羁绊（<b>双阈值</b>：同系 2 名触发一档，凑满 4 名（海族/摇摆 3 名）再升一档）</h4>
+  学院：2名+3生命／4名再+开战2护盾 ｜ 天之国：2名+1速／4名+2速 ｜ 海族：2名溅射1／3名溅射2 ｜
+  摇摆队：2名+2币／3名再+免费刷新 ｜ 黑域：2名+2攻／4名+3攻（每幕-1币）｜ 挑战者队：2名成长翻倍／4名再+全队本场+1攻。
+  征募面板底部有<b>羁绊进度条</b>（紫=已触发一档、金=满档）——凑羁绊是构筑的核心乐趣。
   <h4>老师小抄</h4>
   · 课堂节奏慢：调低暴走阈值到 6，乱入更早出现，气氛立刻紧张<br>
   · 学生水平差距大：多用「抢答 +1」给基础题，难题留给领先者<br>
