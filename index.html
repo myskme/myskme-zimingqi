@@ -463,21 +463,31 @@ body.playing #hud{display:flex}
   <!-- 开局设置 -->
   <section class="scr" id="scr-setup">
     <h2 class="sec">点 将 <em>开 局</em></h2>
-    <p class="sub">2–8 位玩家 · 一节课一局 · 题在老师手里</p>
+    <p class="sub" id="setup-sub">2–8 位玩家 · 一节课一局 · 题在老师手里</p>
     <div class="panel ornate">
-      <div class="fieldrow"><label>玩家人数</label><div class="seg" id="seg-count"></div></div>
-      <div class="fieldrow"><label>玩家名字</label><div id="name-grid" style="flex:1"></div></div>
-      <div class="fieldrow"><label>幕数</label>
+      <div class="fieldrow"><label>模式</label>
+        <div class="seg" id="seg-mode">
+          <button data-v="0" class="on">多人对战</button><button data-v="1">单人试炼</button>
+        </div>
+      </div>
+      <div class="fieldrow mp-only"><label>玩家人数</label><div class="seg" id="seg-count"></div></div>
+      <div class="fieldrow"><label id="name-label">玩家名字</label><div id="name-grid" style="flex:1"></div></div>
+      <div class="fieldrow solo-only" id="row-diff" style="display:none"><label>难度</label>
+        <div class="seg" id="seg-diff">
+          <button data-v="0">见习 · 轻松</button><button data-v="1" class="on">精英 · 标准</button><button data-v="2">宗师 · 严酷</button>
+        </div>
+      </div>
+      <div class="fieldrow mp-only"><label>幕数</label>
         <div class="seg" id="seg-acts">
           <button data-v="2">两幕 · 快课</button><button data-v="3" class="on">三幕 · 标准</button>
         </div>
       </div>
-      <div class="fieldrow"><label>暴走阈值</label>
+      <div class="fieldrow mp-only"><label>暴走阈值</label>
         <div class="seg" id="seg-rage">
           <button data-v="6">6 · 易怒</button><button data-v="8" class="on">8 · 标准</button><button data-v="10">10 · 温和</button><button data-v="0">关闭</button>
         </div>
       </div>
-      <div class="fieldrow"><label>命运事件</label>
+      <div class="fieldrow mp-only"><label>命运事件</label>
         <div class="seg" id="seg-event">
           <button data-v="1" class="on">开启</button><button data-v="0">关闭</button>
         </div>
@@ -974,8 +984,8 @@ function setPhase(txt){$('#hud-phase').textContent=txt}
 function hud(){
   if(!S){document.body.classList.remove('playing');return}
   document.body.classList.add('playing');
-  $('#hud-act').textContent=ACT_CN[S.act]||'终幕';
-  $('#hud-actname').textContent=ACT_NAMES[S.act]||'王座之前';
+  $('#hud-act').textContent=S.solo?('第 '+S.round+' 关'):(ACT_CN[S.act]||'终幕');
+  $('#hud-actname').textContent=S.solo?('单人试炼 · '+(SOLO_DIFF[S.difficulty]||'')):(ACT_NAMES[S.act]||'王座之前');
   const pct=S.rageMax?Math.min(100,S.rage/S.rageMax*100):0;
   $('#rage-bar i').style.width=pct+'%';
   $('#rage-bar').classList.toggle('warn',S.rageMax&&S.rage>=S.rageMax-2&&S.rage>0);
@@ -999,16 +1009,32 @@ function renderSetup(){
     inp.placeholder='玩家 '+(i+1);inp.value=old[i]||'';inp.maxLength=6;grid.appendChild(inp)}
 }
 function segVal(sel){return +$(sel+' button.on').dataset.v}
-$$('#seg-acts button,#seg-rage button,#seg-event button').forEach(b=>{
+$$('#seg-acts button,#seg-rage button,#seg-event button,#seg-diff button').forEach(b=>{
   b.onclick=()=>{[...b.parentNode.children].forEach(x=>x.classList.remove('on'));b.classList.add('on')}});
+$$('#seg-mode button').forEach(b=>{
+  b.onclick=()=>{[...b.parentNode.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');applyModeUI(+b.dataset.v)}});
+function applyModeUI(solo){
+  $$('.mp-only').forEach(e=>e.style.display=solo?'none':'');
+  $$('.solo-only').forEach(e=>e.style.display=solo?'':'none');
+  $('#setup-sub').textContent=solo?'一人挑战 · 逐关变强的 AI 军 · 自动经济 · 冲击最佳纪录':'2–8 位玩家 · 一节课一局 · 题在老师手里';
+  $('#name-label').textContent=solo?'你的名字':'玩家名字';
+  if(solo){setupCount=1;renderSetup()}else if(setupCount<2){setupCount=4;renderSetup()}
+}
 
 $('#btn-new').onclick=()=>{renderSetup();go('setup')};
 $('#btn-back-title').onclick=()=>go('title');
 $('#btn-start').onclick=()=>{
   const names=[...$$('#name-grid input')].map((i,k)=>i.value.trim()||('玩家'+(k+1)));
-  S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1);
-  rng=mulberry32(S.seed);
-  setAct(1);hud();startOriginDraft();save();
+  if(segVal('#seg-mode')===1){ // 单人试炼
+    S=newState([names[0]||'挑战者'],3,0,false); // 1人·无暴走·无事件
+    S.solo=true; S.difficulty=segVal('#seg-diff'); S.round=1; S.soloFoe=null; S.soloWins=0;
+    rng=mulberry32(S.seed);
+    setAct(1);hud();startOriginDraft();save();
+  }else{
+    S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1);
+    rng=mulberry32(S.seed);
+    setAct(1);hud();startOriginDraft();save();
+  }
 };
 $('#btn-continue').onclick=()=>{const s=loadSave();if(!s){toast('没有找到存档');return}
   S=s;
@@ -1023,7 +1049,7 @@ function resumePhase(){
     wave:()=>startWave(),
     draft:()=>{setPhase('征募');renderDraft();go('draft')},
     event:()=>{ if(S.eventResolved){ S.bossPending?startBossSequence():startBattlePhase() } else if(S.actEvent){ S.phase='event'; renderEvent() } else startEvent() },
-    battle:()=>{setPhase('演武');renderPairings();go('battle')},
+    battle:()=>{ if(S.solo){soloPreBattle()} else {setPhase('演武');renderPairings();go('battle')} },
     boss:()=>{ if(S.bossResolved){$('#boss-veil').classList.remove('on');actEnd()} else startBossSequence() },
     final:()=>finale(),
   };
@@ -1163,6 +1189,8 @@ function startDraft(){
   // —— 幕初经济结算（逐人） ——
   S.players.forEach(p=>{
     const notes=[];
+    // 单人试炼：无老师判定，本关自动收入（随关数增长，难度影响）
+    if(S.solo){const inc=Math.max(2,5+S.round+[2,0,-1][S.difficulty]);p.coins+=inc;notes.push(`第${S.round}关收入+${inc}`)}
     // 利息：每存 5 币 +1（上限 3，星尘袋 +2）
     const cap=3+(hasRelic(p,'dustbag')?2:0);
     const interest=Math.min(cap,Math.floor(p.coins/5));
@@ -1335,7 +1363,7 @@ function buyUnit(idx,u,price){
     p.army.push(mkInst(u.id));
     toast(`${p.name} 点将：${u.n} 入队`);
     S.draftIdx++;
-    if(S.draftIdx>=S.draftQueue.length){S.offers=[];startWave()}
+    if(S.draftIdx>=S.draftQueue.length){S.offers=[];S.solo?soloRound():startWave()}
     else{S.offers=genOriginOffers();S.offersSold=[false,false,false];renderDraft()}
     hud();save();return;
   }
@@ -1369,6 +1397,7 @@ $('#btn-reroll').onclick=()=>{
 $('#btn-draft-undo').onclick=draftUndo;
 $('#btn-draft-done').onclick=()=>{
   const p=curDrafter();p.revenge=0;
+  if(S.solo){S.offers=[];soloPreBattle();return} // 单人：征募完 → 迎战本关 AI
   S.draftIdx++;
   if(S.draftIdx>=S.draftQueue.length){
     S.offers=[];
@@ -1635,6 +1664,7 @@ function renderPairings(resume){
   $('#btn-battle-next').textContent=nxt===-1?'结束本幕 →':`开战：第 ${nxt+1} 场`;
 }
 $('#btn-battle-next').onclick=()=>{
+  if(S.solo){soloRunBattle();return}
   const nxt=S.pairs.findIndex(p=>!p.done);
   if(nxt===-1){actEnd();return}
   S.battleIdx=nxt;playBattle(S.pairs[nxt]);
@@ -1662,25 +1692,28 @@ function playBattle(pr){
   const fA=sideFlags(pa), fB=sideFlags(pb);
   if(!A.length){toast(`${pa.name} 没有军团，自动判负`);finishBattle(pr,{winner:1,dmgByUid:{},coinsGain:[0,0],surv:[[],B.map(f=>f.uid)]},A,B);return}
   if(!B.length){finishBattle(pr,{winner:0,dmgByUid:{},coinsGain:[0,0],surv:[A.map(f=>f.uid),[]]},A,B);return}
+  const bn=pb?pb.name:GHOSTS[Math.min(S.act,3)].n;
+  const mods={wind:!!S.evFlags.wind,fog:!!S.evFlags.fog,echo:!!S.evFlags.echo};
+  const battleRng=mulberry32(S.seed+S.act*131+S.battleIdx*17+7);
+  runPlayback(A,B,fA,fB,`<b>${pa.name}</b> 对阵 <b>${bn}</b>`,mods,battleRng,result=>finishBattle(pr,result,A,B));
+}
+/* 战斗渲染+演算+回放核心（多人与单人共用）；结算逻辑由 onEnd 注入 */
+function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd){
   // 快照供 DOM（sim 会改动 fighter，因此先渲染再模拟）
   $('#pairings').style.display='none';$('#battle-next-row').style.display='none';
   $('#stage').style.display='';PB.skip=false;
-  const bn=pb?pb.name:GHOSTS[Math.min(S.act,3)].n;
-  $('#battle-title').innerHTML=`<b>${pa.name}</b> 对阵 <b>${bn}</b>`;
+  $('#battle-title').innerHTML=titleHTML;
   const L=$('#side-L'),R=$('#side-R');L.innerHTML='';R.innerHTML='';
   // 前排靠中：左侧反转排列
   A.forEach(f=>L.prepend(unitEl(f)));
   B.forEach(f=>R.appendChild(unitEl(f)));
   $('#blog').textContent='战斗开始——';
-  const battleRng=mulberry32(S.seed+S.act*131+S.battleIdx*17+7);
-  const mods={wind:!!S.evFlags.wind,fog:!!S.evFlags.fog,echo:!!S.evFlags.echo};
   const result=simulateBattle(A,B,fA,fB,battleRng,mods);
   // 播放 log
-  const nameOf={},elOf={};
+  const nameOf={};
   [...A,...B].forEach(f=>{nameOf[f.uid]=f.n});
-  const hpNow={},hpMax={},atkNow={};
-  [...A,...B].forEach(f=>{hpNow[f.uid]=f.maxhp;hpMax[f.uid]=f.maxhp}); // 播放时重算（sim后 f 已变）
-  // 注意：buildFighters 后立刻 sim，f.maxhp 不变，可用
+  const hpNow={},hpMax={};
+  [...A,...B].forEach(f=>{hpNow[f.uid]=f.maxhp;hpMax[f.uid]=f.maxhp});
   let i=0;
   const stepDelay=()=>PB.skip?0:(PB.speed===2?260:560);
   function el(uid){return document.querySelector(`.u[data-uid="${uid}"]`)}
@@ -1723,9 +1756,9 @@ function playBattle(pr){
     if(e.t==='coin'&&animate){blog.innerHTML='车翻了，货还在：+1 铸币'}
   }
   function step(){
-    if(i>=result.log.length){finishBattle(pr,result,A,B);return}
+    if(i>=result.log.length){onEnd(result);return}
     const e=result.log[i++];
-    if(e.t==='end'){finishBattle(pr,result,A,B);return}
+    if(e.t==='end'){onEnd(result);return}
     applyEntry(e,!PB.skip);
     if(PB.skip){step()}else{PB.timer=setTimeout(step,e.t==='round'?stepDelay()*0.7:stepDelay())}
   }
@@ -1783,6 +1816,106 @@ function actEnd(){
   S.act++;setAct(Math.min(S.act,3));
   toast(`${ACT_CN[S.act]} · ${ACT_NAMES[S.act]} —— 军团上限 ${ARMY_CAP[Math.min(S.act,3)]}`,3000);
   startWave();
+}
+
+/* ============================================================
+   单人试炼（自动经济 · 逐关变强的 AI 宿敌 · 冲击最佳纪录）
+   复用征募/战斗/战报；无老师=经济自动，无暴走/事件
+   ============================================================ */
+const SOLO_DIFF=['见习','精英','宗师'];
+function soloFoeName(round){
+  const tiers=['谷地游兵','断云宿敌','黑域斥候','蛇纹战团','鹦鹉亲卫','紫光军阵','叶王余党'];
+  return tiers[Math.min(tiers.length-1,Math.floor((round-1)/2))];
+}
+function soloBuildFoe(round,diff){
+  const cap=ARMY_CAP[Math.min(S.act,3)];
+  const diffMul=[0.85,1.05,1.32][diff]||1;
+  const power=(3+round*2.4)*diffMul;                 // 目标战力预算
+  const unitPow=u=>u.cost*1.3+({N:0,R:.4,SR:1,SSR:1.8,UR:2.6}[u.rar]||0);
+  const facs=Object.keys(FACS), mainFac=facs[ri(facs.length)];
+  const army=[]; let spent=0, guard=0;
+  while(spent<power && army.length<cap && guard++<40){
+    let cand=UNITS.filter(u=>u.fac===mainFac);
+    if(!cand.length||rng()<0.4)cand=UNITS;
+    const u=cand[ri(cand.length)];
+    army.push(mkInst(u.id)); spent+=unitPow(u);
+  }
+  if(!army.length)army.push(mkInst('guard'));
+  let extra=power-spent, si=0;                        // 预算富余 → 升星补强
+  while(extra>2.5 && si<army.length){ if(army[si].star===1){army[si].star=2;extra-=3} si++; }
+  return army;
+}
+function soloRound(){
+  S.act=Math.min(3,1+Math.floor((S.round-1)/2));      // 军团上限/场景随关数成长
+  setAct(S.act);
+  S.soloFoe=soloBuildFoe(S.round,S.difficulty);
+  startDraft();                                        // 复用征募（内含本关自动收入+利息结算）
+}
+function soloPreBattle(){
+  S.phase='battle';setPhase(`试炼 · 第 ${S.round} 关`);save();
+  go('battle');$('#stage').style.display='none';
+  $('#battle-act-tag').textContent='第 '+S.round+' 关';
+  $('#battle-sub').textContent=`单人试炼 · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
+  const you=S.players[0], foe=S.soloFoe||[];
+  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star===2?'star2':''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
+  const box=$('#pairings');box.style.display='';
+  box.innerHTML=`<div class="pairrow"><span class="who">${you.name}<div class="mini-army">${mini(you.army)}</div></span><span class="vs">VS</span><span class="who right">${soloFoeName(S.round)}<div class="mini-army" style="justify-content:flex-end">${mini(foe)}</div></span></div>`;
+  $('#battle-next-row').style.display='';
+  $('#btn-battle-next').textContent='开 战';
+}
+function soloRunBattle(){
+  const you=S.players[0];
+  const foeP={name:soloFoeName(S.round),army:S.soloFoe||[],relics:[]};
+  const A=buildFighters(you,{}), B=buildFighters(foeP,{});
+  if(!A.length){soloEnd();return}
+  if(!B.length){soloResolve({winner:0,dmgByUid:{},coinsGain:[0,0],surv:[A.map(f=>f.uid),[]]},A,B);return}
+  const battleRng=mulberry32(S.seed+S.round*131+S.difficulty*7+7);
+  runPlayback(A,B,sideFlags(you),sideFlags(foeP),`<b>${you.name}</b> 对阵 <b>${foeP.name}</b>`,{},battleRng,
+    result=>soloResolve(result,A,B));
+}
+function soloResolve(result,A,B){
+  clearTimeout(PB.timer);
+  const you=S.players[0], win=result.winner===0;
+  // MVP 台账（只计我方单位，跨关累计）
+  S.uidMeta=S.uidMeta||{};
+  const aUids=new Set(A.map(f=>String(f.uid)));
+  A.forEach(f=>{S.uidMeta[f.uid]={n:f.n,owner:you.name}});
+  for(const uid in result.dmgByUid){if(aUids.has(uid))S.dmgTally[uid]=(S.dmgTally[uid]||0)+result.dmgByUid[uid]}
+  // 成长（存活新徒）
+  const dbl=synCount(you,'novice')>=2?2:1;
+  you.army.forEach(inst=>{const u=UMAP[inst.id];
+    if(u.skill.k==='growth'&&result.surv[0].includes(inst.uid)){inst.gAtk+=(u.skill.g.atk||0)*dbl;inst.gHp+=(u.skill.g.hp||0)*dbl}});
+  you.coins+=result.coinsGain[0]||0;
+  const banner=document.createElement('div');banner.className='result-banner';
+  if(win){
+    you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;
+    banner.innerHTML=`<h1>第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p><p class="hint">点击继续</p>`;
+    document.body.appendChild(banner);flash(false);
+    burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],28);SFX.play('win');
+    banner.onclick=()=>{banner.remove();S.round++;soloRound()};
+  }else{
+    banner.innerHTML=`<h1>试炼终结</h1><p>止步第 ${S.round} 关</p><p class="hint">点击查看战报</p>`;
+    document.body.appendChild(banner);flash(false);SFX.play('lose');
+    banner.onclick=()=>{banner.remove();soloEnd()};
+  }
+  hud();save();
+}
+function soloBest(){try{return JSON.parse(localStorage.getItem('zmq_solobest')||'{}')}catch(e){return {}}}
+function soloEnd(){
+  S.phase='final';setPhase('试炼结算');
+  const you=S.players[0], cleared=Math.max(0,S.round-1);
+  const best=soloBest(), key='d'+S.difficulty, prev=best[key]||0, isNew=cleared>prev;
+  if(isNew){best[key]=cleared;try{localStorage.setItem('zmq_solobest',JSON.stringify(best))}catch(e){}}
+  const shown=Math.max(cleared,prev);
+  const pod=$('#podium');pod.innerHTML=`<div class="pod stag first" style="min-width:220px">
+    <div class="medal">🏔</div><h3>${you.name} · 单人试炼</h3>
+    <div class="sc">通过 <b style="color:var(--gold2)">${cleared}</b> 关 · 难度 ${SOLO_DIFF[S.difficulty]||''}</div>
+    <div class="sc" style="font-size:13px;color:var(--ink3)">最佳纪录 ${shown} 关${isNew?' · <span style="color:var(--gold2)">新纪录！</span>':''}</div>
+    <div class="army-line">${you.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div></div>`;
+  drawReport([you]);
+  go('final');flash(false);shake();
+  if(isNew)burst(innerWidth/2,innerHeight/4,['#c9a64a','#e8c768','#fff','#9cc0e8'],44),SFX.play('crown');
+  clearSave();
 }
 
 /* ============================================================
@@ -1914,7 +2047,7 @@ async function drawReport(sorted){
   ctx.fillStyle=gold;ctx.font=serif(74,300);
   ctx.fillText('自 鸣 棋',W/2,150);
   ctx.fillStyle=ink2;ctx.font=serif(26);
-  ctx.fillText('MYSKME 自鸣棋 · 演武战报 · '+new Date().toLocaleDateString('zh-CN'),W/2,196);
+  ctx.fillText((S&&S.solo?'MYSKME 自鸣棋 · 单人试炼战报 · ':'MYSKME 自鸣棋 · 演武战报 · ')+new Date().toLocaleDateString('zh-CN'),W/2,196);
   // 分隔
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,232);ctx.lineTo(W-120,232);ctx.stroke();
   // 冠军
