@@ -210,7 +210,7 @@ body.playing #hud{display:flex}
 .badge .beast{position:absolute;font-size:56px;opacity:.13;filter:grayscale(1)}
 .offer:hover .badge::before{opacity:.85;transform:rotate(45deg) scale(1.08)}
 .offer:hover .badge .glyph{transform:scale(1.12)}
-.badge.ur::after{content:'';position:absolute;inset:-6px;border:1px dashed var(--gold);animation:spinSlow 12s linear infinite}
+/* UR 旋转虚线金环已移除：四角戳出立绘=「上方金色截一段」拉垮观感。UR 改由更亮金边+更强光晕表达（见 .badge.r-UR） */
 .r-N .glyph{color:var(--ink2)} .r-R .glyph{color:#8fb8e8}
 .r-SR .glyph{color:var(--purple);text-shadow:0 0 14px rgba(157,114,214,.5)}
 .r-SSR .glyph{color:var(--gold);text-shadow:0 0 12px rgba(201,166,74,.55)}
