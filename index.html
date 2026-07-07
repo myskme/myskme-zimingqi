@@ -814,6 +814,11 @@ const EVENTS = [
  {id:'ev_horn',  n:'号角',     icon:'号', d:'远处有人替落后者吹响号角。当前最后一名 +3 铸币。', w:9, once:true, catchup:true},
  {id:'ev_maze',  n:'星轨错位', icon:'轨', d:'星图今晚不作数。本幕演武配对完全随机，不按排名。', w:8},
  {id:'ev_echo',  n:'复读风暴', icon:'响', d:'童声复读机的残响掠过战场。本幕演武：每回合双方各有一名随机单位受 1 伤。', w:8},
+ {id:'ev_tithe', n:'王座重税', icon:'税', d:'白鹤宰相翻开账本：王座也要交税。当前第一名 -2 铸币，最后一名 +2 铸币。', w:9, catchup:true},
+ {id:'ev_letter',n:'远方来信', icon:'邮', d:'一只星灵替谁送信来了。所有玩家 +1 铸币；军团未满员者，再 +1（信里夹着安家费）。', w:9},
+ {id:'ev_shell', n:'退潮拾贝', icon:'贝', d:'海雾退去，滩涂上全是亮闪闪的。每拥有一名海族单位 +1 铸币。', w:9},
+ {id:'ev_forge', n:'连夜锻造', icon:'锻', d:'铁匠铺的灯亮了一整夜。本幕演武：所有 ★2 及以上单位 +1 攻。', w:8},
+ {id:'ev_bulwark',n:'石壁垂荫',icon:'壁', d:'老石墙悄悄挪了半步。本幕演武：双方最前排单位 +3 生命。', w:8},
 ];
 
 // 幽灵军 & Boss（幕数索引）
@@ -1783,6 +1788,17 @@ function applyEvent(ev){
     case 'ev_maze': S.evFlags.maze=true;break;
     case 'ev_echo': S.evFlags.echo=true;break;
     case 'ev_crane': S.evFlags.crane=true;break;
+    case 'ev_tithe': {const rank=[...S.players].sort((a,b)=>(b.crowns-a.crowns)||(b.coins-a.coins));
+      const top=rank[0],lp=lastPlace();
+      if(top!==lp){top.coins=Math.max(0,top.coins-2);lp.coins+=2;toast(`${top.name} 交税 2 铸币，${lp.name} 领了补贴`)}
+      else toast('账本翻了翻：并列无税')}break;
+    case 'ev_letter': {const cap=ARMY_CAP[Math.min(S.act,3)];
+      S.players.forEach(p=>{p.coins+=1;if(p.army.length<cap)p.coins+=1});
+      toast('信到了：+1 铸币，军团未满再 +1')}break;
+    case 'ev_shell': S.players.forEach(p=>{const n=p.army.filter(a=>UMAP[a.id].fac==='sea').length;
+      if(n)p.coins+=n});toast('海族单位的主人们拾了贝壳');break;
+    case 'ev_forge': S.evFlags.forge=true;break;
+    case 'ev_bulwark': S.evFlags.bulwark=true;break;
   }
   S.eventResolved=true; // 幂等哨兵：本幕事件已结算，续局不再重翻/重发
   hud();save();
@@ -1828,6 +1844,9 @@ function buildFighters(p, evFlags){
   if(fs.some(f=>f.id==='wolf')) fs.forEach(f=>{if(f.id!=='wolf'){f.atk+=2;f.spd+=1}});
   // 事件：紫光低语
   if(evFlags&&evFlags.purple) fs.forEach(f=>{if(f.fac==='dark')f.atk+=2});
+  // 事件：连夜锻造 / 石壁垂荫
+  if(evFlags&&evFlags.forge) fs.forEach(f=>{if(f.star>=2)f.atk+=1});
+  if(evFlags&&evFlags.bulwark&&fs[0]){fs[0].hp+=3;fs[0].maxhp+=3;}
   return fs;
 }
 function ghostFighters(list){
