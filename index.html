@@ -2129,6 +2129,21 @@ function runSelftest(){
   {const fs=buildFighters({army:parmy('scout','guard').army,relics:[],strats:['st_pierce','st_wall','st_taunt','st_van']},{});
    const sc=fs.find(f=>f.id==='scout'),gd=fs.find(f=>f.id==='guard');
    ok('秘策叠加：穿透专精+铁壁+门神+先锋', sc.atk===UMAP['scout'].atk+2+2&&sc.shield===2&&gd.hp===UMAP['guard'].hp+3&&gd.shield===3);}
+  // —— 批⑦ 新事件/遗物钩子（差值式断言，不受羁绊底色影响）——
+  {const u2=(id,star)=>({uid:uidSeq++,id,star,gAtk:0,gHp:0});
+   const army2=()=>({army:[u2('lin',2)],relics:[]});
+   ok('连夜锻造：★2 +1攻', buildFighters(army2(),{forge:true})[0].atk===buildFighters(army2(),{})[0].atk+1);
+   const army1=()=>({army:[u2('lin',1)],relics:[]});
+   ok('连夜锻造：★1 不动', buildFighters(army1(),{forge:true})[0].atk===buildFighters(army1(),{})[0].atk);
+   const duo=(relics)=>({army:[u2('lin',1),u2('yin',1)],relics:relics||[]});
+   const b0=buildFighters(duo(),{});
+   const bw=buildFighters(duo(),{bulwark:true});
+   ok('石壁垂荫：仅前排 +3命', bw[0].hp===b0[0].hp+3&&bw[1].hp===b0[1].hp);
+   const bl=buildFighters(duo(['bell']),{});
+   ok('塔顶旧铃：最速+1攻+1速·他人不动', bl[1].spd===b0[1].spd+1&&bl[1].atk===b0[1].atk+1&&bl[0].atk===b0[0].atk);
+   const lp=buildFighters(duo(['lamp']),{});
+   ok('灯猫的小灯：最低血+2盾·他人不动', lp[1].shield===b0[1].shield+2&&lp[0].shield===b0[0].shield);
+   ok('白鹤名帖：≥3费-1·低费不动', unitPrice({relics:['card']},UMAP['lin'])===UMAP['lin'].cost-1&&unitPrice({relics:['card']},UMAP['yin'])===UMAP['yin'].cost);}
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
