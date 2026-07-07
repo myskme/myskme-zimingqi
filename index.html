@@ -797,6 +797,10 @@ const RELICS = [
  {id:'quill',  n:'战报羽笔',   t:'开战时：敌方最高攻单位 -2 攻', icon:'笔'},
  {id:'quiver', n:'断云箭袋',   t:'穿透单位 +1 攻（箭走云缝）', icon:'箭'},
  {id:'plaque', n:'门神匾',     t:'嘲讽单位 +3 生命 · 开战 +1 护盾', icon:'匾'},
+ {id:'bell',   n:'塔顶旧铃',   t:'开战时：速度最高的友军 +1 攻 +1 速（非响不可的日子到了）', icon:'铃'},
+ {id:'scale',  n:'蛇王旧鳞',   t:'每幕征募开始：铸币少于 3 则 +2（鳞下藏着从前的自己）', icon:'鳞'},
+ {id:'card',   n:'白鹤名帖',   t:'征募 3 费及以上单位 -1 费（宰相的引荐信）', icon:'帖'},
+ {id:'lamp',   n:'灯猫的小灯', t:'开战时：血量最低的友军 +2 护盾（夜里最深的那盏）', icon:'灯'},
 ];
 const RMAP = Object.fromEntries(RELICS.map(r=>[r.id,r]));
 
@@ -1406,6 +1410,7 @@ function startDraft(){
     const interest=Math.min(capN,Math.floor(p.coins/per));
     if(interest>0){p.coins+=interest;notes.push(`利息+${interest}`)}
     if(hasRelic(p,'teapot')){p.coins+=2;notes.push('茶壶+2')}
+    if(hasRelic(p,'scale')&&p.coins<3){p.coins+=2;notes.push('蛇王旧鳞+2')}
     const swT=bondTier(p,'swing');
     if(swT>=1){p.coins+=2;notes.push(swT>=2?'摇摆+2·免费刷新':'摇摆+2')}
     if(bondTier(p,'dark')>=1){p.coins=Math.max(0,p.coins-1);notes.push('黑域-1')}
@@ -1474,7 +1479,8 @@ function genOffers(p){
   return offers;
 }
 function unitPrice(p,u){let c=u.cost;
-  if(u.fac==='dark'&&u.rar!=='UR'&&hasRelic(p,'mask'))c=Math.max(1,c-1);return c} // 减费排除航：面具只免吞币，不再叠双折扣
+  if(u.fac==='dark'&&u.rar!=='UR'&&hasRelic(p,'mask'))c=Math.max(1,c-1);
+  if(u.cost>=3&&hasRelic(p,'card'))c=Math.max(1,c-1);return c} // 减费排除航：面具只免吞币，不再叠双折扣
 function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
 // 拥有扑克 SP 典藏立绘的高级角色
 const SP_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen']);
@@ -1834,6 +1840,8 @@ function buildFighters(p, evFlags){
   if(hasRelic(p,'letter')) fs.forEach(f=>f.spd+=1);
   if(hasRelic(p,'quiver')) fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.atk+=1});
   if(hasRelic(p,'plaque')) fs.forEach(f=>{if(f.taunt){f.hp+=3;f.maxhp+=3;f.shield+=1}});
+  if(hasRelic(p,'bell')&&fs.length){const m=fs.reduce((a,b)=>b.spd>a.spd?b:a);m.atk+=1;m.spd+=1}
+  if(hasRelic(p,'lamp')&&fs.length){const m=fs.reduce((a,b)=>b.hp<a.hp?b:a);m.shield+=2}
   // 单人秘策（run-identity：每局不同的构筑方向）
   const st=p.strats||[];
   if(st.includes('st_pierce'))fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.atk+=2});
