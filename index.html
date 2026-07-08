@@ -560,7 +560,7 @@ body.playing #hud{display:flex}
   <!-- 开局设置 -->
   <section class="scr" id="scr-setup">
     <h2 class="sec">点 将 <em>开 局</em></h2>
-    <p class="sub" id="setup-sub">2–8 位玩家 · 一节课一局 · 题在老师手里</p>
+    <p class="sub" id="setup-sub">1–8 位玩家 · 一节课一局 · 题在老师手里</p>
     <div class="panel ornate">
       <div class="fieldrow"><label>模式</label>
         <div class="seg" id="seg-mode">
@@ -1173,9 +1173,14 @@ function hud(){
 let setupCount=4;
 function renderSetup(){
   const seg=$('#seg-count');seg.innerHTML='';
-  for(let n=2;n<=8;n++){const b=document.createElement('button');b.textContent=n;
+  for(let n=1;n<=8;n++){const b=document.createElement('button');b.textContent=n;
     if(n===setupCount)b.classList.add('on');
     b.onclick=()=>{setupCount=n;renderSetup()};seg.appendChild(b)}
+  let c1h=$('#c1hint');
+  if(!c1h){c1h=document.createElement('div');c1h.id='c1hint';
+    c1h.style.cssText='font-size:11.5px;color:var(--ink3);letter-spacing:.04em;margin-top:7px;line-height:1.5';
+    seg.parentNode.appendChild(c1h)}
+  c1h.textContent=setupCount===1?'1 对 1 课堂：学生答题、你判分加币，演武对战 AI 幽灵军（想要自动经济的独玩，选「单人试炼」）':'';
   const grid=$('#name-grid');const old=[...grid.querySelectorAll('input')].map(i=>i.value);
   grid.innerHTML='';
   for(let i=0;i<setupCount;i++){const inp=document.createElement('input');
@@ -1189,7 +1194,7 @@ $$('#seg-mode button').forEach(b=>{
 function applyModeUI(solo){
   $$('.mp-only').forEach(e=>e.style.display=solo?'none':'');
   $$('.solo-only').forEach(e=>e.style.display=solo?'':'none');
-  $('#setup-sub').textContent=solo?'一人挑战 · 逐关变强的 AI 军 · 自动经济 · 冲击最佳纪录':'2–8 位玩家 · 一节课一局 · 题在老师手里';
+  $('#setup-sub').textContent=solo?'一人挑战 · 逐关变强的 AI 军 · 自动经济 · 冲击最佳纪录':'1–8 位玩家 · 一节课一局 · 题在老师手里';
   $('#name-label').textContent=solo?'你的名字':'玩家名字';
   if(solo){setupCount=1;renderSetup()}else if(setupCount<2){setupCount=4;renderSetup()}
 }
