@@ -290,7 +290,14 @@ body.playing #hud{display:flex}
   padding:1px 7px;margin-left:8px;vertical-align:2px;background:rgba(0,0,0,.22);font-weight:400}
 .pcard .wn.wn0{color:var(--ink3);border-style:dashed}
 #wheel-hint{color:var(--ink3);font-size:12px;letter-spacing:.14em;margin-top:10px}
-#modal-box .btn[disabled]{opacity:.38;pointer-events:none}
+#draft-coins .int-hint{display:block;font-style:normal;font-size:10.5px;letter-spacing:.1em;color:var(--ink3);margin-top:2px} /* 利息断点预览 */
+/* 世界回廊榜单行 */
+.lbrow{display:flex;align-items:center;gap:12px;padding:7px 10px;border-bottom:1px solid var(--line2);font-size:13.5px}
+.lbrow b{flex:0 0 26px;color:var(--gold2);font-family:var(--mono)}
+.lbrow:nth-child(1) b{color:#e8c768}.lbrow:nth-child(2) b,.lbrow:nth-child(3) b{color:#c9a64a}
+.lbrow span{flex:1;letter-spacing:.08em}
+.lbrow i{font-style:normal;color:var(--ink2);font-family:var(--mono)}
+#modal-box .btn[disabled],.btnrow .btn[disabled],#draft-ctl .btn[disabled]{opacity:.38;pointer-events:none}
 /* 宿敌情报：侦察→针对的闭环入口（数据幕初已锁定，只是端上桌） */
 #foe-intel{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;
   margin:2px auto 14px;padding:7px 16px;max-width:720px;border:1px solid var(--line2);
@@ -568,6 +575,7 @@ body.playing #hud{display:flex}
       <button class="btn gold big" id="btn-new">开 局</button>
       <button class="btn big" id="btn-continue" style="display:none">续 局</button>
       <button class="btn big" id="btn-howto">玩法与课堂说明</button>
+      <button class="btn big" id="btn-lbhall" style="display:none">世界回廊 · 排行</button>
     </div>
     <p class="title-foot"><a href="https://myskme.github.io/myskme-hub/" style="color:inherit;text-decoration:underline dotted rgba(201,166,74,.5)">← 作品总目</a>　·　MAKE YOURSELF SPECIAL &amp; KIND — MYSKME · Mr. Wang</p>
   </section>
@@ -647,7 +655,9 @@ body.playing #hud{display:flex}
     <div id="offers"></div>
     <div id="draft-actions">
       <button class="btn" id="btn-tier">牌力 ↑</button>
+      <button class="btn" id="btn-forge" style="display:none">淬炼</button>
       <button class="btn" id="btn-reroll">刷新 · 2 铸币</button>
+      <button class="btn" id="btn-lock">锁定本轮</button>
       <button class="btn" id="btn-draft-undo" style="display:none">↩ 撤销一步</button>
       <button class="btn gold" id="btn-draft-done">征募毕 · 下一位</button>
     </div>
@@ -1462,6 +1472,21 @@ function genOriginOffers(){
   return picks;
 }
 
+// 星尘淬炼（单人/无尽专属金币出口）：费用递增，永久 +1攻+2血，每关一次——治第 7 关起的死币滞留，
+// 给无尽回廊一个无限出口对冲无限敌军。多人坚决不上（征募逐人串行，加决策=拖课堂节奏）。
+function forgeCost(n){return 6+2*(n||0)}
+// 锁牌库（TFT冻结商店的课堂版）：免费、锁一幕、消费即清。快照挂 p 上=随存档/撤销栈天然序列化。
+// 征募结束时物化（三格全 sold 锁空店无意义）；买卡不解锁（sold 随快照保留）；刷新/升牌力=放弃锁。
+function stashLock(p){
+  if(p._lockOn){p._lockOn=false;
+    if(S.offers.length&&!S.offersSold.every(Boolean))p.lock={offers:S.offers.slice(),sold:S.offersSold.slice()}}
+}
+// 下关利息预览（纯函数，#selftest 可测）：每存 per 币生 1 息，封顶 capN——断点可见才有存钱决策感
+function previewInterest(p){
+  const per=hasRelic(p,'dustbag')?4:5;
+  const capN=(p.strats||[]).includes('st_interest')?5:3;
+  return Math.min(capN,Math.floor(p.coins/per));
+}
 function startDraft(){
   S.phase='draft';setPhase('征募');draftHist=[]; // save 移到幕初结算之后，任何持久化的 draft 快照都必是已结算态
   // 落后者先选
@@ -1474,9 +1499,7 @@ function startDraft(){
     if(S.solo){const inc=Math.max(2,5+S.round+[2,0,-1][S.difficulty])+((p.strats||[]).includes('st_gold')?2:0);
       p.coins+=inc;notes.push(`第${S.round}关收入+${inc}`)}
     // 利息：每存 5 币 +1（上限 3，秘策「利滚利」升到 5）；星尘袋改善汇率：每 4 币生 1 息
-    const per=hasRelic(p,'dustbag')?4:5;
-    const capN=(p.strats||[]).includes('st_interest')?5:3;
-    const interest=Math.min(capN,Math.floor(p.coins/per));
+    const interest=previewInterest(p); // 与征募页预览同源（纯函数），防两处公式漂移
     if(interest>0){p.coins+=interest;notes.push(`利息+${interest}`)}
     if(hasRelic(p,'teapot')){p.coins+=2;notes.push('茶壶+2')}
     if(hasRelic(p,'scale')&&p.coins<3){p.coins+=2;notes.push('蛇王旧鳞+2')}
@@ -1592,7 +1615,12 @@ function bindDetail(el,fn){
 function renderDraft(fresh){
   const p=curDrafter();
   const origin=S.phase==='origin';
-  if(!origin&&(fresh||!S.offers.length)){S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true}
+  if(!origin&&(fresh||!S.offers.length)){
+    if(p.lock&&p.lock.offers&&p.lock.offers.length){ // 锁定送达：走 stag 渲染，不重播翻牌/金光
+      S.offers=p.lock.offers;S.offersSold=p.lock.sold||[false,false,false];p.lock=null;dealReveal=false;
+      toast('锁定的征募已送达');
+    }else{S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true}
+  }
   $('#draft-title').innerHTML=origin?'开 局 <em>点 将</em>':'征 募 · <em>三 选 一</em>';
   $('#draft-sub').textContent=(origin?(S.solo?'开局礼：点将一名学员入队':'开局礼：每人免费领一名学员入队')
     :(S.solo?'试炼征募 · 迎战前补强军团':'按排名从后往前挑 · 落后者先选'))+' · 点立绘看详情'; // 单人不渗漏多人措辞
@@ -1611,7 +1639,8 @@ function renderDraft(fresh){
     const cls=k<S.draftIdx?'done':(k===S.draftIdx?'cur':'');
     return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
   $('#drafter-name').innerHTML=S.solo?`<em>${p.name}</em> 的军团`:`轮到 <em>${p.name}</em>`;
-  $('#draft-coins').textContent='◈ '+p.coins;
+  const _int=previewInterest(p),_per=hasRelic(p,'dustbag')?4:5;
+  $('#draft-coins').innerHTML='◈ '+p.coins+`<i class="int-hint">存${_per}生1 · 下${S.solo?'关':'幕'}息+${_int}</i>`;
   if(p._notes&&p._notes.length){toast(`${p.name}：${p._notes.join(' · ')}`,2600);p._notes=null}
   const box=$('#offers');box.innerHTML='';
   const rv=dealReveal;dealReveal=false; // 发现时刻：一次性消费，买卡/撤销/换位/续局的重渲染走原 stag 路径不重播
@@ -1663,6 +1692,15 @@ function renderDraft(fresh){
   renderFoeIntel(p);
   const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
   $('#btn-reroll').textContent=freeRr?'刷新 · 免费':'刷新 · 2 铸币';
+  const bl=$('#btn-lock');
+  if(bl){bl.style.display=origin?'none':'';
+    bl.textContent=p._lockOn?('已锁定 · 下'+(S.solo?'关':'次')+'送达'):'锁定本轮';
+    bl.classList.toggle('gold',!!p._lockOn)}
+  const bf=$('#btn-forge');
+  if(bf){bf.style.display=(S.solo&&!origin)?'':'none';
+    if(S.solo&&!origin){const fc=forgeCost(p.forgeN),fdone=p._forgedRound===S.round;
+      bf.textContent=fdone?'本关已淬炼':('淬炼 · '+fc+' 铸币');bf.disabled=fdone;
+      bf.classList.toggle('gold',!fdone&&p.coins>=fc)}}
 }
 /* 宿敌情报条：征募时看得见本幕要打谁——征募从「买好卡」升级成「针对宿敌构筑」 */
 function renderFoeIntel(p){
@@ -1790,7 +1828,36 @@ $('#btn-reroll').onclick=()=>{
   if(p._freeRr>0){p._freeRr--}
   else if(hasRelic(p,'astro')&&!p._astroUsed){p._astroUsed=true}
   else{if(p.coins<2){toast('铸币不够刷新');return}p.coins-=2}
+  p._lockOn=false; // 刷新即放弃锁（炉石酒馆惯例：按钮不撒谎）
   S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true;renderDraft();save();
+};
+$('#btn-lock').onclick=()=>{
+  const p=curDrafter();
+  if(S.phase==='origin')return;
+  p._lockOn=!p._lockOn;
+  toast(p._lockOn?('本轮三选一将封存到你下'+(S.solo?'关':'次征募')+'（免费）'):'已取消锁定',2400);
+  SFX.play('click');renderDraft();save();
+};
+$('#btn-forge').onclick=()=>{
+  const p=curDrafter();
+  if(!S.solo||S.phase==='origin')return;
+  const cost=forgeCost(p.forgeN);
+  if(p._forgedRound===S.round){toast('本关已淬炼过——下一关再来');return}
+  if(!p.army.length){toast('军团空空，先征募一名成员');return}
+  if(p.coins<cost){toast(`淬炼需 ${cost} 铸币`);return}
+  modal(`<h3>星尘淬炼</h3><p style="text-align:center;color:var(--ink3);line-height:1.8">花 <b style="color:var(--gold2)">${cost} 铸币</b>，为一名成员永久 <b>+1 攻 +2 生命</b><br>每关一次 · 费用递增（${cost}→${cost+2}→${cost+4}…）</p>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px">`+
+    p.army.map((a,i)=>{const u=UMAP[a.id],b=instBase(a);
+      return `<button class="btn" data-fi="${i}">${u.n}${a.star>=2?' ★'+a.star:''} ⚔${b.atk} ♥${b.hp}</button>`}).join('')+`</div>`);
+  document.querySelectorAll('#modal-box [data-fi]').forEach(btn=>btn.onclick=()=>{
+    const inst=p.army[+btn.dataset.fi];if(!inst)return;
+    snapDraft();
+    p.coins-=cost;inst.gAtk+=1;inst.gHp+=2;
+    p.forgeN=(p.forgeN||0)+1;p._forgedRound=S.round;
+    closeModal();SFX.play('merge');flash(false);
+    toast(`${UMAP[inst.id].n} 淬炼成功 ⚔+1 ♥+2`,2400);
+    renderDraft();hud();save();
+  });
 };
 $('#btn-draft-undo').onclick=draftUndo;
 $('#btn-tier').onclick=()=>{
@@ -1800,13 +1867,15 @@ $('#btn-tier').onclick=()=>{
   snapDraft();
   p.coins-=cost; p.tier=effTier(p)+1; // 提到当前有效牌力之上一级
   flash(false);shake();SFX.play('merge');toast(`断云牌力 → ${p.tier} 级！征募出高稀有更容易`,2600);
-  // 升级后立刻刷新一次当前三选一，体现变化（不额外扣费）
+  // 升级后立刻刷新一次当前三选一，体现变化（不额外扣费）；重生成=放弃锁
+  p._lockOn=false;
   S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true;
   renderDraft();hud();save();
 };
 $('#btn-draft-done').onclick=()=>{
   snapDraft(); // 误点「完成」也能撤销回来（快照含 draftIdx，撤销即回到该玩家）
   const p=curDrafter();p.revenge=0;
+  stashLock(p); // 锁牌库物化：必须在 draftIdx++ 与清 offers 之前（单人提前 return 分支同样覆盖）
   if(S.solo){S.offers=[];soloPreBattle();return} // 单人：征募完 → 迎战本关 AI
   S.draftIdx++;
   if(S.draftIdx>=S.draftQueue.length){
@@ -2277,6 +2346,88 @@ function runSelftest(){
    simulateBattle(A3,dummy(),{},{},mulberry32(11),{});
    ok('双璧：梓不在场不触发(增攻保持3)', A3[0].atk===3);
    ok('技能随星步进：梓★★★先见 v=3', skillFor(UMAP['zi'],3).v===3);}
+  // —— 批⑩ 经济与系统 ——
+  ok('利息预览与结算同源：14币=2息 / 利滚利25币=5息 / 星尘袋8币=2息',
+    previewInterest({coins:14,relics:[],strats:[]})===2
+    &&previewInterest({coins:25,relics:[],strats:['st_interest']})===5
+    &&previewInterest({coins:8,relics:['dustbag'],strats:[]})===2);
+  ok('淬炼费用阶梯 6/8/10', forgeCost(0)===6&&forgeCost(1)===8&&forgeCost(2)===10&&forgeCost()===6);
+  ok('世界回廊 payload：clamp999/难度映射/名字截6/板名zmq', (()=>{const p=lbPayload(1,1500,'超长名字要截断了','id1');
+    return p.score===999&&p.day==='1'&&p.name.length<=6&&p.board==='zmq'&&p.action==='dmsub'})());
+  ok('世界回廊 payload：负分归0/难度越界钳到2', lbPayload(9,-5,'x','id1').score===0&&lbPayload(9,-5,'x','id1').day==='2');
+  ok('淬炼走 gAtk/gHp·instBase 生效', (()=>{const b=instBase({id:'guard',star:1,gAtk:1,gHp:2});
+    return b.atk===2&&b.hp===10})());
+  {const _S3=S;
+   S={offers:[{type:'unit',id:'lin'}],offersSold:[false,true,false]};
+   const p1={_lockOn:true};stashLock(p1);
+   ok('锁牌库：物化快照(含sold)+清开关', !p1._lockOn&&!!p1.lock&&p1.lock.offers.length===1&&p1.lock.sold[1]===true);
+   S={offers:[{type:'unit',id:'lin'}],offersSold:[true,true,true]};
+   const p2={_lockOn:true};stashLock(p2);
+   ok('锁牌库：三格全 sold 不封存空店', !p2.lock&&!p2._lockOn);
+   const p3={};S={offers:[{type:'unit',id:'x'}],offersSold:[false]};stashLock(p3);
+   ok('锁牌库：未开锁不封存', !p3.lock);
+   ok('锁牌库：快照 JSON 往返存活(撤销栈/存档兼容)',
+     JSON.parse(JSON.stringify({lock:{offers:[{type:'unit',id:'a'}],sold:[false,true]}})).lock.sold[1]===true);
+   S=_S3;}
+  // —— 批⑩ 平衡探针（固定种子胜率带宽 · 现状指纹）——
+  // 带宽取 2026-07-10 实测值 ± 宽容带。红了≠一定坏，是「有人动了平衡，来看一眼」的铃铛。
+  // 已知现状（探针锚住而非掩盖）：①学院盾体系同费最强(实测100%) ②swing/novice 为经济/成长系,单场对局天然低（价值在经济层）③solo 中后期相对偏软(曲线递增)。
+  {const _S2=S,_rng2=rng;
+   const mk=ids=>ids.map((id,i)=>({uid:'pb'+i+'_'+id,id,star:1,gAtk:0,gHp:0}));
+   const mkS=arr=>arr.map(([id,st],i)=>({uid:'pb'+i+'_'+id,id,star:st,gAtk:0,gHp:0}));
+   const duel=(Aids,Bids,n,base)=>{let w=0;
+     for(let s=0;s<n;s++){
+       const A=buildFighters({army:mk(Aids),relics:[]},{});
+       const B=buildFighters({army:mk(Bids),relics:[]},{});
+       if(simulateBattle(A,B,{},{},mulberry32(base+s*13),{}).winner===0)w++}
+     return w/n};
+   // ① 阵营带宽（等预算典型阵容 round-robin，12 种子/对）
+   const TEAMS={academy:['lin','yin','guard','carter','crane'],sky:['nuo','scout','crane','pigeon','guard'],
+     sea:['yu','qi','mist','guard','carter'],swing:['yang','wei','rong','lin','pigeon'],
+     dark:['wan','xuan','hui','pigeon'],novice:['yue','duo','wen','xiao','qi']};
+   const fk=Object.keys(TEAMS),fw={};fk.forEach(k=>fw[k]=[0,0]);
+   for(let i=0;i<fk.length;i++)for(let j=0;j<fk.length;j++){if(i===j)continue;
+     fw[fk[i]][0]+=duel(TEAMS[fk[i]],TEAMS[fk[j]],12,2000+i*100+j*10)*12;fw[fk[i]][1]+=12}
+   const fr=k=>fw[k][0]/fw[k][1];
+   const BAND={academy:[.75,1],sea:[.55,.95],sky:[.35,.85],dark:[.1,.55],novice:[.1,.55],swing:[0,.3]};
+   fk.forEach(k=>{const r=fr(k),[lo,hi]=BAND[k];
+     ok(`探针·阵营带宽 ${k}=${(r*100)|0}%∈[${lo*100},${hi*100}]`, r>=lo&&r<=hi)});
+   // ② 单人标准线曲线（正常收卡不深度经营 vs 精英敌军）
+   S={difficulty:1,act:1,round:1,solo:true};
+   const mid={3:[['lin',1],['guard',1],['crane',1]],6:[['lin',2],['guard',2],['nuo',1],['wei',1]],
+     9:[['lin',2],['guard',2],['nuo',2],['yu',1],['wei',1]]};
+   const soloWin=(r,n)=>{let w=0;S.round=r;S.act=Math.min(3,1+Math.floor((r-1)/2));
+     for(let s=0;s<n;s++){rng=mulberry32(5000+r*97+s*7);
+       const foe=soloBuildFoe(r,1);
+       const A=buildFighters({army:mkS(mid[r]),relics:[]},{});
+       if(simulateBattle(A,buildFighters({army:foe,relics:[]},{}),{},{},mulberry32(6000+s*13),{}).winner===0)w++}
+     return w/n};
+   const c3=soloWin(3,24),c6=soloWin(6,24),c9=soloWin(9,24);
+   ok(`探针·单人r3=${(c3*100)|0}%∈[40,80]`, c3>=.4&&c3<=.8);
+   ok(`探针·单人r6=${(c6*100)|0}%∈[60,95]`, c6>=.6&&c6<=.95);
+   ok(`探针·单人r9=${(c9*100)|0}%≥75`, c9>=.75);
+   // ③ 终战（蛇蜕两形态基线）
+   const bossWin=(army,diff,n)=>{let w=0;S.difficulty=diff;S.round=10;S.act=3;
+     for(let s=0;s<n;s++){
+       const A=buildFighters({army:mkS(army),relics:[]},{});
+       if(simulateBattle(A,ghostFighters(soloBossUnits()),{},{},mulberry32(7000+s*13),{}).winner===0)w++}
+     return w/n};
+   const g1=bossWin([['guard',2],['lin',2],['zi',2],['nuo',2],['yu',2]],1,24);
+   const g2=bossWin([['guard',2],['crane',1],['wei',1],['lin',2]],0,24);
+   const g3=bossWin([['lin',2],['guard',1],['crane',1],['wei',1]],1,24);
+   ok(`探针·终战毕业队(精英)=${(g1*100)|0}%≥90`, g1>=.9);
+   ok(`探针·终战半成品(见习保底)=${(g2*100)|0}%≥70`, g2>=.7);
+   ok(`探针·终战半成品(精英有压力)=${(g3*100)|0}%≤35`, g3<=.35);
+   // ④ UR 含金量（换入基准队的胜率增益，防 UR 负卡）
+   const vsPool=[TEAMS.academy,TEAMS.sky,TEAMS.dark];
+   const rate=team=>{let w=0,n=0;vsPool.forEach((foe,fi)=>{for(let s=0;s<15;s++){n++;
+     const A=buildFighters({army:mk(team),relics:[]},{});
+     if(simulateBattle(A,buildFighters({army:mk(foe),relics:[]},{}),{},{},mulberry32(8000+fi*100+s*13),{}).winner===0)w++}});return w/n};
+   const rb=rate(['qi','lu','crane','guard','carter']);
+   const urs={wolf:rate(['wolf','lu','crane','guard','carter'])-rb,
+     zi:rate(['zi','lu','crane','guard','carter'])-rb, hang:rate(['hang','lu','crane','guard','carter'])-rb};
+   Object.keys(urs).forEach(k=>ok(`探针·UR含金 ${k}=+${(urs[k]*100)|0}pp≥10`, urs[k]>=.1));
+   S=_S2;rng=_rng2;}
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2674,6 +2825,52 @@ function soloResolve(result,A,B){
   }
   hud();save();
 }
+/* —— 世界回廊（单人试炼在线榜）：严格渐进增强——离线/file:// 一切照旧，fetch 全部只活在点击 handler 里 —— */
+const LB_URL='https://myskme-expedition.netlify.app/.netlify/functions/leaderboard';
+const LB_ON=location.protocol==='http:'||location.protocol==='https:';
+function lbId(){try{let v=localStorage.getItem('zmq_lbid');
+  if(!v){v='z_'+Math.random().toString(36).slice(2,10);localStorage.setItem('zmq_lbid',v)}return v}catch(e){return 'z_anon'}}
+function lbPayload(difficulty,cleared,name,id){ // 纯函数，#selftest 可测：clamp/难度映射/名字截断
+  return {action:'dmsub',board:'zmq',day:String(Math.max(0,Math.min(2,difficulty|0))),
+    id:String(id||'').slice(0,60),name:String(name||'挑战者').slice(0,6),
+    score:Math.max(0,Math.min(999,Math.floor(cleared)||0))};
+}
+async function lbSend(payload){
+  const ctl=new AbortController();const tm=setTimeout(()=>ctl.abort(),6000);
+  try{const r=await fetch(LB_URL,{method:'POST',body:JSON.stringify(payload),signal:ctl.signal});
+    return await r.json()}finally{clearTimeout(tm)}
+}
+async function showLbHall(){
+  if(!LB_ON){toast('离线模式没有世界回廊');return}
+  const tab=d=>`<button class="btn mini lbtab" data-d="${d}">${SOLO_DIFF[d]}</button>`;
+  modal(`<h3>世界回廊 · 单人试炼</h3>
+    <p style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">通过关数 · 全球纪录（上榜名字建议用昵称）</p>
+    <div class="btnrow" style="margin:10px 0">${tab(0)+tab(1)+tab(2)}</div>
+    <div id="lblist" style="min-height:160px;max-height:44vh;overflow:auto"></div>
+    <div class="btnrow" style="margin-top:10px"><button class="btn" id="lb-upbest">上传本机最佳</button></div>`);
+  const load=async d=>{
+    const el=$('#lblist');if(!el)return;
+    el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(d)});
+      const rows=(r&&r.top)||[];
+      el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${Math.min(999,e.score|0)} 关</i></div>`).join('')
+        :'<div style="color:var(--ink3);text-align:center;padding:24px">虚位以待——来当第一个</div>';
+      el.querySelectorAll('.lbrow span').forEach((sp,i)=>{sp.textContent=(rows[i].name||'?')}); // textContent 注入防 XSS
+    }catch(e){el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通，稍后再试</div>'}
+  };
+  document.querySelectorAll('.lbtab').forEach(b=>b.onclick=()=>{
+    document.querySelectorAll('.lbtab').forEach(x=>x.classList.remove('gold'));
+    b.classList.add('gold');load(+b.dataset.d)});
+  const up=$('#lb-upbest');
+  if(up)up.onclick=async()=>{up.disabled=true;up.textContent='上传中…';
+    const b2=soloBest();let sent=0;
+    for(const d of [0,1,2]){const v=b2['d'+d]||0;if(!v)continue;
+      try{const r=await lbSend(lbPayload(d,v,(localStorage.getItem('zmq_lbname')||'挑战者'),lbId()));if(r&&r.ok)sent++}catch(e){}}
+    up.textContent=sent?('已上传 '+sent+' 档'):'本机还没有纪录';
+    const cur=document.querySelector('.lbtab.gold');load(cur?+cur.dataset.d:0)};
+  const t0=document.querySelector('.lbtab');if(t0)t0.classList.add('gold');
+  load(0);
+}
 function soloBest(){try{return JSON.parse(localStorage.getItem('zmq_solobest')||'{}')}catch(e){return {}}}
 function soloEnd(victory){
   S.phase='final';setPhase(victory?'加冕':'试炼结算');
@@ -2687,7 +2884,8 @@ function soloEnd(victory){
     <div class="sc">${victory?'十关全破':'通过 <b style="color:var(--gold2)">'+cleared+'</b> 关'} · 难度 ${SOLO_DIFF[S.difficulty]||''}</div>
     <div class="sc" style="font-size:13px;color:var(--ink3)">最佳纪录 ${shown} 关${isNew?' · <span style="color:var(--gold2)">新纪录！</span>':''}</div>
     <div class="army-line">${you.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div>
-    ${victory?'<button class="btn gold" id="btn-endless" style="margin-top:12px">无尽回廊 · 继续深入</button>':''}</div>`;
+    ${victory?'<button class="btn gold" id="btn-endless" style="margin-top:12px">无尽回廊 · 继续深入</button>':''}
+    ${(LB_ON&&cleared>0)?'<button class="btn" id="btn-lbup" style="margin-top:10px">登临世界回廊</button>':''}</div>`;
   drawReport([you]);
   go('final');flash(false);shake();
   if(isNew||victory)burst(innerWidth/2,innerHeight/4,null,44),SFX.play('crown');
@@ -2697,6 +2895,14 @@ function soloEnd(victory){
     S.endless=true;S._victory=false;S.round=SOLO_FINAL+1;S.phase='draft';
     hud();soloRound();toast('无尽回廊开启——每一层都更深',2800);
   };
+  try{localStorage.setItem('zmq_lbname',you.name)}catch(e){} // 记住上榜名（标题页补交用）
+  const bu=$('#btn-lbup');
+  if(bu){const pay=lbPayload(S.difficulty,Math.max(cleared,prev),you.name,lbId()); // 值即刻闭包捕获——clearSave 后 S 不可依赖
+    bu.onclick=async()=>{bu.disabled=true;bu.textContent='上传中…';
+      try{const r=await lbSend(pay);
+        if(r&&r.ok){bu.textContent='世界第 '+r.rank+' 位';SFX.play('crown');toast('已登临世界回廊 · 第 '+r.rank+' 位',3000)}
+        else{bu.textContent='上传失败 · 再试一次';bu.disabled=false}}
+      catch(e){bu.textContent='网络不通 · 再试一次';bu.disabled=false}};}
 }
 
 /* ============================================================
@@ -2963,7 +3169,10 @@ function showHowto(){
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。<br><br>
   征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕≥2级、第三幕≥3级），
   也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 4/6/8/10 递增）——中后期铸币多，与其溢出，
-  不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i>`)
+  不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i><br><br>
+  <b style="color:var(--gold2)">锁定本轮</b>：看到好卡但钱不够？点「锁定本轮」（免费），这套三选一会封存到你下次征募原样送达——买过的位置也记得。刷新或升牌力会放弃锁定。<br>
+  <b style="color:var(--gold2)">利息看板</b>：铸币数下有一行「存5生1 · 下幕息+N」——留到 5 的倍数再花，钱会自己生钱（上限 3 息）。<br>
+  <b style="color:var(--gold2)">星尘淬炼</b>（仅单人试炼）：花铸币为一名成员<b>永久 +1 攻 +2 生命</b>，每关一次、费用 6/8/10 递增——中后期的铸币出口，无尽回廊爬层的核心成长线。`)
   +sec('站位（一句话策略）',`
   军团从左到右站队：<b>最左是前排，先挨打</b>。单位有<b>作战方式</b>：普通近战打前排；
   <b>嘲讽</b>（守望/麒/荣）会把敌方近战全拉到自己身上，替后排挡刀；<b>穿透</b>（斥候/信鸽/诺/璇）
@@ -3032,6 +3241,7 @@ $('#btn-menu').onclick=showMenu;
 (function boot(){
   if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
   if(loadSave())$('#btn-continue').style.display='';
+  if(LB_ON){const bh=$('#btn-lbhall');if(bh){bh.style.display='';bh.onclick=showLbHall}}
   renderSetup();
   // 标题徽记=MYSKME 印章（居中一枚；原「鸣」字与大标题的鸣重复、角落双章冗余，已合并）
   try{const tm=$('#title-mark');if(tm){const im=new Image();im.alt='MYSKME';
