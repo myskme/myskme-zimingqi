@@ -879,6 +879,9 @@ const EVENTS = [
  {id:'ev_desk',  n:'旧课桌',   icon:'桌', d:'有人擦净了那张空着很久的课桌。本幕演武：黑域单位 +2 生命——他们也曾坐在这里。', w:8},
  {id:'ev_thorn', n:'空耳机的回响',icon:'耳', d:'走廊尽头传来一段没人听见的音乐。本幕演武：嘲讽单位反震 +1 伤。', w:8},
  {id:'ev_lantern',n:'提灯夜行',icon:'提', d:'小黑猫叼着灯，替最弱的人照了路。本幕演武：双方血量最低的单位 +3 护盾。', w:9},
+ // —— 批⑭ 副阵营事件（双身份正典角色：只点亮羁绊计数，本幕生效）——
+ {id:'ev_roll', n:'旧日同窗', icon:'册', d:'学院的旧名册翻到某一页——菀的名字还留在上面。本幕：菀 同时计入「学院」羁绊；军团里有菀的玩家 +1 铸币。', w:8},
+ {id:'ev_edge', n:'边缘的回声',icon:'缘', d:'亮与黑的边缘，有人来回走了很久。本幕：音 同时计入「黑域」羁绊；军团里有音的玩家 +1 铸币。', w:8},
 ];
 
 // 幽灵军 & Boss（幕数索引）
@@ -1457,9 +1460,13 @@ $('#btn-wheel-go').onclick=()=>{
    ============================================================ */
 // 羁绊计数（同名只算一次）。第一轴=阵营 fac；第二轴（破云/不退）走 BONDS[key].ids 白名单。
 // 泛化后 fac 路径逐字保留 → 存档零迁移。
+// 副阵营（批⑭）：命运事件可让双身份正典角色「本幕」同时计入另一阵营——只点亮羁绊计数，
+// 不改单位数值归属（阵营专属增益仍只加在原生成员身上：她把灯点亮，紫光加在黑域战友身上）。
+function fac2Of(id){const f2=(typeof S!=='undefined'&&S&&S.evFlags&&S.evFlags.fac2);return (f2&&f2[id])||null}
+function inFac(id,key){return UMAP[id].fac===key||fac2Of(id)===key}
 function synCount(p,key){
   const b=BONDS[key], byIds=!!(b&&b.ids);
-  const ids=new Set(p.army.filter(a=>byIds?b.ids.includes(a.id):UMAP[a.id].fac===key).map(a=>a.id));
+  const ids=new Set(p.army.filter(a=>byIds?b.ids.includes(a.id):inFac(a.id,key)).map(a=>a.id));
   return ids.size;}
 function renderBonds(p){ // 军团面板羁绊进度：未激活灰/2档紫/大档金
   const el=$('#bond-shelf'); if(!el)return;
@@ -1505,7 +1512,7 @@ function bondName(f){return (BONDS[f]&&BONDS[f].chip)||(FACS[f]&&FACS[f].n)||f} 
    ⚠ 单卡羁绊徽标 ≤2 是课堂限时铁律——征募是高频操作，别再往卡上堆字。 */
 function bondAdvance(p,u,key){
   const b=BONDS[key]; if(!b)return null;
-  const inGroup=b.ids?b.ids.includes(u.id):u.fac===key;
+  const inGroup=b.ids?b.ids.includes(u.id):inFac(u.id,key);
   if(!inGroup)return null;
   if(p.army.some(a=>a.id===u.id))return null;      // 同名：synCount 按 id 去重，买它不推进
   const from=synCount(p,key);
@@ -1527,8 +1534,8 @@ function bondBadges(p){
 function bridgeUnits(p){
   const on=new Set(bondBadges(p).map(x=>x.f));
   return p.army.filter(a=>{const u=UMAP[a.id];
-    const axes=[u.fac,'pierce','vanguard'].filter(k=>BONDS[k]&&on.has(k)
-      &&(BONDS[k].ids?BONDS[k].ids.includes(a.id):u.fac===k));
+    const axes=[...new Set([u.fac,fac2Of(a.id),'pierce','vanguard'])].filter(k=>k&&BONDS[k]&&on.has(k)
+      &&(BONDS[k].ids?BONDS[k].ids.includes(a.id):inFac(a.id,k)));
     return axes.length>=2})
     .filter((a,i,arr)=>arr.findIndex(x=>x.id===a.id)===i); // 同名只表彰一次
 }
@@ -2051,6 +2058,12 @@ function applyEvent(ev){
     case 'ev_desk': S.evFlags.desk=true;break;
     case 'ev_thorn': S.evFlags.thornEv=true;break;
     case 'ev_lantern': S.evFlags.lantern=true;break;
+    case 'ev_roll': S.evFlags.fac2={wan:'academy'};
+      S.players.forEach(p=>{if(p.army.some(a=>a.id==='wan'))p.coins+=1});
+      toast('本幕 菀 同时计入「学院」羁绊');break;
+    case 'ev_edge': S.evFlags.fac2={yin:'dark'};
+      S.players.forEach(p=>{if(p.army.some(a=>a.id==='yin'))p.coins+=1});
+      toast('本幕 音 同时计入「黑域」羁绊');break;
   }
   S.eventResolved=true; // 幂等哨兵：本幕事件已结算，续局不再重翻/重发
   hud();save();
@@ -2546,6 +2559,28 @@ function runSelftest(){
     ok('战报：桥牌同名只表彰一次', bridgeUnits({army:[{uid:'a',id:'zi',star:1,gAtk:0,gHp:0},{uid:'b',id:'zi',star:1,gAtk:0,gHp:0},
       {uid:'c',id:'nuo',star:1,gAtk:0,gHp:0},{uid:'d',id:'lin',star:1,gAtk:0,gHp:0},{uid:'e',id:'yin',star:1,gAtk:0,gHp:0}],relics:[]}).length===1);}
   }
+  // —— 批⑭ 副阵营事件（fac2：双身份角色只点计数，不改数值归属）——
+  {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'f'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
+   const bakEF=(typeof S!=='undefined'&&S)?S.evFlags:null;
+   if(typeof S!=='undefined'&&S){
+     S.evFlags=Object.assign({},bakEF,{fac2:{wan:'academy'}});
+     ok('fac2：旧日同窗→菀本幕计入学院（琳+菀=学院档1）', bondTier(parmy('lin','wan'),'academy')===1);
+     ok('fac2：菀原黑域计数不丢（菀+璇=黑域档1）', bondTier(parmy('wan','xuan'),'dark')===1);
+     ok('fac2：打法轴不受影响（菀无tg·穿透仅璇1名）', synCount(parmy('wan','xuan'),'pierce')===1);
+     ok('fac2：阵营专属增益不给客籍（紫光只加原生黑域·菀+2攻不变多）',(()=>{
+       const F=buildFighters(parmy('wan','xuan','lin'),{}); // 菀璇=dark档1(+2攻) 菀fac2学院不改归属
+       const w=F.find(f=>f.id==='wan');return w.atk===UMAP['wan'].atk+2&&w.fac==='dark'})());
+     S.evFlags=Object.assign({},bakEF,{fac2:{yin:'dark'}});
+     ok('fac2：边缘回声→音点亮黑域档（音+璇=黑域档1·璇吃+2攻）',(()=>{
+       if(bondTier(parmy('yin','xuan'),'dark')!==1)return false;
+       const F=buildFighters(parmy('yin','xuan'),{});
+       const y=F.find(f=>f.id==='yin'),x=F.find(f=>f.id==='xuan');
+       return x.atk===UMAP['xuan'].atk+2&&y.atk===UMAP['yin'].atk})());
+     S.evFlags=bakEF||{};
+     ok('fac2：事件过幕即失效（恢复后琳+菀学院计数=1）', synCount(parmy('lin','wan'),'academy')===1);
+     ok('fac2：两张新事件已入池（册/缘·带结算分支）',
+       EVENTS.some(e=>e.id==='ev_roll')&&EVENTS.some(e=>e.id==='ev_edge')&&EVENTS.length===22);
+   }}
   // —— 批⑬ 新内容：3 单位 / 4 遗物 / 3 事件 ——
   {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'c'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
    const withR=(ids,relics)=>({army:ids.map((id,i)=>({uid:'r'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics,strats:[]});
@@ -2624,7 +2659,7 @@ function runSelftest(){
     const hit=()=>ghostFighters([{id:'h',n:'锤',glyph:'锤',atk:2,hp:40,spd:9,skill:{k:'none'}}]);
     const r=simulateBattle(hit(),van(),{},sideFlags(parmy('guard','lin')),mulberry32(5),{thornEv:true});
     ok('空耳机的回响（事件）：无羁绊无遗物也反震 1', r.log.some(e=>e.tag==='反震'&&e.amt===1));}
-   ok('RELICS=20 · EVENTS=20（内容量锚）', RELICS.length===20&&EVENTS.length===20);
+   ok('RELICS=20 · EVENTS=22（内容量锚·批⑭+2副阵营事件）', RELICS.length===20&&EVENTS.length===22);
    ok('新事件全部接入 applyEvent（无孤儿 id）',
      ['ev_desk','ev_thorn','ev_lantern'].every(id=>EVENTS.some(e=>e.id===id)));
   }
