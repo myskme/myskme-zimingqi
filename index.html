@@ -1500,6 +1500,21 @@ function bondAdvance(p,u,key){
 function bondAdvList(p,u){ // 一张卡的两条轴
   return [u.fac,'pierce','vanguard'].map(k=>bondAdvance(p,u,k)).filter(Boolean);
 }
+/* 战报卡「本局羁绊」（纯函数，#selftest 可测）：把学生攒了一整局的成果画出来。
+   满档在前、按档位降序；同档保持 BONDS 键序稳定（投屏观众的追踪锚点）。 */
+function bondBadges(p){
+  return Object.keys(BONDS).map(f=>({f,t:bondTier(p,f),c:synCount(p,f)}))
+    .filter(x=>x.t>0).sort((a,b)=>b.t-a.t);
+}
+/* 一牌两算：同时被两条轴计入的桥牌单位（战报卡上单独表彰——这是构筑的巧劲所在） */
+function bridgeUnits(p){
+  const on=new Set(bondBadges(p).map(x=>x.f));
+  return p.army.filter(a=>{const u=UMAP[a.id];
+    const axes=[u.fac,'pierce','vanguard'].filter(k=>BONDS[k]&&on.has(k)
+      &&(BONDS[k].ids?BONDS[k].ids.includes(a.id):u.fac===k));
+    return axes.length>=2})
+    .filter((a,i,arr)=>arr.findIndex(x=>x.id===a.id)===i); // 同名只表彰一次
+}
 
 /* —— 开局点将：人人免费领一名低费学员（Hades 起手祝福式，保证首幕人人有兵） —— */
 function startOriginDraft(){
@@ -2474,6 +2489,22 @@ function runSelftest(){
     ok('徽标：不在组内不亮（学院卡不报穿透）', bondAdvance(parmy('nuo'),UMAP['lin'],'pierce')===null);
     const D=bondAdvList(parmy('nuo','guard'),UMAP['zi']); // 梓=学院∩穿透 桥牌单位
     ok('徽标：桥牌单位梓同时报两轴（学院+穿透）', D.length===2&&D.some(x=>x.f==='academy')&&D.some(x=>x.f==='pierce'&&x.hit));}
+   // —— 战报卡「本局羁绊」（bondBadges / bridgeUnits 纯函数）——
+   {const P=parmy('lin','yin','guard','zi');  // 学院4=满档 · 穿透 zi=1 不成档 · 嘲讽 guard=1 不成档
+    const bb=bondBadges(P);
+    ok('战报：只列已成档的羁绊', bb.length===1&&bb[0].f==='academy'&&bb[0].t===2&&bb[0].c===4);
+    ok('战报：空军团无羁绊', bondBadges({army:[],relics:[]}).length===0);
+    const P2=parmy('nuo','zi','guard','qi');  // 穿透 nuo+zi=2 · 嘲讽 guard+qi=2（学院 zi+guard=2 也顺带成档）
+    const bb2=bondBadges(P2);
+    ok('战报：两条打法轴可同时成档', bb2.some(x=>x.f==='pierce')&&bb2.some(x=>x.f==='vanguard'));
+    ok('战报：满档排在成阵之前', bondBadges(parmy('lin','yin','lu','guard','nuo','zi'))[0].t===2);
+    // 桥牌单位：梓被学院与穿透双计、麒被海族与嘲讽双计
+    ok('战报：桥牌单位梓（学院∩穿透，两轴均成档）', (()=>{
+      const b=bridgeUnits(parmy('lin','yin','zi','nuo')); // 学院 lin/yin/zi=3 档1 · 穿透 zi/nuo=2 档1
+      return b.length===1&&b[0].id==='zi'})());
+    ok('战报：轴未成档不算桥牌（梓只点亮学院）', bridgeUnits(parmy('lin','yin','zi')).length===0);
+    ok('战报：桥牌同名只表彰一次', bridgeUnits({army:[{uid:'a',id:'zi',star:1,gAtk:0,gHp:0},{uid:'b',id:'zi',star:1,gAtk:0,gHp:0},
+      {uid:'c',id:'nuo',star:1,gAtk:0,gHp:0},{uid:'d',id:'lin',star:1,gAtk:0,gHp:0},{uid:'e',id:'yin',star:1,gAtk:0,gHp:0}],relics:[]}).length===1);}
   }
   // —— 批⑩ 经济与系统 ——
   ok('利息预览与结算同源：14币=2息 / 利滚利25币=5息 / 星尘袋8币=2息',
@@ -2512,6 +2543,12 @@ function runSelftest(){
        if(simulateBattle(A,B,sideFlags(pa),sideFlags(pb),mulberry32(base+s*13),{}).winner===0)w++}
      return w/n};
    // ① 阵营带宽（等预算典型阵容 round-robin，12 种子/对）
+   // ⚠ 三队天然白点第二轴，这是**刻意保留的真实性**（真实阵容本就混合两轴），不是缺陷：
+   //   sky(诺/斥候/信鸽=穿透3→破云档1) · sea(麒+守望=嘲讽2→不退档1) · dark(璇+信鸽=穿透2→破云档1)
+   //   所以这里的「阵营带宽」读数含少量打法轴贡献；要测纯阵营请另建无白点阵容。
+   // 【2026-07-10 海族核查】sea 90% 曾疑偏高 → 拆解实测：纯海族(守望换白鹤,不成嘲讽档)=66%、
+   //   破海族满档=61%、含反震白点=92%。**26pp 来自反震，海族本体健康 → 不收数值**。
+   //   海族满档成本 7 币占 3 格且凑满即到顶（全系仅 3 人，无成长空间），麒一牌两算的回报是设计意图。
    const TEAMS={academy:['lin','yin','guard','carter','crane'],sky:['nuo','scout','crane','pigeon','guard'],
      sea:['yu','qi','mist','guard','carter'],swing:['yang','wei','rong','lin','pigeon'],
      dark:['wan','xuan','hui','pigeon'],novice:['yue','duo','wen','xiao','qi']};
@@ -3218,6 +3255,36 @@ async function drawReport(sorted){
     ctx.fillStyle=facCol[u.fac]||ink2;ctx.font=serif(20);ctx.fillText(u.n,x0+bw/2,452+bw+30); // 军团名带阵营色，一眼读出流派
     x0+=bw+gap;
   });
+  // 本局羁绊：攒了一整局的成果要看得见（金=满档 / 紫=成阵，与游戏内三色语义同源）。
+  // ⚠ 画进军团名下方的既有空白（592→660），零高度成本——战报卡纵向早已排满，
+  //   8 人局终榜末行正好贴着右下二维码，任何新增段落都会撞版。
+  if(army.length){
+    const badges=bondBadges(champ).slice(0,4);       // 最多 4 枚，满档优先（bondBadges 已按档降序）
+    if(badges.length){
+      const bridges=bridgeUnits(champ);
+      const chips=badges.map(b=>({txt:`${bondName(b.f)} ${b.c}`+(b.t>=2?' 满':''),full:b.t>=2}));
+      if(bridges.length)chips.push({txt:'一牌两算 · '+bridges.map(a=>UMAP[a.id].n).join('/'),full:true,bridge:true});
+      const by=616,hC=32,padX=13,gapC=11; // 616+32=648，距 MVP 分隔线(660) 留 12px 呼吸
+      ctx.font=serif(19);
+      const labW=ctx.measureText('羁绊').width+18;
+      const ws=chips.map(c=>ctx.measureText(c.txt).width+padX*2);
+      const totalW=labW+gapC+ws.reduce((a,b)=>a+b,0)+gapC*(chips.length-1);
+      let cx=Math.max(60,(W-totalW)/2);
+      ctx.textAlign='center';ctx.fillStyle=ink2;
+      ctx.fillText('羁绊',cx+labW/2,by+21);cx+=labW+gapC;
+      chips.forEach((c,i)=>{
+        const w=ws[i];
+        ctx.fillStyle=c.full?'rgba(232,199,104,.13)':'rgba(157,114,214,.13)';
+        ctx.fillRect(cx,by,w,hC);
+        ctx.strokeStyle=c.full?'rgba(232,199,104,.8)':'rgba(157,114,214,.65)';ctx.lineWidth=1.2;
+        if(c.bridge){ctx.setLineDash([3,3])}
+        ctx.strokeRect(cx,by,w,hC);ctx.setLineDash([]);
+        ctx.fillStyle=c.full?gold:'#c4a4e8';
+        ctx.fillText(c.txt,cx+w/2,by+21);
+        cx+=w+gapC;
+      });
+    }
+  }
   let y=army.length?660:520;
   // MVP
   const mvp=mvpInfo();
