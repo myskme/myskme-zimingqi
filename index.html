@@ -1038,6 +1038,7 @@ const SFX=(function(){
 const ART_DIR='assets/';
 const ART={
   // 单位立绘（512×768 竖版）
+  zi:'unit-zi.webp',     zeng:'unit-zeng.webp', // 初代双璧（S2E5·0710 交付）
   lin:'unit-lin.webp',   yin:'unit-yin.webp',   lu:'unit-lu.webp',     wolf:'unit-wolf.webp',
   guard:'unit-guard.webp', carter:'unit-carter.webp',
   nuo:'unit-nuo.webp',   crane:'unit-crane.webp', scout:'unit-scout.webp', pigeon:'unit-pigeon.webp',
@@ -1067,7 +1068,7 @@ const ART={
   title:'title-kv.webp', bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260707a';
+const ART_VER='20260710a'; // 初代双璧立绘上线，击穿玩家缓存
 function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
   return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
 function cardURL(id){const u=ART_DIR+'card-'+id+'.webp';
