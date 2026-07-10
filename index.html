@@ -745,6 +745,11 @@ const FACS = {
 // skill.k 效果键：见 simulateBattle
 const UNITS = [
  // —— 学院系 ——
+ // 初代双璧（S2E5·归途）：梓=学生中唯一 UR 先见 carry；增=嘲讽坦，梓在场时护她且自己加攻（渴望陪伴的机制化）
+ {id:'zi',   n:'梓',   fac:'academy', cost:4, atk:5, hp:7,  spd:7, rar:'UR',  w:2,  tg:'pierce', beast:'鹿',
+  skill:{k:'inspireAll', v:1, t:'先见：开战时全队 +1 攻'}, lore:'初代首徒归来。「走得再远，我的课桌一直在这里。」'},
+ {id:'zeng', n:'增',   fac:'academy', cost:3, atk:3, hp:12, spd:3, rar:'SSR', w:6,  taunt:true, beast:'熊',
+  skill:{k:'pairZi', v:2, t:'双璧：开战时若梓在场，梓获 2 盾、自己 +2 攻'}, lore:'初代先锋。第一个冲上去，也第一个回头看有没有人跟上'},
  {id:'lin',  n:'琳',   fac:'academy', cost:3, atk:3, hp:10, spd:4, rar:'SSR', w:7,  beast:'⚔',
   skill:{k:'shieldAll', v:2, t:'开战时：全队获得 2 护盾'}, lore:'首徒。剑横膝上，一坐十年'},
  {id:'yin',  n:'音',   fac:'academy', cost:2, atk:3, hp:5,  spd:6, rar:'SR',  w:9,  beast:'♪',
@@ -1156,7 +1161,7 @@ const STAR_ATK=[1,1.6,2.2], STAR_HP=[1,1.5,1.9];
 function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;
   return {atk:Math.round(u.atk*(STAR_ATK[s]||1))+inst.gAtk, hp:Math.round(u.hp*(STAR_HP[s]||1))+inst.gHp, spd:u.spd};}
 // 技能数值随星步进（浅拷贝，绝不污染 UNITS 原型）；乘算类(firstCrit)与成长类(growth)不参与
-const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1, slowFast:1, growAtk:1, firstPlus:1, buffAdj:1, boostLin:1, pairYu:1};
+const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1, slowFast:1, growAtk:1, firstPlus:1, buffAdj:1, boostLin:1, pairYu:1, inspireAll:1, pairZi:1};
 function skillFor(u,star){const s=u.skill, sv=(SKILL_SV[s.k]||0)*((star||1)-1);
   return sv? {...s, v:(s.v||0)+sv} : s;}
 // 星象三相环（单环相克）：学院→海族→黑域→学院。克 ×1.15 / 被克 ×0.85，只作用基本攻击、只染色不破盾
@@ -2024,6 +2029,11 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       log.push({t:'debuff',d:t.uid,txt:`-${f.skill.v}» 海雾`})}}
     if(k==='pairYu'){const yu=alive(s).find(x=>x.id==='yu');
       if(yu){yu.atk+=f.skill.v;f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'兄弟羁绊 +2⚔'})}}
+    if(k==='inspireAll'){alive(s).forEach(x=>{x.atk+=f.skill.v});
+      log.push({t:'buff',d:f.uid,txt:'+'+f.skill.v+'⚔ 先见'})} // 梓：先见惠及全队（含自己）
+    if(k==='pairZi'){const zi=alive(s).find(x=>x.id==='zi');
+      if(zi){zi.shield+=f.skill.v;f.atk+=f.skill.v;              // 增：替梓挡下第一击，她在场时他浑身是劲
+        log.push({t:'shield',d:zi.uid,txt:'+'+f.skill.v+'盾 双璧'});log.push({t:'buff',d:f.uid,txt:'双璧 +'+f.skill.v+'⚔'})}}
   }
   // 战报羽笔：确定性点名敌方最高攻（随机-1 是没人选的废遗物）
   [0,1].forEach(s=>{if(flags[s].quill){const fo=foesOf(s);
@@ -2252,6 +2262,20 @@ function runSelftest(){
   {const _S=S;S={difficulty:0};const sb=soloBossUnits()[0];S=_S;
    ok('单人终战见习缩放咬合新基线（hp12/atk6/shed 随展开继承）', sb.hp===12&&sb.atk===6&&sb.shed===1);}
   ok('印章副行映射：胜方恒空/败方分档', bossStampSub(true,true)===''&&bossStampSub(false,true)==='曾破一形'&&bossStampSub(false,false)==='');
+  // —— S2E5 初代双璧（梓/增） ——
+  ok('UNITS=26 且梓/增数据锚(UR穿透/SSR嘲讽/同属学院)', UNITS.length===26&&UMAP['zi'].rar==='UR'&&UMAP['zi'].tg==='pierce'&&UMAP['zeng'].taunt===true&&UMAP['zi'].fac==='academy'&&UMAP['zeng'].fac==='academy');
+  {const mk=ids=>ids.map(id=>({uid:uidSeq++,id,star:1,gAtk:0,gHp:0}));
+   const dummy=()=>ghostFighters([{id:'d',n:'靶',glyph:'靶',atk:1,hp:40,spd:1,skill:{k:'none'}}]);
+   const A1=buildFighters({army:mk(['zi','guard']),relics:[]},{});
+   simulateBattle(A1,dummy(),{},{},mulberry32(11),{});
+   ok('先见：开战全队+1攻(守望1→2·梓自己5→6)', A1[1].atk===2&&A1[0].atk===6);
+   const A2=buildFighters({army:mk(['zeng','zi']),relics:[]},{});
+   const r2=simulateBattle(A2,dummy(),{},{},mulberry32(11),{});
+   ok('双璧：梓在场→增+2攻(3+2+1先见=6)·梓得2盾', A2[0].atk===6&&r2.log.some(e=>e.t==='shield'&&/双璧/.test(e.txt||'')));
+   const A3=buildFighters({army:mk(['zeng','guard']),relics:[]},{});
+   simulateBattle(A3,dummy(),{},{},mulberry32(11),{});
+   ok('双璧：梓不在场不触发(增攻保持3)', A3[0].atk===3);
+   ok('技能随星步进：梓★★★先见 v=3', skillFor(UMAP['zi'],3).v===3);}
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2965,7 +2989,9 @@ function showHowto(){
   战报卡右下角的二维码扫开就是本游戏。`)
   +sec('世界观',`
   取材《狼先生与他的学生们 · 世界编年史》：光明学员、摇摆队④、挑战者队⑤与黑域诸将同池征募——
-  黑域单位更强，但各有代价。叶王不可征募，她只在你们答错太多时，亲自来。`));
+  黑域单位更强，但各有代价。叶王不可征募，她只在你们答错太多时，亲自来。<br><br>
+  <b style="color:var(--gold2)">S2E5 · 初代双璧归来</b>：初代首徒<b>梓</b>（梅花鹿 · UR · 学生中唯一）与初代先锋<b>增</b>（黑熊 · SSR）已入征募池。
+  梓的「先见」开战惠及全队；增在梓同场时会替她挡下第一击、自己也更猛——把他俩凑到一队，是这个夏天的构筑浪漫。`));
 }
 function showMenu(){
   modal(`<h3>菜 单</h3>
