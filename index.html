@@ -231,6 +231,15 @@ body.playing #hud{display:flex}
 /* 征募卡整卡光晕：SSR 金晕 / UR 白金晕（投屏一眼看出这是稀有卡） */
 .offer.rare-SSR{box-shadow:0 0 0 1px rgba(201,166,74,.4),0 14px 40px rgba(201,166,74,.14)}
 .offer.rare-UR{box-shadow:0 0 0 1px rgba(232,199,104,.6),0 14px 46px rgba(201,166,74,.24)}
+/* 发现时刻：新 offers 首次亮相翻牌（backwards=收尾不锁 transform，悬停位移不受影响）；全程不锁输入 */
+.offer.deal{animation:dealFlip .45s cubic-bezier(.2,.7,.25,1) backwards}
+@keyframes dealFlip{0%{transform:perspective(900px) rotateY(88deg)}100%{transform:perspective(900px) rotateY(0deg)}}
+.offer .cardback{position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--panel2);
+  display:flex;align-items:center;justify-content:center;animation:backFade .5s ease both}
+.offer .cardback::after{content:'✦';font-size:34px;color:var(--gold2);opacity:.45}
+@keyframes backFade{0%,40%{opacity:1}75%,100%{opacity:0;visibility:hidden}}
+/* 叶王乱入印章副行：败方荣誉档「曾破一形」 */
+.stamp .sub{font-size:11px;letter-spacing:.22em;margin-top:4px;color:var(--gold2)}
 .offer h3{margin:10px 0 2px;font-weight:500;letter-spacing:.16em;font-size:19px}
 .offer .rar-tag{font-size:10.5px;letter-spacing:.3em;color:var(--ink3)}
 /* 稀有度文字与徽章边框同源分级：投屏后排一眼读出 */
@@ -852,7 +861,8 @@ const GHOSTS = {
     {id:'g1',n:'黑域游兵',glyph:'蛇',atk:3,hp:7,spd:5,skill:{k:'none'}}]},
 };
 const BOSS_WAVE = (act)=>({n:'叶王 · 乱入', units:[
-  {id:'yewang',n:'叶王',glyph:'叶',atk:4+act,hp:10+act*4,spd:6,tg:'pierce',skill:{k:'weakenTop',v:1,t:'蛇缠：每回合敌方最高攻 -1'}},
+  // 减血换蜕：基础血 10+act*4→5+act*3，预算挪给 shed（首死蛇蜕复活 50% 血+2 攻）——三方仿真确认难度中性，勿单独回调任一半
+  {id:'yewang',n:'叶王',glyph:'叶',atk:4+act,hp:5+act*3,spd:6,tg:'pierce',shed:1,skill:{k:'weakenTop',v:1,t:'蛇缠：每回合敌方最高攻 -1'}},
   ...(act>=2?[{id:'g4',n:'低语者',glyph:'语',atk:2+act,hp:4+act,spd:6,skill:{k:'none'}}]:[]),
   {id:'g2',n:'蛇纹卫',glyph:'纹',atk:act>1?3:2,hp:5+act,spd:4,skill:{k:'none'}},
 ]});
@@ -992,6 +1002,8 @@ const SFX=(function(){
     merge(){ chord([P.C5,P.D5,P.E5,P.G5,P.C6],{dur:0.5,type:'sine',vol:0.10,stagger:0.075,send:0.8}); voice({f:P.C6*1.5,dur:0.6,type:'sine',vol:0.045,when:0.4,send:1}) },
     // 复活：温暖上行滑音
     revive(){ voice({f:P.E4,f2:P.C5,dur:0.55,type:'sine',vol:0.11,cut:2600,send:0.8}) },
+    // 发现时刻：高稀有翻面微光——短双音，不与合星(merge)/暴击(crit)身份音混淆
+    reveal(){ chord([P.E5,P.C6],{dur:0.35,type:'sine',vol:0.10,stagger:0.05,send:0.8}) },
     // 叶王：低沉不祥双音拍频 + 缓慢噪声涌起，电影级压迫
     boss(){ voice({f:55,dur:1.5,type:'sawtooth',vol:0.13,cut:210,send:0.4}); voice({f:58.3,dur:1.5,type:'sawtooth',vol:0.11,cut:210,send:0.4}); noise({dur:1.2,vol:0.09,cut:380,shape:1,send:0.5}); voice({f:P.C4,dur:1.1,type:'sine',vol:0.08,when:0.12,send:0.6}) },
     // 暴走临界：低沉脉冲告警（两下），紧张不尖锐
@@ -1433,7 +1445,7 @@ function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1
 function startOriginDraft(){
   S.phase='origin';save();setPhase('开局点将');draftHist=[];
   S.draftQueue=S.players.map(p=>p.i);S.draftIdx=0;
-  S.offers=genOriginOffers();S.offersSold=[false,false,false];
+  S.offers=genOriginOffers();S.offersSold=[false,false,false];dealReveal=true;
   renderDraft();go('draft');hud();
 }
 function genOriginOffers(){
@@ -1479,6 +1491,9 @@ function curDrafter(){return S.players[S.draftQueue[S.draftIdx]]}
 
 /* 征募撤销：每次会改动状态的操作前存一份整局快照（本轮征募内有效，防点错） */
 let draftHist=[];
+// 发现时刻门控：仅 offers 新生成的那一次渲染播翻牌。模块级 transient——绝不挂 S 上
+// （snapDraft 会把 S 整个序列化进撤销栈与 localStorage，挂 S 会让撤销/续局误重播）
+let dealReveal=false;
 function snapDraft(){try{draftHist.push(JSON.stringify({s:S,r:rng.state()}));if(draftHist.length>15)draftHist.shift()}catch(e){}}
 function draftUndo(){
   if(!draftHist.length){toast('没有可撤销的操作');return}
@@ -1571,7 +1586,7 @@ function bindDetail(el,fn){
 function renderDraft(fresh){
   const p=curDrafter();
   const origin=S.phase==='origin';
-  if(!origin&&(fresh||!S.offers.length)){S.offers=genOffers(p);S.offersSold=[false,false,false]}
+  if(!origin&&(fresh||!S.offers.length)){S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true}
   $('#draft-title').innerHTML=origin?'开 局 <em>点 将</em>':'征 募 · <em>三 选 一</em>';
   $('#draft-sub').textContent=(origin?(S.solo?'开局礼：点将一名学员入队':'开局礼：每人免费领一名学员入队')
     :(S.solo?'试炼征募 · 迎战前补强军团':'按排名从后往前挑 · 落后者先选'))+' · 点立绘看详情'; // 单人不渗漏多人措辞
@@ -1593,10 +1608,12 @@ function renderDraft(fresh){
   $('#draft-coins').textContent='◈ '+p.coins;
   if(p._notes&&p._notes.length){toast(`${p.name}：${p._notes.join(' · ')}`,2600);p._notes=null}
   const box=$('#offers');box.innerHTML='';
+  const rv=dealReveal;dealReveal=false; // 发现时刻：一次性消费，买卡/撤销/换位/续局的重渲染走原 stag 路径不重播
+  const cards=[];                       // 持渲染当刻的元素引用——延时里按下标现查会拿到重渲染后的新卡
   S.offers.forEach((o,idx)=>{
     const d=document.createElement('div');
-    d.className='offer ornate stag'+(S.offersSold[idx]?' sold':'');
-    d.style.animationDelay=(idx*0.08)+'s';
+    d.className='offer ornate '+(rv?'deal':'stag')+(S.offersSold[idx]?' sold':'');
+    d.style.animationDelay=(idx*(rv?0.1:0.08))+'s';
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
       if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
@@ -1624,8 +1641,18 @@ function renderDraft(fresh){
         <button class="btn mini gold cost-btn">收下 · 3 铸币</button>`;
       d.querySelector('.cost-btn').onclick=()=>buyRelic(idx,r);
     }
-    box.appendChild(d);
+    if(rv){const cb=document.createElement('div');cb.className='cardback'; // 真实 div 卡背（.ornate 伪元素已被四角碑铭占用）
+      cb.style.animationDelay=(idx*0.1)+'s';d.appendChild(cb)}
+    cards.push(d);box.appendChild(d);
   });
+  // 高稀有发现时刻：金光只给本轮最高稀有度一张（多张齐 burst 投屏老机掉帧），对齐翻面时机
+  if(rv){const hi=S.offers.map((o,i)=>({o,i})).filter(x=>x.o.type==='unit'&&(UMAP[x.o.id].rar==='SSR'||UMAP[x.o.id].rar==='UR'))
+      .sort((a,b)=>((UMAP[b.o.id].rar==='UR')?1:0)-((UMAP[a.o.id].rar==='UR')?1:0))[0];
+    if(hi){const ur=UMAP[hi.o.id].rar==='UR', card=cards[hi.i];
+      setTimeout(()=>{
+        if(!card||!card.isConnected)return; // 秒买/秒刷已重建 DOM：这张卡被摘走 → 不在错位/错卡上炸金光
+        const r=card.getBoundingClientRect();
+        burst(r.left+r.width/2,r.top+90,null,ur?26:14);SFX.play('reveal')},hi.i*100+250)}}
   renderBench(p);
   renderFoeIntel(p);
   const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
@@ -1720,7 +1747,7 @@ function buyUnit(idx,u,price){
     toast(`${p.name} 点将：${u.n} 入队`);
     S.draftIdx++;
     if(S.draftIdx>=S.draftQueue.length){S.offers=[];S.solo?soloRound():startWave()}
-    else{S.offers=genOriginOffers();S.offersSold=[false,false,false];renderDraft()}
+    else{S.offers=genOriginOffers();S.offersSold=[false,false,false];dealReveal=true;renderDraft()}
     hud();save();return;
   }
   if(p.coins<price){toast(S.solo?'铸币不够——过关自有进账':'铸币不够——先答题赚钱去');return}
@@ -1757,7 +1784,7 @@ $('#btn-reroll').onclick=()=>{
   if(p._freeRr>0){p._freeRr--}
   else if(hasRelic(p,'astro')&&!p._astroUsed){p._astroUsed=true}
   else{if(p.coins<2){toast('铸币不够刷新');return}p.coins-=2}
-  S.offers=genOffers(p);S.offersSold=[false,false,false];renderDraft();save();
+  S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true;renderDraft();save();
 };
 $('#btn-draft-undo').onclick=draftUndo;
 $('#btn-tier').onclick=()=>{
@@ -1768,7 +1795,7 @@ $('#btn-tier').onclick=()=>{
   p.coins-=cost; p.tier=effTier(p)+1; // 提到当前有效牌力之上一级
   flash(false);shake();SFX.play('merge');toast(`断云牌力 → ${p.tier} 级！征募出高稀有更容易`,2600);
   // 升级后立刻刷新一次当前三选一，体现变化（不额外扣费）
-  S.offers=genOffers(p);S.offersSold=[false,false,false];
+  S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true;
   renderDraft();hud();save();
 };
 $('#btn-draft-done').onclick=()=>{
@@ -1911,7 +1938,7 @@ function buildFighters(p, evFlags){
 function ghostFighters(list){
   return list.map((g,ix)=>({uid:'g'+ix+'_'+g.id, id:g.id, n:g.n, glyph:g.glyph, fac:'ghost', star:1,
     atk:g.atk, hp:g.hp, maxhp:g.hp, spd:g.spd, shield:0, alive:true,
-    tg:g.tg||'melee', taunt:!!g.taunt,
+    tg:g.tg||'melee', taunt:!!g.taunt, shed:g.shed||0, // 蛇蜕旗标显式透传（白名单拷贝，漏了=静默失效）
     first:true, usedRevive:false, skill:g.skill||{k:'none'}, ix}));
 }
 /* 基本攻击选靶（纯函数，#selftest 可测）。首发只 melee/pierce 两种 archetype：
@@ -1959,6 +1986,10 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       // 复读机复活
       if(f.skill.k==='revive1'&&!f.usedRevive){f.usedRevive=true;f.alive=true;
         f.hp=Math.ceil(f.maxhp/2);log.push({t:'revive',d:f.uid});continue}
+      // 蛇蜕（叶王专属旗标，与技能槽正交）：首死原地蜕皮——50% 血复活、攻击 +2，一单位一复活（与复读机共用 usedRevive 不变量）
+      // continue 在 die 日志与阵亡技/海雾/残片之前 → 假死不触发任何阵亡连锁
+      if(f.shed&&!f.usedRevive){f.usedRevive=true;f.alive=true;
+        f.hp=Math.ceil(f.maxhp/2);f.atk+=2;log.push({t:'shed',d:f.uid,hp:f.hp,atk:f.atk});continue}
       log.push({t:'die',d:f.uid});
       // 阵亡技
       if(f.skill.k==='splashDeath'){foesOf(s).forEach(e=>dealDmg(s,f,e,f.skill.v,'爆炸'))}
@@ -2202,6 +2233,25 @@ function runSelftest(){
   ok('weightedPick r=0.99 落末段', weightedPick([1,1,2],0.99)===2);
   ok('weightedPick 单人恒 0（1对1课堂安全）', weightedPick([1],0.5)===0&&weightedPick([0],0.5)===0);
   ok('加时幕文案齐备 ACT_CN/NAMES[4][5]', !!ACT_CN[4]&&!!ACT_CN[5]&&!!ACT_NAMES[4]&&!!ACT_NAMES[5]);
+  // —— 批⑨ 蛇蜕多阶段 Boss ——
+  ok('BOSS_WAVE 三幕数值锚(减血换蜕 hp=5+3a)·蛇缠不被顶', [1,2,3].every(a=>{const u=BOSS_WAVE(a).units[0];
+    return u.atk===4+a&&u.hp===5+a*3&&u.shed===1&&u.skill.k==='weakenTop'}));
+  ok('ghostFighters 透传 shed 且 usedRevive 初始 false', (()=>{const g=ghostFighters(BOSS_WAVE(1).units)[0];
+    return !!g.shed&&g.usedRevive===false})());
+  {const shedGhost=()=>ghostFighters([{id:'x',n:'蜕',glyph:'蜕',atk:1,hp:6,spd:1,shed:1,skill:{k:'none'}}]);
+   const bruiser=()=>ghostFighters([{id:'b',n:'打',glyph:'打',atk:5,hp:60,spd:9,skill:{k:'none'}}]);
+   const rs=simulateBattle(bruiser(),shedGhost(),{},{},mulberry32(7),{});
+   const shEv=rs.log.filter(e=>e.t==='shed'), dieEv=rs.log.filter(e=>e.t==='die'&&String(e.d).includes('_x'));
+   ok('蛇蜕恰 1 次·真死恰 1 次·蜕在死前', shEv.length===1&&dieEv.length===1&&rs.log.indexOf(shEv[0])<rs.log.indexOf(dieEv[0]));
+   ok('蜕后 +2 攻·50% 血（事件携带 atk/hp）', shEv[0].atk===3&&shEv[0].hp===Math.ceil(6/2));
+   ok('蛇蜕战斗收束且进攻方获胜', rs.winner===0);
+   const rs2=simulateBattle(bruiser(),shedGhost(),{},{shards:true},mulberry32(7),{});
+   ok('假死不触发阵亡连锁（残片只随真死爆 1 次）', rs2.log.filter(e=>e.tag==='残片').length===1);
+   const rs3=simulateBattle(bruiser(),shedGhost(),{},{},mulberry32(7),{});
+   ok('蛇蜕对局同种子可复现（winner+log 长一致）', rs3.winner===rs.winner&&rs3.log.length===rs.log.length);}
+  {const _S=S;S={difficulty:0};const sb=soloBossUnits()[0];S=_S;
+   ok('单人终战见习缩放咬合新基线（hp12/atk6/shed 随展开继承）', sb.hp===12&&sb.atk===6&&sb.shed===1);}
+  ok('印章副行映射：胜方恒空/败方分档', bossStampSub(true,true)===''&&bossStampSub(false,true)==='曾破一形'&&bossStampSub(false,false)==='');
   // —— 渲染 ——
   const pass=res.filter(r=>r.pass).length, total=res.length;
   document.title=`#selftest ${pass}/${total}`;
@@ -2315,6 +2365,7 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
     if(e.t==='round')d=300;
     else if(e.t==='dmg'){d=420+(e.crit?160:0)+(e.kill?260:0);if(isFinal)d*=2.2}
     else if(e.t==='die')d=210;
+    else if(e.t==='shed')d=900; // 蛇蜕顿帧：终战的戏眼，给足一拍
     else d=380;
     return d*sp;
   };
@@ -2346,7 +2397,15 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
     if(e.t==='revive'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead');
       hpNow[e.d]=Math.ceil(hpMax[e.d]/2);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
+      tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d]; // 修旧疾：血条回半管但 ♥ 数字停在 0
       if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false);SFX.play('revive')}}}
+    if(e.t==='shed'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead'); // 兜住 skip 模式给 kill 加的 dead 残留
+      hpNow[e.d]=e.hp;
+      tgt.querySelector('.hpb i').style.width=Math.max(0,hpNow[e.d]/hpMax[e.d]*100)+'%';
+      tgt.querySelector('.num .h').textContent='♥'+e.hp;
+      tgt.querySelector('.num .a').textContent='⚔'+e.atk; // 蜕后攻击对账（事件自带 hp/atk 免查表）
+      if(animate){floatNum(tgt,'蛇蜕!','var(--purple)',true);blog.innerHTML=`<b>${nameOf[e.d]}</b> 蜕下旧皮——第二形态，更凶了！`;
+        shake();flash(true);SFX.play('boss')}}} // 全屏 shake 白名单：叶王专属
     if(e.t==='heal'){const tgt=el(e.d);if(tgt){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+e.amt);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
       tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
@@ -2529,7 +2588,7 @@ function soloPreBattle(){
   const boss=soloIsBoss();
   $('#battle-act-tag').textContent=boss?'终 战':('第 '+S.round+' 关');
   $('#battle-sub').textContent=boss
-    ?`单人试炼 · 终战 —— 叶王亲临 · 胜则加冕`
+    ?`单人试炼 · 终战 —— 叶王亲临 · 蛇蜕两形 · 胜则加冕`
     :`单人试炼 · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
   const you=S.players[0], foe=S.soloFoe||[];
   const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
@@ -2628,6 +2687,7 @@ function startBossSequence(){
     onload="this.parentNode.classList.add('show')" onerror="this.parentNode.remove()"></div>`:'';
   veil.innerHTML=`${bossArt}<div class="snake"><svg viewBox="0 0 96 70"><path d="M8 42 C 22 18, 36 58, 48 38 C 57 23, 68 34, 76 25" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M76 25 l9 -6 -1 10 z" fill="currentColor"/><path d="M86 20 l7 -3 M86 22 l7 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h1>叶 王 乱 入</h1>
     <p>石墙上的影子终于动了。答错的声音太多，把她引来了。<br>
+    她有两条命——<b style="color:var(--purple)">蛇蜕其皮，第一剑杀不死她</b>。<br>
     本幕演武取消——<b style="color:var(--gold2)">全员各自迎击黑域侵攻</b>，守住的人获得王座分。</p>
     <div class="stamp-list" id="stamps"></div>
     <div class="btnrow" id="boss-btnrow" style="margin-top:30px">
@@ -2636,21 +2696,24 @@ function startBossSequence(){
   veil.classList.add('on');flash(true);shake();hud();SFX.play('boss');
   $('#btn-boss-fight').onclick=resolveBoss;
 }
+// 印章副行（纯函数，#selftest 可测）：胜方恒历两形态=零信息不加字；败方分档——逼出蛇蜕才倒下的是荣誉档
+function bossStampSub(win,shed){return win?'':(shed?'曾破一形':'')}
 function resolveBoss(){
   $('#boss-btnrow').innerHTML='';
   const stamps=$('#stamps');stamps.innerHTML='';
   const results=S.players.map(p=>{
-    if(!p.army.length)return {p,win:false};
+    if(!p.army.length)return {p,win:false,shed:false}; // 空军团早退也要带 shed，否则下游读 undefined
     const A=buildFighters(p,{});
     const B=ghostFighters(BOSS_WAVE(S.act).units);
     const r=simulateBattle(A,B,sideFlags(p),sideFlags(null),
       mulberry32(S.seed+p.i*61+S.act*7),{});
-    return {p,win:r.winner===0};
+    return {p,win:r.winner===0,shed:r.log.some(e=>e.t==='shed')};
   });
   results.forEach((res,k)=>{
     setTimeout(()=>{
       const d=document.createElement('div');d.className='stamp '+(res.win?'win':'lose');
-      d.innerHTML=`<div class="nm">${res.p.name}</div><div class="verdict">${res.win?'守 住 了':'失 守'}</div>`;
+      const sub=bossStampSub(res.win,res.shed);
+      d.innerHTML=`<div class="nm">${res.p.name}</div><div class="verdict">${res.win?'守 住 了':'失 守'}</div>${sub?`<div class="sub">${sub}</div>`:''}`;
       stamps.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));
       if(res.win){burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#9fd49f'],18);SFX.play('win')}else{shake();SFX.play('lose')}
     },k*640);
@@ -2861,7 +2924,8 @@ function showHowto(){
   开局每人<b>免费点将</b>一名学员。之后三幕循环：<b>答题波 → 征募 → 命运事件 → 演武</b>。
   每幕开局公布<b>宿敌预告</b>（本幕演武打谁）——答题赚钱、征募补强，都冲着那一场去。
   题在老师手里（口头 / 试卷 / 黑板都行），屏幕上只做判定：答对 +2 铸币、难题 +3、抢答 +1（独立判定，适合基础抢答题）；
-  答错不扣分，但喂满「暴走槽」会引来叶王乱入。`,true)
+  答错不扣分，但喂满「暴走槽」会引来叶王乱入——她有两条命：<b>首次被击杀会蛇蜕复活</b>（半血归来、攻击更高），第一剑杀不死她。
+  失守但逼出过蛇蜕的军团，印章上会记一笔<b style="color:var(--gold2)">「曾破一形」</b>。`,true)
   +sec('老师小抄',`
   · 课堂节奏慢：调低暴走阈值到 6，乱入更早出现，气氛立刻紧张<br>
   · 学生水平差距大：多用「抢答 +1」给基础题，难题留给领先者<br>
@@ -2895,7 +2959,7 @@ function showHowto(){
   摇摆队：2名+2币／3名再+免费刷新 ｜ 黑域：2名+2攻·每幕-1币／4名+3攻 ｜ 挑战者队：2名成长翻倍／4名再+全队本场+1攻。
   征募面板底部有<b>羁绊进度条</b>（紫=已触发一档、金=满档）——凑羁绊是构筑的核心乐趣。`)
   +sec('单人试炼（回家挑战）',`
-  <b>十关征程</b>：逐关变强的宿敌，第 10 关<b>叶王亲临</b>——胜则加冕，通关后解锁<b>无尽回廊</b>爬梯。
+  <b>十关征程</b>：逐关变强的宿敌，第 10 关<b>叶王亲临（蛇蜕两形）</b>——胜则加冕，通关后解锁<b>无尽回廊</b>爬梯。
   第 2 / 5 / 8 关有<b>断云秘策</b>三选一，决定这一局的构筑路线。
   开局选<b>「今日试炼」</b>则全班同一套牌序和敌人——第二天课间就能比「你打到第几关」。
   战报卡右下角的二维码扫开就是本游戏。`)
