@@ -1710,7 +1710,7 @@ const TIER_MULT={
   4:{N:.7, R:.95, SR:1.1,SSR:1.3,UR:1.5},
   5:{N:.5, R:.85, SR:1.2,SSR:1.5,UR:2},
 };
-function tierFloor(){return Math.min(3, S.act||1)}            // 幕数免费保底（单人 S.act 随关数成长）
+function tierFloor(){return Math.min(2, S.act||1)}            // 幕数免费保底封顶 tier2；升牌力才解锁 tier3+ 的高稀有，否则终幕也只停在轻压制的 tier2（治"不升科技也能刷高级单位"）
 function effTier(p){return Math.min(5, Math.max(p.tier||1, tierFloor()))}
 function nextTierCost(p){const nt=effTier(p)+1; return nt>5?null:[0,0,4,6,8,10][nt]} // 低两档：2级在第一幕买得起有独享期，4/5级第三幕来得及回本
 function genOffers(p){
@@ -2443,8 +2443,9 @@ function runSelftest(){
   ok('海族档位入 sideFlags.seaTier', sideFlags(parmy('yu','qi','mist')).seaTier===2);
   // —— 断云牌力（金币消耗出口 + 高稀有门控）——
   S={act:3};
-  ok('牌力保底=幕数（act3→3级）', tierFloor()===3);
-  ok('effTier 取 max(付费,保底)：act3+付费1=3', effTier({tier:1})===3);
+  ok('牌力保底封顶2级（act3→2级，升牌力才解锁tier3+）', tierFloor()===2);
+  ok('effTier 取 max(付费,保底)：act3+付费1=2', effTier({tier:1})===2);
+  ok('不升牌力(tier2)SSR压制 < 升满(tier5)', TIER_MULT[2].SSR<TIER_MULT[5].SSR&&TIER_MULT[2].UR<TIER_MULT[5].UR);
   ok('花钱买超前：act3+付费5=5', effTier({tier:5})===5);
   ok('effTier 封顶 5', effTier({tier:9})===5);
   ok('牌力5档 SSR 权重 > 1档', TIER_MULT[5].SSR>TIER_MULT[1].SSR);
@@ -3262,12 +3263,17 @@ async function lbSend(payload){
 }
 // —— 多人课堂榜：全班各自上榜（王座分），上传需老师密码（后端校验，密码不存前端）——
 function nameKey(name){let h=5381;for(const c of String(name||''))h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36)} // 名字→ASCII 唯一键（中文名后端 id 正则会清空，故不能直接当 id）
+// —— 课堂榜按天分独立榜：day=YYYYMMDD，每天一个榜，方便老师按节课复盘 ——
+function todayStr(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
+function fmtDay(s){s=String(s);return s.length>=8?((+s.slice(4,6))+'月'+(+s.slice(6,8))+'日'):s}
+function getClassDays(){try{const a=JSON.parse(localStorage.getItem('zmq_classdays')||'[]');const t=todayStr();if(!a.includes(t))a.push(t);return a.slice().sort().reverse().slice(0,30)}catch(e){return[todayStr()]}}
+function addClassDay(d){try{const a=JSON.parse(localStorage.getItem('zmq_classdays')||'[]');if(!a.includes(d)){a.push(d);localStorage.setItem('zmq_classdays',JSON.stringify(a))}}catch(e){}}
 async function classUpload(roster,pass){
-  let sent=0,bad=false;
+  let sent=0,bad=false; const day=todayStr();            // 按当天日期分榜
   for(const p of roster){
     if(!p.name)continue;
-    const pay={action:'dmsub',board:'zmq',day:'3',
-      id:lbId()+'_'+nameKey(p.name),                 // 同名学生跨局同 id → 单调最优取最高王座分
+    const pay={action:'dmsub',board:'zmq',day:day,
+      id:lbId()+'_'+nameKey(p.name),                 // 同名学生同一天同 id→单调最优取当天最高；不同天=不同榜(各自独立)
       name:String(p.name).slice(0,6),
       score:Math.max(0,Math.min(999,(p.crowns|0))),
       pass:pass};
@@ -3276,6 +3282,7 @@ async function classUpload(roster,pass){
       else if(r&&r.error==='bad pass'){bad=true;break}   // 密码错立即停，不白发后续请求
     }catch(e){}
   }
+  if(sent)addClassDay(day);                              // 记住这天有成绩，看榜时可选
   return {sent,bad};
 }
 function classUploadPrompt(roster){
@@ -3305,20 +3312,30 @@ async function showLbHall(){
   modal(`<h3>世界回廊</h3>
     <p id="lb-cap" style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">单人试炼 · 通过关数 · 全球纪录</p>
     <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(3,'课堂榜 ♛')}</div>
+    <div id="lb-days" class="btnrow" style="display:none;margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
     <div id="lblist" style="min-height:160px;max-height:44vh;overflow:auto"></div>
     <div class="btnrow" style="margin-top:10px"><button class="btn" id="lb-upbest">上传本机单人最佳</button></div>`);
+  const render=(rows,unit)=>{const el=$('#lblist');if(!el)return;
+    el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${Math.min(999,e.score|0)} ${unit}</i></div>`).join('')
+      :'<div style="color:var(--ink3);text-align:center;padding:24px">这天还没有成绩</div>';
+    el.querySelectorAll('.lbrow span').forEach((sp,i)=>{sp.textContent=(rows[i].name||'?')}); }; // textContent 注入防 XSS
+  const fetchDay=async(day,unit)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});render((r&&r.top)||[],unit);}
+    catch(e){if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通，稍后再试</div>'} };
   const load=async d=>{
-    const el=$('#lblist');if(!el)return;
-    const isClass=d===3, unit=isClass?'♛':'关';
-    const cap=$('#lb-cap');if(cap)cap.textContent=isClass?'课堂 · 多人王座分 · 老师密码上传':'单人试炼 · 通过关数 · 全球纪录';
-    const up=$('#lb-upbest');if(up)up.style.display=isClass?'none':''; // 课堂榜由老师在结算页密码上传，此处不给"本机最佳"
-    el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
-    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(d)});
-      const rows=(r&&r.top)||[];
-      el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${Math.min(999,e.score|0)} ${unit}</i></div>`).join('')
-        :'<div style="color:var(--ink3);text-align:center;padding:24px">虚位以待——来当第一个</div>';
-      el.querySelectorAll('.lbrow span').forEach((sp,i)=>{sp.textContent=(rows[i].name||'?')}); // textContent 注入防 XSS
-    }catch(e){el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通，稍后再试</div>'}
+    const isClass=d===3;
+    const cap=$('#lb-cap');if(cap)cap.textContent=isClass?'课堂 · 多人王座分 · 按天记录 · 老师密码上传':'单人试炼 · 通过关数 · 全球纪录';
+    const up=$('#lb-upbest');if(up)up.style.display=isClass?'none':''; // 课堂榜由老师在结算页密码上传
+    const daysBar=$('#lb-days');
+    if(isClass){ // 课堂榜：先选日期，每天一个独立榜
+      const days=getClassDays();
+      if(daysBar){daysBar.style.display='flex';
+        daysBar.innerHTML=days.map((dy,i)=>`<button class="btn mini lb-day${i?'':' gold'}" data-day="${dy}">${fmtDay(dy)}</button>`).join('');
+        daysBar.querySelectorAll('.lb-day').forEach(b=>b.onclick=()=>{
+          daysBar.querySelectorAll('.lb-day').forEach(x=>x.classList.remove('gold'));
+          b.classList.add('gold');fetchDay(b.dataset.day,'♛')});}
+      fetchDay(days[0],'♛'); // 默认最新一天
+    }else{ if(daysBar)daysBar.style.display='none'; fetchDay(d,'关'); }
   };
   document.querySelectorAll('.lbtab').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('.lbtab').forEach(x=>x.classList.remove('gold'));
