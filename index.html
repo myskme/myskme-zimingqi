@@ -139,6 +139,26 @@ body.playing #hud{display:flex}
 .title-sub{color:var(--ink2);letter-spacing:.3em;margin:14px 0 6px;font-size:clamp(13px,1.6vw,16px)}
 .title-quote{color:var(--ink3);font-size:13px;letter-spacing:.12em;margin-bottom:34px}
 .title-foot{margin-top:7vh;color:var(--ink3);font-size:12px;letter-spacing:.28em}
+/* 首页双入口：单人=主推，视觉更突出（给扫码/分享来的独玩者） */
+.entry-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:30px}
+.entry{font-family:var(--serif);cursor:pointer;position:relative;min-width:236px;max-width:300px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;padding:21px 26px 17px;
+  border:1px solid var(--line);background:var(--panel2);color:var(--ink);
+  transition:transform .14s,box-shadow .16s,border-color .2s,background .2s;user-select:none}
+.entry:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:var(--glow-gold)}
+.entry:active{transform:translateY(1px) scale(.98);transition-duration:.05s}
+.entry .entry-t{font-size:22px;letter-spacing:.16em;font-weight:500}
+.entry .entry-d{font-size:11.5px;letter-spacing:.04em;color:var(--ink3);line-height:1.45}
+.entry-solo{background:linear-gradient(158deg,rgba(201,166,74,.28),rgba(122,99,32,.15));
+  border-color:var(--gold);box-shadow:0 0 0 1px rgba(201,166,74,.22) inset,0 6px 26px rgba(201,166,74,.13)}
+.entry-solo .entry-t{color:var(--gold2)}
+.entry-solo .entry-d{color:var(--gold3)}
+.entry-solo::before{content:'推荐 · 一个人也能玩';position:absolute;top:-11px;left:50%;transform:translateX(-50%);
+  font-size:10px;letter-spacing:.2em;color:#1a150d;background:var(--gold);padding:2px 13px;white-space:nowrap}
+.entry-solo:hover{box-shadow:0 0 0 1px rgba(201,166,74,.3) inset,var(--glow-gold)}
+@media(max-width:620px){.entry{min-width:0;flex:1 1 42%;padding:16px 12px 13px}
+  .entry .entry-t{font-size:18px}.entry .entry-d{font-size:10.5px}
+  .entry-solo::before{font-size:9px;letter-spacing:.1em}}
 
 /* ============ 开局设置 ============ */
 #scr-setup .panel{max-width:760px;margin:0 auto}
@@ -579,11 +599,20 @@ body.playing #hud{display:flex}
     <h1 class="title-hero">自<em>鸣</em>棋</h1>
     <p class="title-sub">MYSKME · 课堂肉鸽自走棋 · 狼先生与他的学生们</p>
     <p class="title-quote">「拒绝一切死板的教条。世界值得有趣地活一次。」</p>
+    <div class="entry-row">
+      <button class="entry entry-solo" id="btn-solo">
+        <span class="entry-t">单人闯关</span>
+        <span class="entry-d">一个人也能玩 · 逐关变强 · 冲击纪录</span>
+      </button>
+      <button class="entry entry-multi" id="btn-multi">
+        <span class="entry-t">课堂开课 · 多人</span>
+        <span class="entry-d">1–8 人一局 · 老师判分 · 投屏上课</span>
+      </button>
+    </div>
     <div class="btnrow">
-      <button class="btn gold big" id="btn-new">开 局</button>
       <button class="btn big" id="btn-continue" style="display:none">续 局</button>
-      <button class="btn big" id="btn-howto">玩法与课堂说明</button>
-      <button class="btn big" id="btn-lbhall" style="display:none">世界回廊 · 排行</button>
+      <button class="btn" id="btn-howto">玩法与课堂说明</button>
+      <button class="btn" id="btn-lbhall" style="display:none">世界回廊 · 排行</button>
     </div>
     <p class="title-foot"><a href="https://myskme.github.io/myskme-hub/" style="color:inherit;text-decoration:underline dotted rgba(201,166,74,.5)">← 作品总目</a>　·　MAKE YOURSELF SPECIAL &amp; KIND — MYSKME · Mr. Wang</p>
   </section>
@@ -1063,8 +1092,57 @@ const SFX=(function(){
     isMuted(){ return muted },
   };
 })();
-// 首次用户手势解锁 AudioContext（老师任意点击/按键都兜底，含续局直接进战斗的入口）
-['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>SFX.unlock(),{passive:true}));
+
+/* ============================================================
+   背景音乐 · 真实录制 mp3（Pixabay Content License · 可商用免署名，与远征录同源）
+   HTMLAudioElement 循环 + 场景淡入淡出；独立于「音效」静音开关。
+   单人娱乐默认开、多人课堂默认关（尊重「不打扰老师讲课」）；菜单可手动开关。
+   ============================================================ */
+const BGM_FILES={title:'bgm_title',play:'bgm_town',boss:'bgm_boss'};
+const BGM=(function(){
+  let audio=null, kind=null, wanted=(localStorage.getItem('zmq_bgm')==='1'), xf=null, curFile=null;
+  const VOL=0.5, can=()=>typeof Audio!=='undefined';
+  function fade(to,ms,done){
+    if(xf){clearInterval(xf);xf=null}
+    if(!audio){if(done)done();return}
+    const from=audio.volume||0, steps=Math.max(1,Math.round(ms/50)); let i=0;
+    xf=setInterval(()=>{ i++; const t=i/steps;
+      try{audio.volume=Math.max(0,Math.min(1,from+(to-from)*t))}catch(e){}
+      if(i>=steps){clearInterval(xf);xf=null;if(done)done()}
+    },50);
+  }
+  function play(k){
+    if(!wanted||!can())return;
+    const f=BGM_FILES[k]; if(!f)return;
+    if(kind===k&&audio&&!audio.paused)return;
+    kind=k;
+    if(!audio){audio=new Audio();audio.loop=true;audio.preload='auto'}
+    if(curFile!==f){ curFile=f; try{audio.pause()}catch(e){}
+      audio.src='assets/bgm/'+f+'.mp3'; audio.volume=0; try{audio.load()}catch(e){} }
+    const run=()=>{ const p=audio.play(); if(p&&p.catch)p.catch(()=>{}); fade(VOL,1600) };
+    if(audio.readyState>=2){run()}else{audio.addEventListener('canplay',run,{once:true})}
+  }
+  function stop(){ fade(0,900,()=>{if(audio){try{audio.pause()}catch(e){}}}); kind=null }
+  // 页面切后台时暂停、回前台若仍想开则续（省电·不在后台吵）
+  document.addEventListener('visibilitychange',()=>{
+    if(!audio)return;
+    if(document.hidden){try{audio.pause()}catch(e){}}
+    else if(wanted&&kind){const p=audio.play();if(p&&p.catch)p.catch(()=>{})}
+  });
+  return {
+    isOn(){return wanted},
+    // 局内切场景（仅在已开启时生效，不改变 wanted）
+    scene(k){ if(wanted)play(k) },
+    toggle(){ wanted=!wanted; localStorage.setItem('zmq_bgm',wanted?'1':'0');
+      if(wanted){ play(document.body.classList.contains('playing')?(S&&S.phase==='boss'?'boss':'play'):'title') } else stop();
+      return wanted },
+    // 智能默认：仅当用户从未手动设置过时采纳 want；否则尊重用户既有选择
+    auto(k,want){ const set=localStorage.getItem('zmq_bgm'); if(set==null)wanted=want;
+      if(wanted)play(k); else stop() },
+  };
+})();
+// 首次用户手势解锁 AudioContext + 背景音乐（老师任意点击/按键都兜底，含续局直接进战斗的入口）
+['pointerdown','keydown','touchstart'].forEach(ev=>window.addEventListener(ev,()=>{SFX.unlock();if(BGM.isOn())BGM.scene(document.body.classList.contains('playing')?(S&&S.phase==='boss'?'boss':'play'):'title')},{passive:true}));
 
 /* ============================================================
    美术资源映射层
@@ -1094,6 +1172,7 @@ const ART={
   relic_quill:'relic-quill.webp',
   relic_quiver:'relic-quiver.webp', relic_plaque:'relic-plaque.webp', relic_bell:'relic-bell.webp',
   relic_scale:'relic-scale.webp', relic_card:'relic-card.webp', relic_lamp:'relic-lamp.webp',
+  relic_thorn:'relic-thorn.webp', relic_anchor:'relic-anchor.webp', relic_seal:'relic-seal.webp', relic_diary:'relic-diary.webp',
   // 命运事件插图（768×512 横版）
   ev_rain:'event-rain.webp',   ev_wind:'event-wind.webp',   ev_swing:'event-swing.webp',
   ev_gaze:'event-gaze.webp',   ev_crane:'event-crane.webp', ev_purple:'event-purple.webp',
@@ -1101,11 +1180,12 @@ const ART={
   ev_horn:'event-horn.webp',   ev_maze:'event-maze.webp',   ev_echo:'event-echo.webp',
   ev_tithe:'event-tithe.webp', ev_letter:'event-letter.webp', ev_shell:'event-shell.webp',
   ev_forge:'event-forge.webp', ev_bulwark:'event-bulwark.webp',
+  ev_desk:'event-desk.webp', ev_thorn:'event-thorn.webp', ev_lantern:'event-lantern.webp',
   // 场景（1600×900 横版）
   title:'title-kv.webp', bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260710a'; // 初代双璧立绘上线，击穿玩家缓存
+const ART_VER='20260711a'; // 批⑬遗物图标×4+事件插图×3上线，击穿玩家缓存
 function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
   return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
 function cardURL(id){const u=ART_DIR+'card-'+id+'.webp';
@@ -1215,7 +1295,8 @@ function factionMult(srcFac,tgtFac){
 /* 屏幕切换 */
 function go(id){document.querySelectorAll('.result-banner').forEach(x=>x.remove()); // 清跳屏后残留的胜利横幅
   $$('.scr').forEach(s=>s.classList.remove('on'));$('#scr-'+id).classList.add('on');
-  window.scrollTo({top:0,behavior:'smooth'})}
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(typeof BGM!=='undefined')BGM.scene(id==='title'||id==='setup'?'title':'play')} // 标题/设置=宁静曲，进入游戏=主循环
 function setAct(a){document.body.dataset.act=a;setScene(a)}
 function setPhase(txt){$('#hud-phase').textContent=txt}
 function hud(){
@@ -1264,7 +1345,12 @@ function applyModeUI(solo){
   if(solo){setupCount=1;renderSetup()}else if(setupCount<2){setupCount=4;renderSetup()}
 }
 
-$('#btn-new').onclick=()=>{renderSetup();go('setup')};
+function enterSetup(solo){
+  $$('#seg-mode button').forEach(b=>b.classList.toggle('on',+b.dataset.v===solo));
+  applyModeUI(solo); renderSetup(); go('setup');
+}
+$('#btn-solo').onclick=()=>enterSetup(1);
+$('#btn-multi').onclick=()=>enterSetup(0);
 $('#btn-back-title').onclick=()=>go('title');
 $('#btn-start').onclick=()=>{
   const raw=[...$$('#name-grid input')].map(i=>i.value.trim());
@@ -1277,11 +1363,11 @@ $('#btn-start').onclick=()=>{
       S.seed=(Math.imul(ymd,0x9E3779B1)>>>0)%2147483647; S.daily=true;
     }
     rng=mulberry32(S.seed);
-    setAct(1);hud();startOriginDraft();save();
+    setAct(1);hud();startOriginDraft();save();BGM.auto('play',true); // 单人娱乐默认开背景音乐
   }else{
     S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1);
     rng=mulberry32(S.seed);
-    setAct(1);hud();startOriginDraft();save();
+    setAct(1);hud();startOriginDraft();save();BGM.auto('play',false); // 多人课堂默认不开（不打扰讲课）
   }
 };
 $('#btn-continue').onclick=()=>{const s=loadSave();if(!s&&!loadBak()){toast('没有找到存档');return}
@@ -1295,7 +1381,7 @@ $('#btn-continue').onclick=()=>{const s=loadSave();if(!s&&!loadBak()){toast('没
     setAct(Math.min(S.act,3));hud();
     resumePhase()};
   // 三级降级：主档 → 备份档 → 清档回标题（课堂上绝不白屏死局）
-  try{attempt(s||loadBak());toast('已恢复上局进度')}
+  try{attempt(s||loadBak());toast('已恢复上局进度');BGM.auto('play',!!S.solo)}
   catch(e){const bak=s?loadBak():null;
     if(bak){try{attempt(bak);toast('主存档受损，已从备份恢复',3000);return}catch(e2){}}
     clearSave();S=null;hud();go('title');toast('存档已损坏，只能重新开局',3200)}
@@ -3257,7 +3343,7 @@ function startBossSequence(){
     <div class="btnrow" id="boss-btnrow" style="margin-top:30px">
       <button class="btn gold big" id="btn-boss-fight">迎 击</button>
     </div>`;
-  veil.classList.add('on');flash(true);shake();hud();SFX.play('boss');
+  veil.classList.add('on');flash(true);shake();hud();SFX.play('boss');BGM.scene('boss');
   $('#btn-boss-fight').onclick=resolveBoss;
 }
 // 印章副行（纯函数，#selftest 可测）：胜方恒历两形态=零信息不加字；败方分档——逼出蛇蜕才倒下的是荣誉档
@@ -3579,6 +3665,7 @@ function showMenu(){
     <button class="btn" onclick="closeModal();showHowto()">玩法与课堂说明</button>
     <button class="btn" onclick="closeModal();showUnits()">单位与遗物图鉴</button>
     <button class="btn" onclick="SFX.toggle();closeModal();showMenu()">${SFX.isMuted()?'音效：关 · 点击开启':'音效：开 · 点击静音'}</button>
+    <button class="btn" onclick="BGM.toggle();closeModal();showMenu()">${BGM.isOn()?'背景音乐：开 · 点击关闭':'背景音乐：关 · 点击开启'}</button>
     <button class="btn" onclick="closeModal();go('title')">回到标题（进度已存）</button>
     <button class="btn danger" onclick="if(confirm('确定放弃本局？存档将清空')){clearSave();location.reload()}">放弃本局</button>
   </div>`);
