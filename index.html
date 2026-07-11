@@ -3263,17 +3263,17 @@ async function lbSend(payload){
 }
 // —— 多人课堂榜：全班各自上榜（王座分），上传需老师密码（后端校验，密码不存前端）——
 function nameKey(name){let h=5381;for(const c of String(name||''))h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36)} // 名字→ASCII 唯一键（中文名后端 id 正则会清空，故不能直接当 id）
-// —— 课堂榜按天分独立榜：day=YYYYMMDD，每天一个榜，方便老师按节课复盘 ——
-function todayStr(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
-function fmtDay(s){s=String(s);return s.length>=8?((+s.slice(4,6))+'月'+(+s.slice(6,8))+'日'):s}
-function getClassDays(){try{const a=JSON.parse(localStorage.getItem('zmq_classdays')||'[]');const t=todayStr();if(!a.includes(t))a.push(t);return a.slice().sort().reverse().slice(0,30)}catch(e){return[todayStr()]}}
-function addClassDay(d){try{const a=JSON.parse(localStorage.getItem('zmq_classdays')||'[]');if(!a.includes(d)){a.push(d);localStorage.setItem('zmq_classdays',JSON.stringify(a))}}catch(e){}}
+// —— 课堂榜按周分赛季：day=本周周一日期(YYYYMMDD)，一周一个赛季，公开激励攀比 ——
+function weekKey(){const d=new Date();const off=(d.getDay()+6)%7;d.setDate(d.getDate()-off);return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')} // 本周周一为赛季首（周一→周日一个赛季）
+function fmtWeek(s){s=String(s);if(s.length<8)return s;const y=+s.slice(0,4),m=+s.slice(4,6),dd=+s.slice(6,8);const mon=new Date(y,m-1,dd),sun=new Date(y,m-1,dd+6);const p=x=>(x.getMonth()+1)+'.'+x.getDate();return p(mon)+'–'+p(sun)} // → "7.7–7.13"
+function getClassWeeks(){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');const t=weekKey();if(!a.includes(t))a.push(t);return a.slice().sort().reverse().slice(0,26)}catch(e){return[weekKey()]}} // 含本周，倒序，最多半年
+function addClassWeek(w){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');if(!a.includes(w)){a.push(w);localStorage.setItem('zmq_classweeks',JSON.stringify(a))}}catch(e){}}
 async function classUpload(roster,pass){
-  let sent=0,bad=false; const day=todayStr();            // 按当天日期分榜
+  let sent=0,bad=false; const day=weekKey();             // 按本周分赛季榜
   for(const p of roster){
     if(!p.name)continue;
     const pay={action:'dmsub',board:'zmq',day:day,
-      id:lbId()+'_'+nameKey(p.name),                 // 同名学生同一天同 id→单调最优取当天最高；不同天=不同榜(各自独立)
+      id:lbId()+'_'+nameKey(p.name),                 // 同名学生同一周同 id→单调最优取本周最高；不同周=不同赛季榜(各自独立)
       name:String(p.name).slice(0,6),
       score:Math.max(0,Math.min(999,(p.crowns|0))),
       pass:pass};
@@ -3282,7 +3282,7 @@ async function classUpload(roster,pass){
       else if(r&&r.error==='bad pass'){bad=true;break}   // 密码错立即停，不白发后续请求
     }catch(e){}
   }
-  if(sent)addClassDay(day);                              // 记住这天有成绩，看榜时可选
+  if(sent)addClassWeek(day);                             // 记住这周有成绩，看榜时可选
   return {sent,bad};
 }
 function classUploadPrompt(roster){
@@ -3317,24 +3317,24 @@ async function showLbHall(){
     <div class="btnrow" style="margin-top:10px"><button class="btn" id="lb-upbest">上传本机单人最佳</button></div>`);
   const render=(rows,unit)=>{const el=$('#lblist');if(!el)return;
     el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${Math.min(999,e.score|0)} ${unit}</i></div>`).join('')
-      :'<div style="color:var(--ink3);text-align:center;padding:24px">这天还没有成绩</div>';
+      :'<div style="color:var(--ink3);text-align:center;padding:24px">这个赛季还没有成绩</div>';
     el.querySelectorAll('.lbrow span').forEach((sp,i)=>{sp.textContent=(rows[i].name||'?')}); }; // textContent 注入防 XSS
   const fetchDay=async(day,unit)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
     try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});render((r&&r.top)||[],unit);}
     catch(e){if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通，稍后再试</div>'} };
   const load=async d=>{
     const isClass=d===3;
-    const cap=$('#lb-cap');if(cap)cap.textContent=isClass?'课堂 · 多人王座分 · 按天记录 · 老师密码上传':'单人试炼 · 通过关数 · 全球纪录';
+    const cap=$('#lb-cap');if(cap)cap.textContent=isClass?'课堂赛季 · 多人王座分 · 按周结算 · 老师密码上传':'单人试炼 · 通过关数 · 全球纪录';
     const up=$('#lb-upbest');if(up)up.style.display=isClass?'none':''; // 课堂榜由老师在结算页密码上传
     const daysBar=$('#lb-days');
-    if(isClass){ // 课堂榜：先选日期，每天一个独立榜
-      const days=getClassDays();
+    if(isClass){ // 课堂榜：按周赛季，选周看那周
+      const weeks=getClassWeeks();
       if(daysBar){daysBar.style.display='flex';
-        daysBar.innerHTML=days.map((dy,i)=>`<button class="btn mini lb-day${i?'':' gold'}" data-day="${dy}">${fmtDay(dy)}</button>`).join('');
+        daysBar.innerHTML=weeks.map((wk,i)=>`<button class="btn mini lb-day${i?'':' gold'}" data-day="${wk}">${i===0?'本周 ':''}${fmtWeek(wk)}</button>`).join('');
         daysBar.querySelectorAll('.lb-day').forEach(b=>b.onclick=()=>{
           daysBar.querySelectorAll('.lb-day').forEach(x=>x.classList.remove('gold'));
           b.classList.add('gold');fetchDay(b.dataset.day,'♛')});}
-      fetchDay(days[0],'♛'); // 默认最新一天
+      fetchDay(weeks[0],'♛'); // 默认本周
     }else{ if(daysBar)daysBar.style.display='none'; fetchDay(d,'关'); }
   };
   document.querySelectorAll('.lbtab').forEach(b=>b.onclick=()=>{
