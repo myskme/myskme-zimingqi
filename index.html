@@ -3247,7 +3247,7 @@ function soloResolve(result,A,B){
   hud();save();
 }
 /* —— 世界回廊（单人试炼在线榜）：严格渐进增强——离线/file:// 一切照旧，fetch 全部只活在点击 handler 里 —— */
-const LB_URL='https://myskme-expedition.netlify.app/.netlify/functions/leaderboard';
+const LB_URL='https://myskme-game-api.wzc1020.workers.dev'; // 2026-07-12 课堂榜后端迁 Cloudflare Worker+D1（原 Netlify 函数）
 const LB_ON=location.protocol==='http:'||location.protocol==='https:';
 function lbId(){try{let v=localStorage.getItem('zmq_lbid');
   if(!v){v='z_'+Math.random().toString(36).slice(2,10);localStorage.setItem('zmq_lbid',v)}return v}catch(e){return 'z_anon'}}
