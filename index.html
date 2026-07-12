@@ -1335,6 +1335,15 @@ function mkInst(id){return {uid:uidSeq++, id, star:1, gAtk:0, gHp:0}}
 const STAR_ATK=[1,1.6,2.2], STAR_HP=[1,1.5,1.9];
 function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;
   return {atk:Math.round(u.atk*(STAR_ATK[s]||1))+inst.gAtk, hp:Math.round(u.hp*(STAR_HP[s]||1))+inst.gHp, spd:u.spd};}
+// —— 课堂榜「荣耀分」：皇冠优先 + 战力破平（自解码，后端只存一个整数）——
+// 战力=阵容全体 atk+hp 之和（instBase 已含星级/成长）。荣耀分把皇冠放高位、战力放中位、微分放低位：
+//   皇冠一定压倒战力(子分<10万)；同皇冠比战力，几乎不再并列；防刷(coins 封顶20、皇冠须真赢)。
+function armyPower(p){return (p.army||[]).reduce((t,a)=>{const b=instBase(a);return t+b.atk+b.hp},0);}
+function gloryScore(p){
+  return (p.crowns|0)*100000
+    + Math.min(999,armyPower(p))*100
+    + Math.min(99,(p.wins|0)*20 + ((p.relics&&p.relics.length)||0)*6 + Math.min(p.coins|0,20));
+}
 // 技能数值随星步进（浅拷贝，绝不污染 UNITS 原型）；乘算类(firstCrit)与成长类(growth)不参与
 const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1, slowFast:1, growAtk:1, firstPlus:1, buffAdj:1, boostLin:1, pairYu:1, inspireAll:1, pairZi:1, probeCore:2, soak:1};
 // atone 不随星（条件类：有黑域就 +1 攻，星级不该让"归正"的觉悟更深）
@@ -2816,6 +2825,23 @@ function runSelftest(){
   ok('世界回廊 payload：clamp999/难度映射/名字截6/板名zmq', (()=>{const p=lbPayload(1,1500,'超长名字要截断了','id1');
     return p.score===999&&p.day==='1'&&p.name.length<=6&&p.board==='zmq'&&p.action==='dmsub'})());
   ok('世界回廊 payload：负分归0/难度越界钳到2', lbPayload(9,-5,'x','id1').score===0&&lbPayload(9,-5,'x','id1').day==='2');
+  // —— 课堂三榜·荣耀分/战力/财富 ——
+  ok('荣耀分：皇冠压倒战力(1冠空队 > 0冠·任意战力·满微分)',
+    gloryScore({crowns:1,army:[],wins:0,relics:[],coins:0})
+    > gloryScore({crowns:0,army:new Array(40).fill({id:'guard',star:1,gAtk:0,gHp:0}),wins:9,relics:new Array(9).fill(1),coins:99}));
+  ok('荣耀分：同皇冠比战力(强队>弱队)',
+    gloryScore({crowns:2,army:new Array(6).fill({id:'guard',star:1,gAtk:0,gHp:0}),wins:0,relics:[],coins:0})
+    > gloryScore({crowns:2,army:[{id:'guard',star:1,gAtk:0,gHp:0}],wins:0,relics:[],coins:0}));
+  ok('荣耀分：coins 封顶20(防囤钱刷分)',
+    gloryScore({crowns:0,army:[],wins:0,relics:[],coins:20})===gloryScore({crowns:0,army:[],wins:0,relics:[],coins:999}));
+  ok('荣耀分解码：皇冠=⌊s/1e5⌋、战力=⌊s/100⌋%1000', (()=>{
+    const A=new Array(4).fill({id:'guard',star:1,gAtk:0,gHp:0});
+    const g=gloryScore({crowns:3,army:A,wins:0,relics:[],coins:0});
+    return Math.floor(g/100000)===3 && Math.floor(g/100)%1000===Math.min(999,armyPower({army:A}));})());
+  ok('armyPower=阵容 atk+hp 之和', (()=>{const b=instBase({id:'guard',star:1,gAtk:0,gHp:0});
+    return armyPower({army:[{id:'guard',star:1,gAtk:0,gHp:0},{id:'guard',star:1,gAtk:0,gHp:0}]})===2*(b.atk+b.hp);})());
+  ok('财富分解码：金币=⌊s/1000⌋、胜=⌊s/100⌋%10', (()=>{const s=wealthScore({coins:12,wins:3,relics:2});
+    return Math.floor(s/1000)===12 && Math.floor(s/100)%10===3;})());
   ok('淬炼走 gAtk/gHp·instBase 生效', (()=>{const b=instBase({id:'guard',star:1,gAtk:1,gHp:2});
     return b.atk===2&&b.hp===10})());
   {const _S3=S;
@@ -3337,24 +3363,33 @@ function weekKey(){const d=new Date();const off=(d.getDay()+6)%7;d.setDate(d.get
 function fmtWeek(s){s=String(s);if(s.length<8)return s;const y=+s.slice(0,4),m=+s.slice(4,6),dd=+s.slice(6,8);const mon=new Date(y,m-1,dd),sun=new Date(y,m-1,dd+6);const p=x=>(x.getMonth()+1)+'.'+x.getDate();return p(mon)+'–'+p(sun)} // → "7.7–7.13"
 function getClassWeeks(){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');const t=weekKey();if(!a.includes(t))a.push(t);return a.slice().sort().reverse().slice(0,26)}catch(e){return[weekKey()]}} // 含本周，倒序，最多半年
 function addClassWeek(w){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');if(!a.includes(w)){a.push(w);localStorage.setItem('zmq_classweeks',JSON.stringify(a))}}catch(e){}}
+// v2（三榜·荣耀分格式）周标记：区分新格式周(day 带 -0/-1/-2 后缀)与旧纯皇冠周(裸 weekKey)
+function addClassWeekV2(w){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks_v2')||'[]');if(!a.includes(w)){a.push(w);localStorage.setItem('zmq_classweeks_v2',JSON.stringify(a))}}catch(e){}}
+function getClassWeeksV2(){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks_v2')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
+// 三榜上传：主榜=荣耀分(day 后缀 -0)决定「已上传N人」；战力(-1)/财富(-2)为特色榜补发。
+// 都同 board='zmq'、day 带后缀→仍走老师密码门；同一周同学生 id 稳定→取本周最高。
+function wealthScore(p){return Math.max(0,Math.min(999,(p.coins|0)))*1000+Math.max(0,Math.min(99,(p.wins|0)))*100+Math.max(0,Math.min(99,(p.relics|0)));}
 async function classUpload(roster,pass){
-  let sent=0,bad=false; const failed=[]; const day=weekKey();  // 按本周分赛季榜
-  const occ={};                                          // 同名去重：同名学生分配不同 id，避免合并成一个（否则同名的会互相覆盖只剩一个）
+  let sent=0,bad=false; const failed=[]; const wk=weekKey();  // 按本周分赛季榜
+  const occ={};                                          // 同名去重：同名学生分配不同 id，避免合并成一个
   for(const p of roster){
     if(!p.name)continue;
     const nm=String(p.name).slice(0,6);
     const nk=nameKey(p.name); const o=(occ[nk]=(occ[nk]||0)+1)-1; // 本次名单里同名出现的次序（0,1,2…）
-    const pay={action:'dmsub',board:'zmq',day:day,
-      id:lbId()+'_'+nk+(o?('_'+o):''),               // 同名不同 id；同一周同一学生 id 稳定→取本周最高分
-      name:nm,
-      score:Math.max(0,Math.min(999,(p.crowns|0))),
-      pass:pass};
-    const r=await lbSendRetry(pay,3);                     // 失败自动重试（弱网/busy），不再静默吞
-    if(r&&r.ok)sent++;
-    else if(r&&r.error==='bad pass'){bad=true;break}      // 密码错立即停，不白发后续请求
-    else failed.push(nm);                                 // 记下没传上的学生，回报老师
+    const id=lbId()+'_'+nk+(o?('_'+o):'');               // 同名不同 id；同一周同学生 id 稳定
+    // 主榜·荣耀分（皇冠优先+战力破平）——await，决定计数与密码判定
+    const main={action:'dmsub',board:'zmq',day:wk+'-0',id:id,name:nm,
+      score:Math.max(0,Math.min(999999,(p.glory|0))),pass:pass};
+    const r=await lbSendRetry(main,3);                    // 失败自动重试（弱网/busy）
+    if(r&&r.error==='bad pass'){bad=true;break}           // 密码错立即停
+    if(r&&r.ok){
+      sent++;
+      // 特色榜·补发（fire-and-forget，best-effort；被主榜循环的 await 天然节流，不阻塞老师等待）
+      lbSendRetry({action:'dmsub',board:'zmq',day:wk+'-1',id:id,name:nm,score:Math.max(0,Math.min(999,(p.power|0))),pass:pass},2);
+      lbSendRetry({action:'dmsub',board:'zmq',day:wk+'-2',id:id,name:nm,score:wealthScore(p),pass:pass},2);
+    } else failed.push(nm);                               // 主榜没传上→点名回报
   }
-  if(sent)addClassWeek(day);                             // 记住这周有成绩，看榜时可选
+  if(sent){addClassWeek(wk);addClassWeekV2(wk);}         // 记住这周（新三榜格式）
   return {sent,bad,failed};
 }
 function classUploadPrompt(roster){
@@ -3387,31 +3422,60 @@ async function showLbHall(){
   const tab=(d,label)=>`<button class="btn mini lbtab" data-d="${d}">${label}</button>`;
   modal(`<h3>世界回廊</h3>
     <p id="lb-cap" style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">单人试炼 · 通过关数 · 全球纪录</p>
-    <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(3,'课堂榜 ♛')}</div>
+    <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(3,'课堂榜')}</div>
+    <div id="lb-cats" class="btnrow" style="display:none;margin:0 0 6px;flex-wrap:wrap;gap:6px"></div>
     <div id="lb-days" class="btnrow" style="display:none;margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
     <div id="lblist" style="min-height:160px;max-height:44vh;overflow:auto"></div>
     <div class="btnrow" style="margin-top:10px"><button class="btn" id="lb-upbest">上传本机单人最佳</button></div>`);
-  const render=(rows,unit)=>{const el=$('#lblist');if(!el)return;
-    el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${Math.min(999,e.score|0)} ${unit}</i></div>`).join('')
+  // —— 各榜格式化器（榜行显示；分数是整数，前端自解码）——
+  const dec=(s,div,mod)=>Math.floor((s|0)/div)%mod;
+  const FMT={
+    glory:s=>`♛${Math.floor((s|0)/100000)} · ⚔${dec(s,100,1000)}`,  // 荣耀榜：皇冠·战力
+    power:s=>`${Math.min(999,s|0)} 战力`,                            // 战力榜
+    wealth:s=>`${Math.floor((s|0)/1000)}◈ · ${dec(s,100,10)}胜`,      // 财富榜：金币·战绩
+    solo:s=>`${Math.min(999,s|0)} 关`,                               // 单人榜
+    legacy:s=>`♛${Math.min(999,s|0)}`,                               // 旧纯皇冠周（兼容）
+  };
+  const CATS=[{k:'-0',fmt:FMT.glory,label:'荣耀榜',cap:'课堂·荣耀榜 · 皇冠优先·战力破平 · 按周结算'},
+              {k:'-1',fmt:FMT.power,label:'⚔战力榜',cap:'课堂·战力榜 · 阵容强度 · 按周结算'},
+              {k:'-2',fmt:FMT.wealth,label:'◈财富榜',cap:'课堂·财富榜 · 金币·战绩 · 按周结算'}];
+  const render=(rows,fmt)=>{const el=$('#lblist');if(!el)return;
+    el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${fmt(e.score)}</i></div>`).join('')
       :'<div style="color:var(--ink3);text-align:center;padding:24px">这个赛季还没有成绩</div>';
     el.querySelectorAll('.lbrow span').forEach((sp,i)=>{sp.textContent=(rows[i].name||'?')}); }; // textContent 注入防 XSS
-  const fetchDay=async(day,unit)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
-    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});render((r&&r.top)||[],unit);}
+  const fetchDay=async(day,fmt)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});render((r&&r.top)||[],fmt);}
     catch(e){if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通，稍后再试</div>'} };
+  // —— 课堂榜：周选择 + 三榜(荣耀/战力/财富)子选择；旧格式周回退纯皇冠 ——
+  let curCat=0;
+  const v2has=w=>getClassWeeksV2().indexOf(w)>=0;
+  const showWeek=w=>{ const catsBar=$('#lb-cats'),cap=$('#lb-cap');
+    if(v2has(w)){ // 新格式周：三榜子选择
+      if(catsBar){catsBar.style.display='flex';
+        catsBar.innerHTML=CATS.map((c,i)=>`<button class="btn mini lb-cat${i===curCat?' gold':''}" data-c="${i}">${c.label}</button>`).join('');
+        catsBar.querySelectorAll('.lb-cat').forEach(b=>b.onclick=()=>{curCat=+b.dataset.c;
+          catsBar.querySelectorAll('.lb-cat').forEach(x=>x.classList.remove('gold'));b.classList.add('gold');
+          if(cap)cap.textContent=CATS[curCat].cap; fetchDay(w+CATS[curCat].k,CATS[curCat].fmt);});}
+      if(cap)cap.textContent=CATS[curCat].cap; fetchDay(w+CATS[curCat].k,CATS[curCat].fmt);
+    }else{ // 旧纯皇冠周（兼容）
+      if(catsBar)catsBar.style.display='none';
+      if(cap)cap.textContent='课堂·皇冠榜（旧版）· 按周结算'; fetchDay(w,FMT.legacy);
+    } };
   const load=async d=>{
     const isClass=d===3;
-    const cap=$('#lb-cap');if(cap)cap.textContent=isClass?'课堂赛季 · 多人王座分 · 按周结算 · 老师密码上传':'单人试炼 · 通过关数 · 全球纪录';
+    const cap=$('#lb-cap');
     const up=$('#lb-upbest');if(up)up.style.display=isClass?'none':''; // 课堂榜由老师在结算页密码上传
-    const daysBar=$('#lb-days');
+    const daysBar=$('#lb-days'),catsBar=$('#lb-cats');
     if(isClass){ // 课堂榜：按周赛季，选周看那周
       const weeks=getClassWeeks();
       if(daysBar){daysBar.style.display='flex';
         daysBar.innerHTML=weeks.map((wk,i)=>`<button class="btn mini lb-day${i?'':' gold'}" data-day="${wk}">${i===0?'本周 ':''}${fmtWeek(wk)}</button>`).join('');
         daysBar.querySelectorAll('.lb-day').forEach(b=>b.onclick=()=>{
           daysBar.querySelectorAll('.lb-day').forEach(x=>x.classList.remove('gold'));
-          b.classList.add('gold');fetchDay(b.dataset.day,'♛')});}
-      fetchDay(weeks[0],'♛'); // 默认本周
-    }else{ if(daysBar)daysBar.style.display='none'; fetchDay(d,'关'); }
+          b.classList.add('gold');curCat=0;showWeek(b.dataset.day)});}
+      curCat=0; showWeek(weeks[0]); // 默认本周·荣耀榜
+    }else{ if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
+      if(cap)cap.textContent='单人试炼 · 通过关数 · 全球纪录'; fetchDay(d,FMT.solo); }
   };
   document.querySelectorAll('.lbtab').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('.lbtab').forEach(x=>x.classList.remove('gold'));
@@ -3560,7 +3624,7 @@ function finale(){
   clearSave();
   // 多人课堂榜上传按钮（LB_ON 才显示；roster 即刻闭包捕获，clearSave 后不依赖 S）
   const cbtn=$('#btn-classup');
-  if(cbtn){ if(LB_ON){const roster=sorted.map(p=>({name:p.name,crowns:p.crowns}));
+  if(cbtn){ if(LB_ON){const roster=sorted.map(p=>({name:p.name,crowns:p.crowns,wins:p.wins,coins:p.coins,relics:(p.relics&&p.relics.length)||0,power:Math.min(999,armyPower(p)),glory:gloryScore(p)}));
       cbtn.style.display='';cbtn.disabled=false;cbtn.textContent='上传课堂榜';
       cbtn.onclick=()=>classUploadPrompt(roster);
     } else cbtn.style.display='none'; }
