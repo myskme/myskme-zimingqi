@@ -1,7 +1,7 @@
 name: 自鸣棋自检
 
 # 改了游戏(index.html)或自检脚本并 push → headless 跑 #selftest；挂了 → 本 job 失败 → GitHub 邮件通知。
-# 让"游戏改坏了"在学生玩之前先被抓到（Pages 是 push 即上线、本身没验证）。
+# 让“游戏改坏了”在学生玩之前先被抓到（Pages 是 push 即上线、本身没验证）。
 on:
   push:
     branches: [main]
@@ -20,5 +20,5 @@ jobs:
           node-version: '20'
       - run: npm i --no-save playwright@^1.48.0
       - run: npx playwright install --with-deps chromium
-      - name: 跑 #selftest（172 项等·挂了就失败）
+      - name: 跑 #selftest（自动读取总数 · 挂了就失败）
         run: node selftest.mjs
