@@ -1229,6 +1229,7 @@ const ART={
   // 单位立绘（512×768 竖版）
   zi:'unit-zi.webp',     zeng:'unit-zeng.webp', // 初代双璧（S2E5·0710 交付）
   jin:'image2-characters-20260713/unit-jin.webp', han:'image2-characters-20260713/unit-han.webp', hao:'image2-characters-20260713/unit-hao.webp', // 批⑮正典补全
+  card_jin:'image2-characters-20260713/unit-jin.webp', card_han:'image2-characters-20260713/unit-han.webp', card_hao:'image2-characters-20260713/unit-hao.webp', // 新角色档案复用正式立绘，避免请求不存在的旧卡
   majun:'unit-majun.webp', xi:'unit-xi.webp',   jia:'unit-jia.webp', // 批⑬三人（复用本地资源包 alpha/web 源合成，零 Codex）
   lin:'unit-lin.webp',   yin:'unit-yin.webp',   lu:'unit-lu.webp',     wolf:'unit-wolf.webp',
   guard:'unit-guard.webp', carter:'unit-carter.webp',
@@ -1263,10 +1264,10 @@ const ART={
   bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260713d'; // Codex Image 2：正典新角色首批；d=瑾赤狐少女正式版
+const ART_VER='20260713e'; // Codex Image 2：正典新角色首批；e=档案页零 404 映射
 function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
   return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
-function cardURL(id){const u=ART_DIR+'card-'+id+'.webp';
+function cardURL(id){const u=ART_DIR+(ART['card_'+id]||('card-'+id+'.webp'));
   return location.protocol!=='file:'?u+'?v='+ART_VER:u}
 // 返回内嵌 <img>，加载失败自动移除自己（露出下层字形徽章）
 function artTag(key,cls){const u=artURL(key);
@@ -2668,7 +2669,7 @@ function runSelftest(){
     UMAP['jin'].skill.k==='firstCrit'&&UMAP['jin'].n==='瑾'&&
     UMAP['han'].skill.k==='shieldAll'&&UMAP['han'].skill.v===1&&
     UMAP['hao'].taunt===true&&UMAP['hao'].skill.k==='shieldSelf'&&UMAP['hao'].hp===13);
-  ok('新角色美术全部走版本子目录', ['jin','han','hao'].every(id=>/^image2-characters-20260713\/unit-/.test(ART[id]||'')));
+  ok('新角色立绘与档案图全部走版本子目录', ['jin','han','hao'].every(id=>/^image2-characters-20260713\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]));
   ok('旧 v1 存档仍可续局（新增单位不迁移 schema）', !!validSave({v:1,players:[{army:[{uid:1,id:'lin',star:1,gAtk:0,gHp:0}]}]}));
   // —— 批⑪ 第二羁绊轴（打法轴：破云之矢 / 不退之誓）——
   {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'b'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
