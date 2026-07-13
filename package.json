@@ -1,0 +1,11 @@
+{
+  "name": "myskme-zimingqi",
+  "private": true,
+  "description": "自鸣棋自检 CI 工具（仅 CI 用；游戏 index.html 本身零依赖）",
+  "devDependencies": {
+    "playwright": "^1.48.0"
+  },
+  "scripts": {
+    "selftest": "node selftest.mjs"
+  }
+}
