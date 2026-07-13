@@ -378,7 +378,9 @@ body.playing #hud{display:flex}
 .u.final-blow{animation:finalBlow .9s cubic-bezier(.16,1,.3,1)}
 @keyframes finalBlow{0%{transform:scale(1)}30%{transform:scale(1.14);filter:brightness(1.8)}100%{transform:scale(1)}}
 #relic-shelf{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.relic-chip{border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px;letter-spacing:.1em;cursor:help}
+.relic-chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px 3px 5px;letter-spacing:.1em;cursor:help;background:rgba(4,8,12,.32)}
+.relic-art{width:28px;height:28px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.62))}
+.relic-detail-art{display:block;width:min(180px,54vw);height:min(180px,54vw);object-fit:contain;margin:4px auto 16px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.65))}
 /* 羁绊进度（让"发现协同"可见）：未激活灰 / 2档紫 / 大档金晕 */
 #bond-shelf{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:9px;align-items:center}
 .bond-lab{color:var(--ink3);font-size:11px;letter-spacing:.24em}
@@ -535,9 +537,10 @@ body.playing #hud{display:flex}
 #scene{position:fixed;inset:0;z-index:0;pointer-events:none}
 #scene img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.8s ease}
 #scene img.show{opacity:.42}
-#title-kv{max-width:720px;margin:0 auto 26px;display:none}
+#title-kv{position:relative;max-width:960px;aspect-ratio:16/9;margin:0 auto 26px;display:none;overflow:hidden;background:#071118;border:1px solid var(--line);box-shadow:0 18px 54px rgba(0,0,0,.52)}
 #title-kv.show{display:block;animation:scrIn .8s both}
-#title-kv img{width:100%;display:block;border:1px solid var(--line);box-shadow:0 14px 44px rgba(0,0,0,.45)}
+#title-kv::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 80px rgba(0,0,0,.38);background:linear-gradient(180deg,transparent 62%,rgba(4,8,12,.24))}
+#title-kv img{width:100%;height:100%;display:block;object-fit:cover}
 .badge .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;z-index:2}/* 42% 聚焦脸/上半身：把不少立绘顶部的金色光环推出框，避免小徽章里裁成「金色斜块」 */
 .u .face{position:relative;height:112px;margin:-8px -4px 3px;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.35);
   -webkit-mask:linear-gradient(#000 80%,transparent);mask:linear-gradient(#000 80%,transparent)}
@@ -546,9 +549,13 @@ body.playing #hud{display:flex}
 .ev-front .ev-art{position:absolute;inset:0;overflow:hidden;z-index:0}
 .ev-front .ev-art img{width:100%;height:100%;object-fit:cover;opacity:.26}
 .ev-front h3,.ev-front p,.ev-front .ev-icon{position:relative;z-index:1}
-#boss-art{width:min(280px,56vw);margin:0 auto 16px;display:none}
+#boss-art{width:min(330px,60vw);margin:0 auto 12px;display:none}
 #boss-art.show{display:block;animation:scrIn .8s both}
-#boss-art img{width:100%;display:block;border:1px solid rgba(157,114,214,.55);box-shadow:0 0 44px rgba(157,114,214,.35)}
+#boss-art img{width:100%;max-height:40vh;display:block;object-fit:contain;filter:drop-shadow(0 13px 22px rgba(0,0,0,.72)) drop-shadow(0 0 24px rgba(157,114,214,.28))}
+#final-art{position:relative;width:min(920px,100%);aspect-ratio:16/9;margin:18px auto 24px;display:none;overflow:hidden;background:#071118;border:1px solid var(--gold3);box-shadow:0 18px 54px rgba(0,0,0,.5)}
+#final-art.show{display:block;animation:scrIn .8s both}
+#final-art::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 68%,rgba(4,8,12,.42));box-shadow:inset 0 0 70px rgba(0,0,0,.28)}
+#final-art img{width:100%;height:100%;display:block;object-fit:cover}
 
 @media (max-width:760px){
   main{padding:12px 10px 40px}
@@ -564,6 +571,9 @@ body.playing #hud{display:flex}
   .bunit .bmove button{padding:8px 12px;font-size:13px}
   .bunit .bmove button .ico{width:14px;height:14px}
   .bunit .bmove .bx{margin-left:5px}
+  #title-kv{margin-bottom:20px}
+  .relic-chip{min-height:32px;padding-right:8px;gap:5px}
+  .relic-art{width:24px;height:24px}
 }
 /* 投屏大字档：≥1100px（教室 1080p 投影 4 米外，后排要能读技能与播报） */
 @media (min-width:1100px){
@@ -788,6 +798,7 @@ body.playing #hud{display:flex}
   <section class="scr" id="scr-final">
     <h2 class="sec">加 冕 · <em>王 座</em></h2>
     <p class="sub">断云之上，尘埃落定</p>
+    <div id="final-art" aria-hidden="true"><img alt="" loading="lazy" decoding="async"></div>
     <div id="podium"></div>
     <div id="report-wrap"><canvas id="report-canvas" width="1000" height="1400"></canvas></div>
     <div class="btnrow">
@@ -1203,8 +1214,8 @@ const BGM=(function(){
 
 /* ============================================================
    美术资源映射层
-   Codex 出图后放进 assets/ 即自动生效；缺图自动回退字形徽章。
-   文件名与《Codex 美术生产指令》清单一一对应，不要改名。
+   Codex / Claude 资产统一走版本子目录；缺图自动回退字形徽章。
+   每批资产先记入 AI-COLLABORATION.md，再接线并 bump ART_VER。
    ============================================================ */
 const ART_DIR='assets/';
 const ART={
@@ -1219,9 +1230,9 @@ const ART={
   wan:'unit-wan.webp',   xuan:'unit-xuan.webp', hui:'unit-hui.webp',   hang:'unit-hang.webp',
   yue:'unit-yue.webp',   duo:'unit-duo.webp',   wen:'unit-wen.webp',   xiao:'unit-xiao.webp',
   // Boss 与幽灵军（512×768）
-  yewang:'boss-yewang.webp',
+  yewang:'image2-system-20260713/boss-yewang.webp',
   g1:'ghost-raider.webp', g2:'ghost-guard.webp', g3:'ghost-armor.webp',
-  g4:'ghost-whisper.webp', g5:'boss-professor.webp', g6:'boss-echo.webp',
+  g4:'ghost-whisper.webp', g5:'image2-system-20260713/boss-professor.webp', g6:'image2-system-20260713/boss-echo.webp',
   // 遗物图标（256×256，透明底）
   relic_teapot:'relic-teapot.webp', relic_astro:'relic-astro.webp', relic_tassel:'relic-tassel.webp',
   relic_letter:'relic-letter.webp', relic_shards:'relic-shards.webp', relic_ruler:'relic-ruler.webp',
@@ -1239,10 +1250,12 @@ const ART={
   ev_forge:'event-forge.webp', ev_bulwark:'event-bulwark.webp',
   ev_desk:'event-desk.webp', ev_thorn:'event-thorn.webp', ev_lantern:'event-lantern.webp',
   // 场景（1600×900 横版）
-  title:'title-kv.webp', bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
+  title:'image2-system-20260713/title-kv-1600.webp', titleSmall:'image2-system-20260713/title-kv-800.webp',
+  ending:'image2-system-20260713/ending-coronation-1600.webp', endingSmall:'image2-system-20260713/ending-coronation-800.webp',
+  bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260712a'; // 批·系统级视觉整合：六系阵营统一视觉语言(纹章+色)+三幕签名光
+const ART_VER='20260713b'; // Codex Image 2：标题主视觉、加冕终局、正典首领与遗物图标接入
 function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
   return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
 function cardURL(id){const u=ART_DIR+'card-'+id+'.webp';
@@ -1250,6 +1263,16 @@ function cardURL(id){const u=ART_DIR+'card-'+id+'.webp';
 // 返回内嵌 <img>，加载失败自动移除自己（露出下层字形徽章）
 function artTag(key,cls){const u=artURL(key);
   return u?`<img class="${cls||'art'}" src="${u}" alt="" decoding="async" onerror="this.remove()">`:''}
+function relicArtTag(id,cls){return artTag('relic_'+id,cls||'relic-art')}
+function relicDetailHTML(r){return `${relicArtTag(r.id,'relic-detail-art')}<h3>${r.icon} ${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`}
+function showFinalArt(){
+  const wrap=$('#final-art');if(!wrap)return;
+  const large=artURL('ending'),small=artURL('endingSmall'),im=wrap.querySelector('img');
+  wrap.classList.remove('show');if(!large||!im)return;
+  im.onload=()=>wrap.classList.add('show');im.onerror=()=>wrap.classList.remove('show');
+  im.srcset=small?`${small} 800w, ${large} 1600w`:'';
+  im.sizes='(max-width:760px) 94vw, 920px';im.src=large;
+}
 // canvas 用：预载图片，1.2s 超时/失败/file协议（避免污染画布）都回退 null
 function loadArt(key){return new Promise(res=>{
   const u=artURL(key);
@@ -1995,11 +2018,11 @@ function renderBench(p){
     bx.appendChild(d);
   });
   $('#relic-shelf').innerHTML=p.relics.map(rid=>{const r=RMAP[rid];
-    return `<span class="relic-chip" data-rid="${rid}" title="${r.t}">${r.icon} ${r.n}</span>`}).join('');
+    return `<span class="relic-chip" data-rid="${rid}" title="${r.t}">${relicArtTag(rid)}<span>${r.n}</span></span>`}).join('');
   // 触屏看不到 title 悬停——点 chip 弹详情
   $$('#relic-shelf .relic-chip[data-rid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.rid];
-      modal(`<h3>${r.icon} ${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`)}});
+      modal(relicDetailHTML(r))}});
   renderBonds(p);
   // 被叶王收走的单位 · 赎回
   if(S.captured&&S.captured.pi===p.i){
@@ -3493,6 +3516,7 @@ async function showLbHall(){
 function soloBest(){try{return JSON.parse(localStorage.getItem('zmq_solobest')||'{}')}catch(e){return {}}}
 function soloEnd(victory){
   S.phase='final';setPhase(victory?'加冕':'试炼结算');
+  showFinalArt();
   const you=S.players[0], cleared=victory?S.round:Math.max(0,S.round-1);
   const best=soloBest(), key='d'+S.difficulty, prev=best[key]||0, isNew=cleared>prev;
   if(isNew){best[key]=cleared;try{localStorage.setItem('zmq_solobest',JSON.stringify(best))}catch(e){}}
@@ -3604,6 +3628,7 @@ function resolveBoss(){
 function finalSort(){return [...S.players].sort((a,b)=>b.crowns-a.crowns||b.coins-a.coins||b.wins-a.wins)}
 function finale(){
   S.phase='final';setPhase('加冕');save();
+  showFinalArt();
   const sorted=finalSort();
   const pod=$('#podium');pod.innerHTML='';
   const medals=['壹','贰','叁']; // 碑铭方章，弃 emoji 奖牌
@@ -3890,14 +3915,14 @@ function showUnits(){
       </div>`).join('')+`</div>`;
   }).join('');
   const relics=`<div class="codex-relics">`+RELICS.map(r=>
-    `<span class="relic-chip" data-crid="${r.id}" title="${r.t}">${r.icon} ${r.n}</span>`).join('')+`</div>`;
+    `<span class="relic-chip" data-crid="${r.id}" title="${r.t}">${relicArtTag(r.id)}<span>${r.n}</span></span>`).join('')+`</div>`;
   modal(`<h3>单位与遗物图鉴</h3>
     <p style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.1em">点立绘看完整档案与相克</p>
     ${rows}<h4 style="text-align:center;margin-top:22px">遗物（3 币 · 翻到才有 · 点看效果）</h4>${relics}`);
   $$('#modal-box .codex-u').forEach(el=>bindDetail(el,()=>showUnitDetail(el.dataset.uid)));
   $$('#modal-box .relic-chip[data-crid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.crid];
-      modal(`<h3>${r.icon} ${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`)}});
+      modal(relicDetailHTML(r))}});
 }
 $('#btn-howto').onclick=showHowto;
 $('#btn-menu').onclick=showMenu;
@@ -3910,10 +3935,12 @@ $('#btn-menu').onclick=showMenu;
   // 标题徽记=MYSKME 印章（居中一枚；原「鸣」字与大标题的鸣重复、角落双章冗余，已合并）
   try{const tm=$('#title-mark');if(tm){const im=new Image();im.alt='MYSKME';
     im.src=sealCanvas().toDataURL();tm.innerHTML='';tm.appendChild(im)}}catch(e){}
-  // 标题主视觉：assets/title-kv.webp 存在则亮出
+  // 标题主视觉：移动端优先 800w，桌面/投屏 1600w；缺图则保持原标题布局
   const kv=$('#title-kv'),u=artURL('title');
   if(kv&&u){const im=kv.querySelector('img');
-    im.onload=()=>kv.classList.add('show');im.src=u}
+    const sm=artURL('titleSmall');
+    im.onload=()=>kv.classList.add('show');
+    im.srcset=sm?`${sm} 800w, ${u} 1600w`:'';im.sizes='(max-width:760px) 94vw, 960px';im.src=u}
   // 空闲预热立绘：标题页停留的几秒把24张单位图拉进缓存，首轮征募不再字形→立绘跳变
   if(location.protocol!=='file:'){
     const warm=()=>{try{UNITS.forEach(x=>{const u=artURL(x.id);if(u){const i=new Image();i.src=u}})}catch(e){}}; // 无图单位 artURL=null，别发 GET /null
