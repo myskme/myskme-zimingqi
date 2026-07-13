@@ -1083,9 +1083,11 @@ function closeModal(){$('#modal-veil').classList.remove('on')}
 $('#modal-veil').addEventListener('click',e=>{if(e.target.id==='modal-veil')closeModal()});
 
 /* ============================================================
-   音效层 · 零依赖 WebAudio 程序化合成（黑金编年史质感）
-   合成卷积混响 + 五声音阶(古琴/编钟) + 暖音正弦/三角 + 分层打击。
-   无外部资源、不循环 BGM（不干扰老师讲话）；静音状态存 localStorage。
+   音效层 · 混合架构（2026-07-14 升级）
+   物理声(按键/铸币/普攻/暴击/阵亡/翻卡)=真实录音样本(Kenney CC0,assets/sfx/)
+   —— 多变体随机 + ±4% 音高抖动防重复疲劳;暴击/阵亡/翻卡=录音瞬态+原合成微光双层。
+   音乐性提示音(合星/胜利/加冕/首领/暴走/治疗/护盾/复活/失利)=保留五声编钟合成(黑金身份音)。
+   加载失败/未加载/file:: 一律回退合成 —— 永远有声。静音状态存 localStorage。
    ============================================================ */
 const SFX=(function(){
   let ctx=null, master=null, verb=null, wet=null, muted=(localStorage.getItem('zmq_mute')==='1');
@@ -1103,7 +1105,7 @@ const SFX=(function(){
     return true;
   }
   function ac(){ if(!ctx){ try{ if(!build())ctx=null }catch(e){ctx=null} } return ctx }
-  function unlock(){ const c=ac(); if(c&&c.state==='suspended')c.resume() }
+  function unlock(){ const c=ac(); if(c&&c.state==='suspended')c.resume(); loadReal() }
   // 单个"嗓音"：柔和包络 + 低通 + 送混响。o={f,f2,dur,type,vol,atk,cut,when,send,detune}
   function voice(o){
     const c=ac(); if(!c||muted)return;
@@ -1167,11 +1169,42 @@ const SFX=(function(){
     // 失利：柔和下行二音
     lose(){ voice({f:P.E4,dur:0.3,type:'triangle',vol:0.10,cut:1600,send:0.5}); voice({f:P.C4,dur:0.5,type:'triangle',vol:0.10,when:0.12,cut:1400,send:0.6}) },
   };
+  /* —— 真实录音层(Kenney CC0 · 详见 assets/sfx/kenney-20260714/LICENSE-音效授权.txt) —— */
+  const REAL_DIR='assets/sfx/kenney-20260714/';
+  const REAL_FILES={click:4,coin:2,hit:5,crit:5,kill:5,reveal:3}; // key→变体数,文件 key_i.m4a
+  const REAL_GAIN={click:0.40,coin:0.50,hit:0.60,crit:0.66,kill:0.58,reveal:0.45};
+  const REAL_LAYER={crit:1,kill:1,reveal:1}; // 这些键=录音+合成叠层;其余命中录音则替换合成
+  let realBufs={}, realEls=null, realKicked=false;
+  function loadReal(){ if(realKicked)return; realKicked=true;
+    try{
+      if(location.protocol==='file:'){ realEls={}; // file:: fetch被CORS拦 → HTMLAudio 池
+        Object.keys(REAL_FILES).forEach(k=>{ realEls[k]=[];
+          for(let i=0;i<REAL_FILES[k];i++){ const a=new Audio(REAL_DIR+k+'_'+i+'.m4a'); a.preload='auto'; realEls[k].push(a) } });
+        return; }
+      const c=ac(); if(!c)return;
+      Object.keys(REAL_FILES).forEach(k=>{ realBufs[k]=[];
+        for(let i=0;i<REAL_FILES[k];i++)
+          fetch(REAL_DIR+k+'_'+i+'.m4a').then(r=>r.ok?r.arrayBuffer():Promise.reject(0))
+            .then(ab=>c.decodeAudioData(ab)).then(b=>{realBufs[k].push(b)}).catch(()=>{});
+      });
+    }catch(e){}
+  }
+  function playReal(n){ // 命中真实样本→true;false=让合成兜底
+    const jit=0.96+Math.random()*0.08, g=REAL_GAIN[n]||0.5;
+    if(realEls){ const arr=realEls[n]; if(!arr||!arr.length)return false;
+      try{ const a=arr[(Math.random()*arr.length)|0].cloneNode(); a.volume=Math.min(1,g); a.playbackRate=jit; a.play(); return true }catch(e){ return false } }
+    const c=ac(), arr=realBufs[n]; if(!c||!arr||!arr.length)return false;
+    const src=c.createBufferSource(); src.buffer=arr[(Math.random()*arr.length)|0]; src.playbackRate.value=jit;
+    const gg=c.createGain(); gg.gain.value=g; src.connect(gg); gg.connect(master);
+    if(verb){ const sd=c.createGain(); sd.gain.value=(n==='reveal'?0.25:0.12); gg.connect(sd); sd.connect(verb) } // 少量殿堂混响融入黑金氛围
+    src.start(); return true;
+  }
   return {
-    play(n){ try{ if(!muted&&lib[n])lib[n]() }catch(e){} },
+    play(n){ try{ if(muted)return; const real=REAL_FILES[n]?playReal(n):false; if(!real||REAL_LAYER[n]){ if(lib[n])lib[n]() } }catch(e){} },
     unlock,
     toggle(){ muted=!muted; localStorage.setItem('zmq_mute',muted?'1':'0'); if(!muted)unlock(); return muted },
     isMuted(){ return muted },
+    _real(){ return {files:REAL_FILES,gain:REAL_GAIN,layer:REAL_LAYER,synth:Object.keys(lib)} },
   };
 })();
 
@@ -2936,6 +2969,11 @@ function runSelftest(){
    ok('锁牌库：快照 JSON 往返存活(撤销栈/存档兼容)',
      JSON.parse(JSON.stringify({lock:{offers:[{type:'unit',id:'a'}],sold:[false,true]}})).lock.sold[1]===true);
    S=_S3;}
+  // —— 音效混合层（2026-07-14 真实录音升级）——
+  {const r=SFX._real();
+   ok('音效: 6个真实录音键变体数>0且有对应文件命名', ['click','coin','hit','crit','kill','reveal'].every(k=>r.files[k]>=2||r.files[k]>=1)&&Object.values(r.files).every(n=>n>0));
+   ok('音效: 叠层键(crit/kill/reveal)都有合成身份层兜底', Object.keys(r.layer).every(k=>r.synth.includes(k)));
+   ok('音效: 真实键全部有合成回退+增益在(0,1]', Object.keys(r.files).every(k=>r.synth.includes(k)&&r.gain[k]>0&&r.gain[k]<=1));}
   // —— 批⑩ 平衡探针（固定种子胜率带宽 · 现状指纹）——
   // 带宽取 2026-07-10 实测值 ± 宽容带。红了≠一定坏，是「有人动了平衡，来看一眼」的铃铛。
   // 已知现状（探针锚住而非掩盖）：①学院盾体系同费最强(实测100%) ②swing/novice 为经济/成长系,单场对局天然低（价值在经济层）③solo 中后期相对偏软(曲线递增)。

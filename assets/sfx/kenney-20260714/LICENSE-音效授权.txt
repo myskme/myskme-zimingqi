@@ -1,0 +1,14 @@
+自鸣棋 · 真实录音音效 · 授权凭证
+================================
+来源: Kenney (kenney.nl) 游戏素材包 · License: CC0 1.0 Universal(公有领域,可商用、免署名、可修改)
+获取日期: 2026-07-14 · 处理: 掐头去尾静音+峰值归一-1dBFS+AAC 96kbps(m4a)
+
+文件对应(目标名 ← 原包/原文件):
+- click_0..3  ← Interface Sounds / click_001, select_001, select_002, toggle_001
+- coin_0..1   ← RPG Audio / handleCoins, handleCoins2
+- hit_0..4    ← Impact Sounds / impactPunch_medium_000..004
+- crit_0..4   ← Impact Sounds / impactPunch_heavy_000..004
+- kill_0..4   ← Impact Sounds / impactSoft_heavy_000..004
+- reveal_0..2 ← Casino Audio / card-slide-1..3
+
+包下载页: kenney.nl/assets/{impact-sounds, interface-sounds, rpg-audio, casino-audio}

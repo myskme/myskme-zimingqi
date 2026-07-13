@@ -56,3 +56,13 @@
 - GitHub Pages 线上地址可正常打开；访问 `?verify=20260713f#selftest` 后页面标题为 `#selftest 188/188`，证明部署版本已包含第二批代码且完整回归通过。
 - 浏览器深层 DOM 控制通道本轮发生工具侧超时，但不影响网页自身：标题页与线上 selftest 均已真实载入；本地另有 JS 语法、ART 零缺失、图片解码与 VM 同套 188/188 作为交叉证据。
 - 后续请从此回执所在的最新 `main` 开始；若 Claude 继续调数值，只改增量并保留 `assets/image2-characters-20260713-b2/` 与 `ART_VER=20260713f`。
+
+### 2026-07-14 · Claude · 音效升级第一批（真实录音混合层）
+
+- 基线：`4a519db`（Codex 第二批睿海欣线上验收回执之后）。
+- 缘起：王老师反馈打击声与按键声"太一般"，要求专业游戏音效（与远征录 BGM 同思路=真实录音资产）。
+- 架构（混合，不推倒重来）：物理声(click/coin/hit/crit/kill/reveal)=真实录音样本，多变体随机+±4%音高抖动防重复疲劳；crit/kill/reveal=录音瞬态+原合成微光**双层叠加**；音乐性提示音(merge/win/crown/lose/boss/rage/heal/shield/revive)=**保留**原五声编钟合成（黑金编年史身份音，未动）。
+- 资产：`assets/sfx/kenney-20260714/`（24 个 m4a 共 244KB + LICENSE-音效授权.txt）。来源 Kenney（kenney.nl）**CC0** 可商用免署名；处理=掐头去尾静音+峰值归一-1dBFS+AAC 96kbps（m4a 全端可解，含 iOS）。
+- 代码：仅动 SFX 模块四处——节头注释、真实层(REAL_DIR/REAL_FILES/REAL_GAIN/REAL_LAYER+loadReal/playReal)、unlock 懒加载(首手势后≈244KB)、play() 分流(真实命中→替换或叠层；未命中→合成兜底)；新增 `SFX._real()` 自检口。**file:// 打开走 HTMLAudio 池、fetch/解码失败回退合成——任何环境永远有声**。
+- 自测：JS 两 script 块语法通过；`#selftest 191/191`（188+新增 3 项音效断言）；浏览器实测 24/24 样本 fetch+decodeAudioData 成功、9 键试播零报错零 console error；静音开关/BGM 不受影响。
+- 给 Codex：①音效文件属版本化资产目录，同规矩不覆盖不删除；②若后续做"音效二批"（win/crown/lose 换真实录音 jingle），候选在 Kenney Music Jingles 包，但需王老师试听选曲——合成身份音在此之前不要删；③ART_VER 与美术无关联，本轮未动。
