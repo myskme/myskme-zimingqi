@@ -884,6 +884,9 @@ const UNITS = [
   skill:{k:'shieldAll', v:1, t:'笔记供应：开战时全队获得 1 护盾'}, lore:'帝企鹅少女。把每一场坚持，都记成下一场的起点'},
  {id:'hao',  n:'浩',   fac:'academy', cost:3, atk:2, hp:13, spd:2, rar:'SSR', w:6,  taunt:true, beast:'牛',
   skill:{k:'shieldSelf', v:3, t:'反弹之墙：开战时自身获得 3 护盾'}, lore:'原牛少年。最好的防守，是从不冒犯'},
+ // 正典补全批⑯：欣保留学院身份，但不挂嘲讽，避免与浩共同推高「不退之誓」成型率。
+ {id:'xin',  n:'欣',   fac:'academy', cost:2, atk:1, hp:7,  spd:4, rar:'R',   w:9,  beast:'界',
+  skill:{k:'revive1', t:'站起八次：首次阵亡时以一半生命复起'}, lore:'刺猬少女。无声耳机守住边界，跌倒七次，也会站起来八次'},
  // —— 天之国系 ——
  {id:'nuo',  n:'诺',   fac:'sky',     cost:3, atk:4, hp:6,  spd:7, rar:'SSR', w:7,  tg:'pierce', beast:'枭',
   skill:{k:'snipeBack', v:3, t:'开战时：狙击敌方最后排 3 伤'}, lore:'小猫头鹰。每天看天，看另一边的云'},
@@ -895,6 +898,8 @@ const UNITS = [
   skill:{k:'none', t:'无技能。全场最快，命最薄'}, lore:'脚环上系过一片紫色蛇鳞'},
  {id:'jia',  n:'佳',   fac:'sky',     cost:2, atk:3, hp:5,  spd:5, rar:'SR',  w:8,  beast:'问',
   skill:{k:'probeCore', v:4, t:'探问：开战时，敌方生命最高的单位受 4 伤'}, lore:'丹顶鹤。边境沼泽一去不返，她的问题总是最准的那一个'},
+ {id:'rui',  n:'睿',   fac:'sky',     cost:3, atk:5, hp:6,  spd:4, rar:'SSR', w:5,  beast:'题',
+  skill:{k:'firstPlus', v:3, t:'睿之解题：首次攻击额外 +3 伤害'}, lore:'雪豹少年。银框眼镜后的每一道难题，都有唯一落点'},
  // —— 海族系 ——
  {id:'yu',   n:'屿',   fac:'sea',     cost:3, atk:4, hp:7,  spd:5, rar:'SSR', w:7,  beast:'潮',
   skill:{k:'splashDeath', v:2, t:'阵亡时：爆炸炮弹，敌方全体 2 伤'}, lore:'翻车鱼少年。炮弹锁在角落，是提醒'},
@@ -902,6 +907,8 @@ const UNITS = [
   skill:{k:'pairYu', v:2, t:'开战时：若屿在场，兄弟二人各 +2 攻'}, lore:'屿的哥哥，浪来了先站在前面'},
  {id:'mist', n:'海雾行者',fac:'sea',  cost:2, atk:2, hp:8,  spd:4, rar:'R',   w:10, beast:'雾',
   skill:{k:'slowFast', v:2, t:'开战时：敌方最快单位 -2 速'}, lore:'从上岸那天起就没干过'},
+ {id:'hai',  n:'海',   fac:'sea',     cost:3, atk:3, hp:8,  spd:6, rar:'SSR', w:5,  beast:'舞',
+  skill:{k:'slowFast', v:2, t:'海之节拍：开战震荡敌方最快单位 -2 速度'}, lore:'驼鹿少女。橙围巾一扬，整支队伍就找回自己的节拍'},
  // —— 摇摆队④ ——
  {id:'wei',  n:'炜',   fac:'swing',   cost:1, atk:2, hp:5,  spd:4, rar:'R',   w:11, beast:'衡',
   skill:{k:'none', t:'无技能。阵营未定，价格好谈'}, lore:'摇摆队④。谁赢帮谁'},
@@ -1230,6 +1237,8 @@ const ART={
   zi:'unit-zi.webp',     zeng:'unit-zeng.webp', // 初代双璧（S2E5·0710 交付）
   jin:'image2-characters-20260713/unit-jin.webp', han:'image2-characters-20260713/unit-han.webp', hao:'image2-characters-20260713/unit-hao.webp', // 批⑮正典补全
   card_jin:'image2-characters-20260713/unit-jin.webp', card_han:'image2-characters-20260713/unit-han.webp', card_hao:'image2-characters-20260713/unit-hao.webp', // 新角色档案复用正式立绘，避免请求不存在的旧卡
+  rui:'image2-characters-20260713-b2/unit-rui.webp', hai:'image2-characters-20260713-b2/unit-hai.webp', xin:'image2-characters-20260713-b2/unit-xin.webp', // 批⑯正典补全第二批
+  card_rui:'image2-characters-20260713-b2/unit-rui.webp', card_hai:'image2-characters-20260713-b2/unit-hai.webp', card_xin:'image2-characters-20260713-b2/unit-xin.webp', // 详情页复用正式立绘，零 404
   majun:'unit-majun.webp', xi:'unit-xi.webp',   jia:'unit-jia.webp', // 批⑬三人（复用本地资源包 alpha/web 源合成，零 Codex）
   lin:'unit-lin.webp',   yin:'unit-yin.webp',   lu:'unit-lu.webp',     wolf:'unit-wolf.webp',
   guard:'unit-guard.webp', carter:'unit-carter.webp',
@@ -1264,7 +1273,7 @@ const ART={
   bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260713e'; // Codex Image 2：正典新角色首批；e=档案页零 404 映射
+const ART_VER='20260713f'; // Codex Image 2：正典新角色第二批（睿 / 海 / 欣）
 function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
   return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
 function cardURL(id){const u=ART_DIR+(ART['card_'+id]||('card-'+id+'.webp'));
@@ -2361,7 +2370,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   function processDeaths(){
     while(deathQ.length){
       const f=deathQ.shift();const s=dieSideOf(f);
-      // 复读机复活
+      // 一次复起：复读机 / 欣共用已验证分支
       if(f.skill.k==='revive1'&&!f.usedRevive){f.usedRevive=true;f.alive=true;
         f.hp=Math.ceil(f.maxhp/2);log.push({t:'revive',d:f.uid});continue}
       // 蛇蜕（叶王专属旗标，与技能槽正交）：首死原地蜕皮——50% 血复活、攻击 +2，一单位一复活（与复读机共用 usedRevive 不变量）
@@ -2651,7 +2660,7 @@ function runSelftest(){
    ok('单人终战见习缩放咬合新基线（hp12/atk6/shed 随展开继承）', sb.hp===12&&sb.atk===6&&sb.shed===1);}
   ok('印章副行映射：胜方恒空/败方分档', bossStampSub(true,true)===''&&bossStampSub(false,true)==='曾破一形'&&bossStampSub(false,false)==='');
   // —— S2E5 初代双璧（梓/增） ——
-  ok('UNITS=32 且梓/增数据锚(UR穿透/SSR嘲讽/同属学院)', UNITS.length===32&&UMAP['zi'].rar==='UR'&&UMAP['zi'].tg==='pierce'&&UMAP['zeng'].taunt===true&&UMAP['zi'].fac==='academy'&&UMAP['zeng'].fac==='academy');
+  ok('UNITS=35 且梓/增数据锚(UR穿透/SSR嘲讽/同属学院)', UNITS.length===35&&UMAP['zi'].rar==='UR'&&UMAP['zi'].tg==='pierce'&&UMAP['zeng'].taunt===true&&UMAP['zi'].fac==='academy'&&UMAP['zeng'].fac==='academy');
   {const mk=ids=>ids.map(id=>({uid:uidSeq++,id,star:1,gAtk:0,gHp:0}));
    const dummy=()=>ghostFighters([{id:'d',n:'靶',glyph:'靶',atk:1,hp:40,spd:1,skill:{k:'none'}}]);
    const A1=buildFighters({army:mk(['zi','guard']),relics:[]},{});
@@ -2671,6 +2680,38 @@ function runSelftest(){
     UMAP['hao'].taunt===true&&UMAP['hao'].skill.k==='shieldSelf'&&UMAP['hao'].hp===13);
   ok('新角色立绘与档案图全部走版本子目录', ['jin','han','hao'].every(id=>/^image2-characters-20260713\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]));
   ok('旧 v1 存档仍可续局（新增单位不迁移 schema）', !!validSave({v:1,players:[{army:[{uid:1,id:'lin',star:1,gAtk:0,gHp:0}]}]}));
+  // —— 批⑯ 正典新角色第二批（睿 / 海 / 欣）——
+  ok('第二批数据锚：睿重击 / 海控速 / 欣半血复起',
+    UMAP['rui'].fac==='sky'&&UMAP['rui'].skill.k==='firstPlus'&&UMAP['rui'].skill.v===3&&
+    UMAP['hai'].fac==='sea'&&UMAP['hai'].skill.k==='slowFast'&&UMAP['hai'].skill.v===2&&
+    UMAP['xin'].fac==='academy'&&UMAP['xin'].skill.k==='revive1'&&UMAP['xin'].rar==='R');
+  ok('第二批正典性别与物种锚进入 lore',
+    /雪豹少年/.test(UMAP['rui'].lore)&&/驼鹿少女/.test(UMAP['hai'].lore)&&/刺猬少女/.test(UMAP['xin'].lore));
+  ok('第二批立绘与档案图全部走独立版本子目录', ['rui','hai','xin'].every(id=>
+    /^image2-characters-20260713-b2\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]));
+  ok('35 个角色 id 全部唯一', new Set(UNITS.map(u=>u.id)).size===35);
+  ok('第二批不扩穿透/嘲讽轴（浩强度不被间接抬高）', ['rui','hai','xin'].every(id=>
+    !UMAP[id].tg&&!UMAP[id].taunt)&&BONDS.pierce.ids.length===5&&BONDS.vanguard.ids.length===5);
+  {const totalW=UNITS.reduce((n,u)=>n+u.w,0),academyW=UNITS.filter(u=>u.fac==='academy').reduce((n,u)=>n+u.w,0);
+   ok('学院基础抽取权重低于32%（第二批分流守卫）', academyW/totalW<.32);}
+  {const R=buildFighters(parmy('rui'),{});
+   const D=ghostFighters([{id:'rtest',n:'题靶',glyph:'题',atk:1,hp:80,spd:1,skill:{k:'none'}}]);
+   const rr=simulateBattle(R,D,{},{},mulberry32(41),{});
+   const hit=rr.log.filter(e=>e.t==='dmg'&&e.s===R[0].uid&&e.tag==='攻击');
+   ok('睿之解题：首击 5+3=8、第二击恢复 5', hit.length>=2&&hit[0].amt===8&&hit[1].amt===5);
+   ok('睿之解题随星步进：★★★ v=5', skillFor(UMAP['rui'],3).v===5);}
+  {const H=buildFighters(parmy('hai'),{});
+   const D=ghostFighters([{id:'fast',n:'快',glyph:'快',atk:1,hp:80,spd:9,skill:{k:'none'}},
+     {id:'slow',n:'慢',glyph:'慢',atk:1,hp:80,spd:5,skill:{k:'none'}}]);
+   simulateBattle(H,D,{},{},mulberry32(43),{});
+   ok('海之节拍：只把最快敌人 9→7，另一名保持5', D.find(x=>x.id==='fast').spd===7&&D.find(x=>x.id==='slow').spd===5);
+   ok('海之节拍随星步进：★★★ v=4', skillFor(UMAP['hai'],3).v===4);}
+  {const X=buildFighters(parmy('xin'),{});
+   const D=ghostFighters([{id:'hammer',n:'重锤',glyph:'锤',atk:20,hp:100,spd:9,skill:{k:'none'}}]);
+   const xr=simulateBattle(X,D,{seaTier:1,diary:true},{},mulberry32(47),{});
+   ok('欣首次阵亡恰复起一次、第二次正常结算', xr.log.filter(e=>e.t==='revive'&&e.d===X[0].uid).length===1&&xr.log.filter(e=>e.t==='die'&&e.d===X[0].uid).length===1&&xr.winner===1);
+   ok('欣的假死不触发阵亡连锁（海雾/日记各仅真死1次）', xr.log.filter(e=>e.tag==='海雾').length===1&&xr.coinsGain[0]===1);
+   ok('站起八次不随星增加复起次数', !SKILL_SV['revive1']);}
   // —— 批⑪ 第二羁绊轴（打法轴：破云之矢 / 不退之誓）——
   {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'b'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
    ok('成员由 tg/taunt 派生：穿透5人·全 tg=pierce', BONDS.pierce.ids.length===5&&BONDS.pierce.ids.every(id=>UMAP[id].tg==='pierce'));
@@ -3906,7 +3947,8 @@ function showHowto(){
   黑域单位更强，但各有代价。叶王不可征募，她只在你们答错太多时，亲自来。<br><br>
   <b style="color:var(--gold2)">S2E5 · 初代双璧归来</b>：初代首徒<b>梓</b>（梅花鹿 · UR · 学生中唯一）与初代先锋<b>增</b>（黑熊 · SSR）已入征募池。
   梓的「先见」开战惠及全队；增在梓同场时会替她挡下第一击、自己也更猛——把他俩凑到一队，是这个夏天的构筑浪漫。<br><br>
-  <b style="color:var(--gold2)">正典补全 · 第一批</b>：赤狐少女<b>瑾</b>、帝企鹅少女<b>涵</b>、原牛少年<b>浩</b>已入征募池，分别补上学院的暴击输出、开战支援与嘲讽前排。`));
+  <b style="color:var(--gold2)">正典补全 · 第一批</b>：赤狐少女<b>瑾</b>、帝企鹅少女<b>涵</b>、原牛少年<b>浩</b>已入征募池，分别补上学院的暴击输出、开战支援与嘲讽前排。<br><br>
+  <b style="color:var(--gold2)">正典补全 · 第二批</b>：雪豹少年<b>睿</b>、驼鹿少女<b>海</b>、刺猬少女<b>欣</b>已入征募池，分别带来天之国首击重题、海族节拍控速与学院半血复起。三人均不增加穿透／嘲讽成员，避免旧羁绊无意膨胀。`));
 }
 function showMenu(){
   modal(`<h3>菜 单</h3>
@@ -3920,7 +3962,7 @@ function showMenu(){
   </div>`);
 }
 function showUnits(){
-  // 立绘网格图鉴：24张立绘就是最好的目录（文字墙时代结束）；点立绘进完整档案
+  // 单位立绘网格就是最好的目录（文字墙时代结束）；点立绘进完整档案
   const rows=Object.keys(FACS).map(fk=>{
     const us=UNITS.filter(u=>u.fac===fk);
     return `<h4 style="text-align:center;margin-top:20px">${FACS[fk].n}</h4>
@@ -3958,7 +4000,7 @@ $('#btn-menu').onclick=showMenu;
     const sm=artURL('titleSmall');
     im.onload=()=>kv.classList.add('show');
     im.srcset=sm?`${sm} 800w, ${u} 1600w`:'';im.sizes='(max-width:760px) 94vw, 960px';im.src=u}
-  // 空闲预热立绘：标题页停留的几秒把24张单位图拉进缓存，首轮征募不再字形→立绘跳变
+  // 空闲预热立绘：标题页停留的几秒把全部单位图拉进缓存，首轮征募不再字形→立绘跳变
   if(location.protocol!=='file:'){
     const warm=()=>{try{UNITS.forEach(x=>{const u=artURL(x.id);if(u){const i=new Image();i.src=u}})}catch(e){}}; // 无图单位 artURL=null，别发 GET /null
     ('requestIdleCallback' in window)?requestIdleCallback(warm,{timeout:3000}):setTimeout(warm,800);
