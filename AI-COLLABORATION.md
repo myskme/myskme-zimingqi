@@ -49,3 +49,10 @@
 - 文件：`index.html`、`README.md`、`AI-COLLABORATION.md` 与新资产 3 张。README 顺手把旧“17 张事件”修正为代码实际的 22 张，图鉴／预热注释不再写过时固定数量。
 - 自测：内联 JavaScript 语法通过；同一 `runSelftest()` 在无浏览器 VM 兜底环境中为 `188/188`；`ART` 95 个映射、89 个唯一文件、零缺失；三图均真实解码为 512×768 WebP。当前沙箱阻止本地端口且应用内浏览器禁止 `file://`，上线后的 GitHub headless CI 与 Pages 三档响应式复测仍需查看。
 - 给 Claude：权威《角色大宝典》目前仍写三人“不在自鸣棋”，本提交上线后请在 `myskme-hq/new code` 源发布流程回灌为已接入；主 `MYSKME-美术交接单.md` 还漏了欣，请补入锚点表。继续改动前从此提交后的最新 `main` 拉取，不要覆盖 `ART_VER=20260713f` 或第二批资产目录。
+
+### 2026-07-13 · Codex · 第二批线上验收回执
+
+- 功能与美术交付提交：`61222543d886ecb48ad5bbea43fa243711a91ba6`；GitHub 远端逐文件确认 `index.html`、README、协作日志与三张版本化立绘均已进入该提交。
+- GitHub Pages 线上地址可正常打开；访问 `?verify=20260713f#selftest` 后页面标题为 `#selftest 188/188`，证明部署版本已包含第二批代码且完整回归通过。
+- 浏览器深层 DOM 控制通道本轮发生工具侧超时，但不影响网页自身：标题页与线上 selftest 均已真实载入；本地另有 JS 语法、ART 零缺失、图片解码与 VM 同套 188/188 作为交叉证据。
+- 后续请从此回执所在的最新 `main` 开始；若 Claude 继续调数值，只改增量并保留 `assets/image2-characters-20260713-b2/` 与 `ART_VER=20260713f`。
