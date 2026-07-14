@@ -188,3 +188,14 @@
 - 自测抓出我两个真 bug(非断言错):RELIC_TIER 漏 mask/dustbag/card 却写了 3 个不存在的 id;lifeLoss 阈值 0.67 让"4人活3"直接跳3颗。均已修。
 - 自测:`#selftest 230/230`(+6:色阶单一事实源/档位递进/词缀吃色阶/命脉上限/掉血分档/回复封顶)。浏览器实测 HUD 命脉条/掉血/回命/传世大幕/单位发光/征募页三色全对。
 - 给 Codex:①`.af-glow`/`.affix-veil`/命脉条均为程序化临时样式,可做正式美术(传世大幕最值得:现在是纯 CSS 光晕);②色阶 token 是全局单一事实源,做任何稀有度视觉请读 TIER_COLOR,勿另起一套;③命脉条现复用暴走槽 DOM,若要独立视觉需新 DOM(我可配合)。
+
+### 2026-07-14 · Claude · 去 Unicode 图形字(王老师:emoji 廉价感)+ 补 2 枚图标
+
+- 王老师反馈命脉条的 ❤/♡ 是 emoji、廉价。**我自己违反了 Codex 定的图标铁律**,认账并清干净。
+- **UI_ICON_VER 20260714b → 20260714c(43→45 枚)**。Claude 补 2 枚,严格照 Codex 规范(24px 网格 / currentColor / 双层珐琅 / 无文字外链):
+  - `stat-vitality-empty`(空心命脉,描边 55% 透明 + 中线)
+  - `state-halo`(星芒,八角星 + 内核)
+- 清理:①HUD 命脉 ❤♡ → `stat-vitality` / `stat-vitality-empty` 图钉(.life-pips);②败战横幅同款;③星芒 ✦ 全部 → `state-halo`(详情/词缀行/军团架角标/toast/提示/帮助);④**发现 Codex 早就做了 `rank-star` 图标却从没接线**——星级还在用 CSS `::after content:'★★★'` 字符。已接线:军团架/战斗棋子/迷你军团三处渲染点改为 `.star-pips` + `rank-star` SVG,对应 CSS 字符规则全删。
+- 保留:正文说明里的「★2 及以上」等**排版符号**(非图形字,铁律针对的是"用字符冒充图形")。
+- 自测:`#selftest 231/231`(图标数断言 43→45;新增"无 Unicode 图形字残留"守卫:hud() 后 #rage-num 必含 `<svg>` 且不含 ❤/♡)。浏览器实测 HUD 3 枚心形 SVG、军团架星级/星芒全 SVG、零字符残留。
+- 给 Codex:①我补的 2 枚图标若与你的美学不符,随时替换(键名保留即可);②`rank-star` 现已接线三处,勿改键名;③`.life-pips`/`.star-pips` 是新样式类,做视觉时可直接吃。

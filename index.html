@@ -215,8 +215,10 @@ body.playing #hud{display:flex}
 .mini-u{width:26px;height:26px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
   font-size:14px;position:relative;background:rgba(0,0,0,.25);overflow:hidden}
 .mini-u .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%}
-.mini-u.star2::after{content:'★★';position:absolute;top:-7px;right:-5px;font-size:8px;color:var(--gold2)}
-.mini-u.star3::after{content:'★★★';position:absolute;top:-7px;right:-6px;font-size:7.5px;color:#fff;text-shadow:0 0 5px var(--gold)}
+.mini-u{position:relative}
+.star-pips{position:absolute;top:-7px;right:-5px;display:inline-flex;gap:0;pointer-events:none}
+.star-pips .mi{width:8px;height:8px;color:var(--gold2)}
+.star3 .star-pips .mi{color:#fff;filter:drop-shadow(0 0 4px var(--gold))}
 /* 军团位阵营色边框：一眼读出军团阵营构成（功能整合） */
 .mini-u.f-academy{border-color:rgba(232,199,104,.5)} .mini-u.f-sky{border-color:rgba(156,192,232,.5)}
 .mini-u.f-sea{border-color:rgba(95,184,165,.52)} .mini-u.f-swing{border-color:rgba(195,189,168,.46)}
@@ -333,6 +335,16 @@ body.playing #hud{display:flex}
 .bunit:hover{border-color:var(--gold)}
 .bunit .g{position:relative;width:46px;height:46px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;font-size:21px;border:1px solid var(--line2);border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,rgba(201,166,74,.12),transparent 70%)}
 .bunit .g .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
+/* 命脉图钉 + 星芒内联图标(2026-07-14 去 emoji:图标系统 stat-vitality / state-halo) */
+.life-pips{display:inline-flex;align-items:center;gap:2px;vertical-align:middle}
+.life-pips .mi{width:15px;height:15px;color:var(--red2);filter:drop-shadow(0 0 4px rgba(213,96,96,.55))}
+.life-pips .mi:not(:first-child){margin-left:-1px}
+#rage-bar.life.warn ~ #rage-num .life-pips .mi{animation:lifePulse 1s infinite}
+.life-num{margin-left:6px;font-family:var(--mono);font-size:11px;color:var(--ink3)}
+.banner-pips .mi{width:22px;height:22px}
+.halo-inline{color:var(--gold2);display:inline-flex;align-items:center;gap:2px}
+.halo-inline .mi{width:1.05em;height:1.05em;filter:drop-shadow(0 0 5px rgba(232,199,104,.6))}
+.halo-tag .mi{width:11px;height:11px}
 /* 断云命脉条(单人复用暴走槽位) */
 #rage-bar.life i{background:linear-gradient(90deg,#a83030,#d56060)}
 #rage-bar.life.warn{box-shadow:0 0 12px rgba(213,96,96,.7);animation:lifePulse 1s infinite}
@@ -352,13 +364,13 @@ body.playing #hud{display:flex}
 /* 遗物色阶边 */
 .relic-tiered{border-left:3px solid var(--rtc)}
 /* 星芒角标+词缀品质点(2026-07-14 星辉词缀) */
-.halo-tag{position:absolute;top:-6px;right:-4px;font-size:10px;color:var(--gold2);text-shadow:0 0 6px rgba(232,199,104,.6);letter-spacing:0}
+.halo-tag{position:absolute;top:-6px;right:-4px;font-size:10px;color:var(--gold2);text-shadow:0 0 6px rgba(232,199,104,.6);letter-spacing:0;display:inline-flex;align-items:center;gap:1px}
 .af-dot{position:absolute;bottom:-3px;right:-3px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,.5);box-shadow:0 0 5px currentColor}
 .bunit .g{position:relative}
 .bunit .n{font-size:11px;color:var(--ink2);letter-spacing:.08em}
 .bunit .st{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
-.bunit.star2 .g::after{content:' ★★';font-size:10px;color:var(--gold2)}
-.bunit.star3 .g::after{content:' ★★★';font-size:9px;color:#fff;text-shadow:0 0 6px var(--gold)}
+.bunit .star-pips{top:-5px;right:-3px}
+.bunit .star-pips .mi{width:10px;height:10px}
 /* 站位编辑：棋位轨道图标（左=前排）+ 铸币退场图标 */
 .bunit .bmove{display:flex;gap:3px;justify-content:center;margin-top:5px}
 .bunit .bmove button{font-family:var(--serif);cursor:pointer;background:rgba(0,0,0,.35);
@@ -471,8 +483,9 @@ body.playing #hud{display:flex}
 .u{width:88px;padding:8px 4px 6px;text-align:center;position:relative;background:var(--panel2);
   border:2px solid var(--ink4);box-shadow:3px 3px 0 rgba(0,0,0,.45);transition:transform .18s}
 .u .g{font-size:30px;line-height:1.25;display:block}
-.u.star2 .g::after{content:'★★';font-size:9px;color:var(--gold2);vertical-align:top}
-.u.star3 .g::after{content:'★★★';font-size:8px;color:#fff;text-shadow:0 0 6px var(--gold);vertical-align:top}
+.u .face{position:relative}
+.u .star-pips{top:-4px;right:-2px}
+.u .star-pips .mi{width:9px;height:9px}
 .u .n{font-size:11px;color:var(--ink2);letter-spacing:.06em;display:block;margin-top:1px}
 .u .num{font-family:var(--mono);font-size:11.5px;margin-top:3px;display:flex;justify-content:center;gap:7px}
 .u .num .a{color:var(--red2)} .u .num .h{color:#9fd49f}
@@ -907,7 +920,7 @@ function facEmblem(f){const s=FAC_EMBLEM[f];return s?`<span class="fac-emblem fe
 
 // MYSKME 通用游戏图标系统：Image2 负责黑金珐琅视觉母版，最终图形为原创 24px 矢量。
 // 语义键可跨游戏复用；这里内联 SVG，保证 GitHub Pages、课堂断网与 file:// 均不依赖外部字体。
-const UI_ICON_VER='20260714b';
+const UI_ICON_VER='20260714c'; // +stat-vitality-empty/state-halo(Claude 补,照 Codex 规范:24网格/currentColor/双层珐琅)
 const UI_ICON_PATHS=Object.freeze({
   'stat-attack':'<path d="M5.1 20.2 16.5 3.1l2.4 1.7L9.2 21.7z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M5.1 20.2 16.5 3.1l2.4 1.7L9.2 21.7z"/><path d="m8.5 15.2 4.8 3.3M4 20.6l3-4.1 2.8 2-3.1 3.9M15 5.8l2.4 1.7"/></g>',
   'stat-vitality':'<path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z"/><path d="m7.2 12 2.6-.1 1.3-3 2.1 6.1 1.5-3h2.2"/><path d="m9.4 5.2 2.6 8.9 2.6-9" opacity=".42"/></g>',
@@ -950,6 +963,8 @@ const UI_ICON_PATHS=Object.freeze({
   'elem-earth':'<path d="m3.4 18.5 5.7-11 3.1 4.2 2.4-3.6 6 10.4z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3.4 18.5 5.7-11 3.1 4.2 2.4-3.6 6 10.4z"/><path d="M6.1 16.2h11.8M7.7 13.5h8.6M7.3 21h9.4"/></g>',
   'elem-water':'<path d="M12 2.8C10 6.8 5.6 10.8 5.6 15.2a6.4 6.4 0 0 0 12.8 0C18.4 10.8 14 6.8 12 2.8z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8C10 6.8 5.6 10.8 5.6 15.2a6.4 6.4 0 0 0 12.8 0C18.4 10.8 14 6.8 12 2.8z"/><path d="M7.8 14c1.3-1.2 2.8-1.2 4.2 0s2.9 1.2 4.2 0M8.4 17.2c1.2-.8 2.4-.8 3.6 0s2.4.8 3.6 0"/></g>',
   'bounty-wolf-fang':'<path d="M5 6.5 8.3 3l2.1 2.2h3.2L15.7 3 19 6.5v10L16 21H8l-3-4.5z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5 8.3 3l2.1 2.2h3.2L15.7 3 19 6.5v10L16 21H8l-3-4.5z"/><path d="M5.7 7.2h12.6"/><path d="M9.2 9.2c.5 4 1.6 6.9 2.8 8.7 1.3-1.8 2.4-4.7 2.8-8.7-.9.8-1.9 1.2-2.8 1.2s-1.9-.4-2.8-1.2z"/></g>',
+  'stat-vitality-empty':'<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" opacity=".55"><path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z"/><path d="M8.6 10.4h6.8" opacity=".5"/></g>',
+  'state-halo':'<path d="m12 3.4 2.1 5.2 5.6.4-4.3 3.6 1.4 5.4L12 15l-4.8 3 1.4-5.4-4.3-3.6 5.6-.4z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3.4 2.1 5.2 5.6.4-4.3 3.6 1.4 5.4L12 15l-4.8 3 1.4-5.4-4.3-3.6 5.6-.4z"/><path d="M12 8.6v3.2M10.6 10.2h2.8" opacity=".5"/></g>',
   'state-shadow-echo':'<path d="M9 4h10l-3 3.5 3 3.5H9z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v18M9 4h10l-3 3.5 3 3.5H9"/><path d="M4.5 5v14M4.5 6h6L8.6 8.8l1.9 2.8h-6" opacity=".45"/><path d="M6.4 21h4.8" opacity=".55"/></g>',
   'help-book':'<path d="M3.5 5h6.2c1.4 0 2.3.9 2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2H3.5zm17 0h-6.2c-1.4 0-2.3.9-2.3 2.2V20c0-1.3.9-2.2 2.3-2.2h6.2z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M3.5 5h6.2c1.4 0 2.3.9 2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2H3.5zM20.5 5h-6.2c-1.4 0-2.3.9-2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2h6.2z"/><path d="M15.4 8.8c.2-1 2.3-1 2.4.4.1 1.1-1.3 1.1-1.3 2.1M16.5 14.2h.01" stroke-linecap="round"/></g>'
 });
@@ -1614,7 +1629,8 @@ function hud(){
     $('#rage-bar i').style.width=lp+'%';
     $('#rage-bar').classList.toggle('warn',S.life<=1);
     $('#rage-bar').classList.toggle('life',true);
-    $('#rage-num').textContent=`${'❤'.repeat(S.life)}${'♡'.repeat(Math.max(0,S.lifeMax-S.life))} ${S.life}/${S.lifeMax}`;
+    const _hearts=Array.from({length:S.lifeMax},(_,i)=>i<S.life?uiIcon('stat-vitality'):uiIcon('stat-vitality-empty')).join('');
+    $('#rage-num').innerHTML=`<span class="life-pips" aria-label="命脉 ${S.life} / ${S.lifeMax}">${_hearts}</span><span class="life-num">${S.life}/${S.lifeMax}</span>`;
   }else{
     if(_lbl)_lbl.innerHTML='<span class="mi-slot" data-ui-icon="state-rage"></span>暴走槽';
     $('#rage-bar').classList.toggle('life',false);
@@ -1762,7 +1778,7 @@ function renderWave(){
     d.innerHTML=`<h4>${p.name} <span class="crown icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
       <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
-        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} f-${u.fac}" title="${u.n} · ${FACS[u.fac]?FACS[u.fac].n:''}">${u.n[0]}${artTag(u.id,'mua')}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
+        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} f-${u.fac}" title="${u.n} · ${FACS[u.fac]?FACS[u.fac].n:''}">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
         <button class="btn ok"   data-a="ok">答对 +2</button>
         <button class="btn hard" data-a="hard">难题 +3</button>
@@ -2079,7 +2095,7 @@ function showUnitDetail(id,inst){
   const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-20%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
   modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
-    <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b style="color:var(--gold2)">✦'+inst.halo+'</b>':''}</span></h3>
+    <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b class="halo-inline">'+uiIcon('state-halo')+inst.halo+'</b>':''}</span></h3>
     <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
     ${affixLine(inst)}
     ${(inst&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${4+2*(inst.rf||0)} 铸币</span></button></div>`:''}
@@ -2141,7 +2157,7 @@ function renderDraft(fresh){
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
       if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
-      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===3)?' · ✦星芒可叠':(p.army.some(a=>a.id===u.id&&a.star===2)?' · ★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · ★★可合星':'')));
+      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===3)?' · 星芒可叠':(p.army.some(a=>a.id===u.id&&a.star===2)?' · ★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · ★★可合星':'')));
       // 羁绊推进徽标：紫=在攒（N/门槛）· 金=买它立刻成套。开局点将不显（人人第一张）
       const advs=origin?[]:bondAdvList(p,u);
       const advHTML=advs.length
@@ -2213,7 +2229,7 @@ function renderFoeIntel(p){
   }
   if(ghostUnits)chips=ghostUnits.map(g=>`<span class="mini-u" title="${g.n}">${g.glyph}</span>`).join('');
   else chips=(army||[]).map(a=>{const u=UMAP[a.id];
-    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}${artTag(u.id,'mua')}</span>`}).join('')
+    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')
     ||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>';
   let hint='';
   if(army&&army.length){
@@ -2236,7 +2252,7 @@ function renderBench(p){
     if(a.af&&a.af.q>=2)d.style.setProperty('--afc',AFFIX_QC[a.af.q]); // 珍/传世:单位本体发该色光
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
-      <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.halo?`<span class="halo-tag">✦${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]}" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
+      <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}${a.halo?`<span class="halo-tag">${uiIcon('state-halo')}${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]}" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
       <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
       <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
         <button type="button" aria-label="将${u.n}向前排移动一格" title="向前排移动" ${ai===0?'disabled':''}>${uiIcon('action-move-front')}</button>
@@ -2300,7 +2316,7 @@ function buyUnit(idx,u,price){
     snapDraft();
     p.coins-=price;S.offersSold[idx]=true;
     maxed.halo=(maxed.halo||0)+1;maxed.gAtk+=1;maxed.gHp+=2;
-    toast(`✦ ${u.n} 星芒 +1（共 ✦${maxed.halo}）—— 攻+1 命+2`,2600);SFX.play('merge');
+    toast(`${u.n} 星芒 +1（共 ${maxed.halo} 芒）—— 攻+1 命+2`,2600);SFX.play('merge');
     renderDraft();hud();save();return;
   }
   const twin2=p.army.find(a=>a.id===u.id&&a.star===2); // 优先喂高星，避免出现两个 ★★
@@ -2735,7 +2751,10 @@ function runSelftest(){
   {const req=['stat-attack','stat-vitality','stat-speed','stat-shield','currency-coin','score-throne',
       'action-move-front','action-move-back','action-sell','action-undo','action-refresh','action-lock','play-fast','nav-menu',
       'elem-wind','elem-fire','elem-earth','elem-water','bounty-wolf-fang','state-shadow-echo'];
-   ok('图标系统：43 枚语义矢量完整', UI_ICON_VER==='20260714b'&&Object.keys(UI_ICON_PATHS).length===43);
+   ok('图标系统：45 枚语义矢量完整', UI_ICON_VER==='20260714c'&&Object.keys(UI_ICON_PATHS).length===45);
+   ok('无 Unicode 图形字残留(命脉/星芒全走图标系统)', (()=>{const _S=S;S={solo:true,life:2,lifeMax:3,difficulty:1,round:1,players:[{name:'t',crowns:0,coins:0,army:[]}],rageMax:0};
+     hud();const t=($('#rage-num').innerHTML||'');S=_S;
+     return t.indexOf('<svg')>=0&&t.indexOf('\u2764')<0&&t.indexOf('\u2661')<0})());
    ok('图标系统：核心属性/站位/控制键齐全', req.every(k=>UI_ICON_PATHS[k]&&UI_ICON_PATHS[k].includes('currentColor')));
    ok('图标系统：内联 SVG 不依赖字体或外部图片', req.every(k=>{const s=uiIcon(k);return /^<svg/.test(s)&&s.includes('aria-hidden="true"')&&!/<text|<image|href=/.test(s)}));
    ok('图标系统：四象正式徽记替代 Unicode 占位', ['wind','fire','earth','water'].every(e=>elemGlyph(e).includes('<svg')&&!elemGlyph(e).includes('✦')));
@@ -3392,7 +3411,7 @@ function unitEl(f){
   const d=document.createElement('div');
   d.className='u'+(f.star>=2?' star'+f.star:'')+(f.afQ>=2?' af-glow':'');d.dataset.uid=f.uid;if(f.fac)d.dataset.fac=f.fac;
   if(f.afQ>=2)d.style.setProperty('--afc',AFFIX_QC[f.afQ]); // 战斗棋子也带词缀光——"我那张金的"一眼可辨
-  d.innerHTML=`${f.fac?facEmblem(f.fac):''}${(x=>x?`<span class="arch-mini ${x.c}">${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}</div><span class="n">${f.n}</span>
+  d.innerHTML=`${f.fac?facEmblem(f.fac):''}${(x=>x?`<span class="arch-mini ${x.c}">${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}${f.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(f.star)}</span>`:''}</div><span class="n">${f.n}</span>
     <span class="num"><span class="a stat-token" aria-label="攻击 ${f.atk}">${uiIcon('stat-attack')}<span class="stat-v">${f.atk}</span></span><span class="h stat-token" aria-label="生命 ${f.hp}">${uiIcon('stat-vitality')}<span class="stat-v">${f.hp}</span></span></span>
     <div class="hpb"><i style="width:100%"></i></div>
     <span class="sh" style="display:none" aria-label="护盾已激活">${uiIcon('stat-shield')}</span>`;
@@ -3771,7 +3790,7 @@ function affixLine(inst){ // 详情/军团架共用的一行词缀描述
   const bits=[];
   if(inst.af&&AFFIX_MAP[inst.af.id]){const a=AFFIX_MAP[inst.af.id],q=inst.af.q;
     bits.push(`<b style="color:${AFFIX_QC[q]}">【${AFFIX_Q[q]} · ${a.n}】</b> ${a.d(a.vs[q])}`)}
-  if(inst.halo)bits.push(`<b style="color:var(--gold2)">✦${inst.halo} 星芒</b>(攻+${inst.halo} 命+${inst.halo*2})`);
+  if(inst.halo)bits.push(`<b class="halo-inline">${uiIcon('state-halo')}${inst.halo} 星芒</b>(攻+${inst.halo} 命+${inst.halo*2})`);
   return bits.length?`<div style="text-align:center;margin:-4px 0 10px;font-size:13px">${bits.join(' · ')}</div>`:'';
 }
 function reforgeAffix(uid){ // 重铸:金币无尽出口——费用随该单位重铸次数递增,必得词缀(品质按当前深度roll)
@@ -4003,7 +4022,7 @@ function soloResolve(result,A,B){
       banner.onclick=()=>{banner.remove();soloEnd()};
     }else{
       const sev=loss>=3?'惨败':(loss>=2?'败退':'惜败');
-      banner.innerHTML=`<h1>${sev} · 命脉 −${loss}</h1><p>断云未断 —— 剩余命脉 <b style="color:var(--red2)">${'❤'.repeat(S.life)}</b> ${S.life}/${S.lifeMax}</p>${dmgRecap(result,A,B)}<p class="hint">点击重整旗鼓 · 再战本关</p>`;
+      banner.innerHTML=`<h1>${sev} · 命脉 −${loss}</h1><p>断云未断 —— 剩余命脉 <span class="life-pips banner-pips">${Array.from({length:S.lifeMax},(_,i)=>i<S.life?uiIcon('stat-vitality'):uiIcon('stat-vitality-empty')).join('')}</span> ${S.life}/${S.lifeMax}</p>${dmgRecap(result,A,B)}<p class="hint">点击重整旗鼓 · 再战本关</p>`;
       document.body.appendChild(banner);flash(true);shake();SFX.play('kill');
       banner.onclick=()=>{banner.remove();soloRound()}; // 重打本关(不推进round):敌军同层重刷,给补强机会
     }
@@ -4586,7 +4605,7 @@ function showHowto(){
   <b style="color:#9a9686">凡</b> · <b style="color:#7fc4d8">秀</b> · <b style="color:#c77dff">珍</b> · <b style="color:#ffd166">传世</b>（全游戏统一色阶：白 → 蓝 → 紫 → 金）。越往深层，出得越多、品越高。
   <b>低费卡（≤2 铸币）出词缀的概率更高、品阶更好</b>——寒门出贵子。带<b style="color:#c77dff">珍</b>以上词缀的成员会自己<b>发光</b>，一眼认得出。<br>
   嫌词缀不好？点成员头像 → <b>重铸</b>（4→6→8 递增，必得新词缀）——铸币再多也有地方花。<br><br>
-  <b style="color:var(--gold2)">✦ 星芒</b>：三星之后，同名卡不再无用——每多合一张 <b>✦+1</b>（攻 +1 命 +2，<b>无上限</b>）。四十层之后照样有盼头。`)
+  <b style="color:var(--gold2)">星芒</b>：三星之后，同名卡不再无用——每多合一张 <b>星芒 +1</b>（攻 +1 命 +2，<b>无上限</b>）。四十层之后照样有盼头。`)
   +sec('单人试炼（回家挑战）',`
   两条征程开局任选——<b>经典十关</b>：逐关变强的宿敌，第 10 关<b>叶王亲临（蛇蜕两形）</b>，胜则加冕，通关后还可续入无尽回廊；
   <b>无尽回廊</b>：没有终点，一层比一层深，冲击「最深关数」纪录——世界回廊比的就是这个成绩。
