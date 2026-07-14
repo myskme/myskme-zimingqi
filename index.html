@@ -1495,7 +1495,7 @@ const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1
 function skillFor(u,star){const s=u.skill, sv=(SKILL_SV[s.k]||0)*((star||1)-1);
   return sv? {...s, v:(s.v||0)+sv} : s;}
 // 星象四象环（单环相克·2026-07-14 替换旧阵营三相环）：土掩水 → 水灭火 → 火灼风 → 风蚀土（箭头=克向）。
-// 克 ×1.15 / 被克 ×0.85 数值沿用旧环零重调，只作用基本攻击、只染色不破盾。
+// 克 ×1.25 / 被克 ×0.80(初版1.15/0.85实测整队尺度不可感,开/关环RR差≤7pp→加强)，只作用基本攻击、只染色不破盾。
 // 动机(王老师)：阵营相克受人数/化身局限；星座四象是正典自带资料，35人全员参与、分布可用无原型NPC补写调平。
 const ZODIAC={ // id:[星座,象] · 星座=正典characters.json(马将军/鹦鹉教授/小黑猫 0714入典);谷地守望/星尘车夫/白鹤侍从/断云斥候/信鸽/海雾行者6通用单位=自鸣棋本地设定(经王老师0714批准)
   zi:['处女','earth'],
@@ -1540,8 +1540,8 @@ function unitElem(id){const z=ZODIAC[id];return z?z[1]:null}
 function elemMult(srcId,tgtId){
   const a=unitElem(srcId), d=unitElem(tgtId);
   if(!a||!d)return 1;                             // 幽灵/未知守卫(叶王军等无档单位不参与)
-  if(ELEM_COUNTER[a]===d)return 1.15;             // 我克敌
-  if(ELEM_COUNTER[d]===a)return 0.85;             // 我被敌克
+  if(ELEM_COUNTER[a]===d)return 1.25;             // 我克敌(1.15→1.25:实测15%在整队尺度几乎不可感,开/关环RR差≤7pp)
+  if(ELEM_COUNTER[d]===a)return 0.80;             // 我被敌克
   return 1;
 }
 
@@ -1832,7 +1832,7 @@ function hasRelic(p,id){return p.relics.includes(id)}
 const BONDS={
   earth:{n:'厚土载物', chip:'土象', th:[2,4], d:['全队 +3 生命','全队 +3 生命 · 开战全队 +2 护盾']},
   wind: {n:'疾风借势', chip:'风象', th:[2,4], d:['全队 +1 速','全队 +2 速 · 穿透单位 +1 攻']},
-  fire: {n:'烈焰同燃', chip:'火象', th:[2,4], d:['火象单位 +1 攻','火象单位 +3 攻']}, // t1从移植的+2收到+1:旧黑域有-1币税+小池子压着,火象免税大池,+2开局白送(r3实测96%)
+  fire: {n:'烈焰同燃', chip:'火象', th:[2,4], d:['火象单位 +1 攻','火象单位 +2 攻']}, // 两档1/2攻:移植自旧黑域2/3但无币税+大池,实测2/3档下等费四连100%通杀故再收
   water:{n:'潮汐同悲', chip:'水象', th:[2,3], d:['阵亡溅射敌 1 伤','阵亡溅射敌 2 伤']}, // 水象7人→大档3
   // —— 第二轴 · 打法（跨象）——
   pierce:  {n:'破云之矢', chip:'穿透', th:[2,4], d:['穿透单位 开战 +2 护盾','穿透单位 +2 护盾 · +1 攻']},
@@ -2010,7 +2010,7 @@ function showUnitDetail(id,inst){
       :'<b style="color:#d9964a">嘲讽</b> —— 敌方近战优先打它，替后排<b>挡刀</b>')
     :'<b>近战</b> —— 攻击敌方最前排';
   const _zo=ZODIAC[id], _el=_zo&&_zo[1], kf=_el&&ELEM_COUNTER[_el], bkf=_el&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===_el);
-  const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +15%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-15%）`:'不参与星象相克';
+  const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-20%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
   modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}</span></h3>
@@ -2150,7 +2150,7 @@ function renderFoeIntel(p){
     const counts={};army.forEach(a=>{const e=unitElem(a.id);if(e)counts[e]=(counts[e]||0)+1});
     const main=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
     const killer=main&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===main); // 四象:克 main 的那个象
-    hint=main?`主打${ELEM_CN[main]} —— ${ELEM_CN[killer]}克它 +15%`:'不参与相克';
+    hint=main?`主打${ELEM_CN[main]} —— ${ELEM_CN[killer]}克它 +25%`:'不参与相克';
   }else if(ghostUnits)hint='幽灵军 —— 不参与相克';
   el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${name}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
 }
@@ -2426,7 +2426,7 @@ function buildFighters(p, evFlags){
   if(bt.wind>=1)    fs.forEach(f=>f.spd+=1);
   if(bt.wind>=2)    fs.forEach(f=>{f.spd+=1;if((f.tg||'melee')==='pierce')f.atk+=1}); // 4档：再+1速·穿透+1攻
   if(bt.fire>=1)    fs.forEach(f=>{if(unitElem(f.id)==='fire')f.atk+=1});
-  if(bt.fire>=2)    fs.forEach(f=>{if(unitElem(f.id)==='fire')f.atk+=2}); // 4档：火象共 +3 攻(t1收为+1,详见BONDS注)
+  if(bt.fire>=2)    fs.forEach(f=>{if(unitElem(f.id)==='fire')f.atk+=1}); // 4档：火象共 +2 攻(等费四连RR实测+3攻=100%通杀,攻击点数在本sim价值远高于血量)
   // —— 第二轴 · 破云之矢（穿透）：补纸血短板，攻击加成锁在满档 ——
   if(bt.pierce>=1)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.shield+=2});
   if(bt.pierce>=2)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.atk+=1});
@@ -2683,8 +2683,8 @@ function runSelftest(){
   ok('技能寻址不受影响：诺 snipeBack 仍在（tg 与技能正交）', UMAP['nuo'].skill.k==='snipeBack');
   // —— 星象三相环相克 ——
   ok('四象成环 土掩水/水灭火/火灼风/风蚀土', ELEM_COUNTER.earth==='water'&&ELEM_COUNTER.water==='fire'&&ELEM_COUNTER.fire==='wind'&&ELEM_COUNTER.wind==='earth');
-  ok('土克水单位 ×1.15(梓处女土 vs 诺天蝎水)', elemMult('zi','nuo')===1.15);
-  ok('被克反向 ×0.85(诺 vs 梓)', elemMult('nuo','zi')===0.85);
+  ok('土克水单位 ×1.25(梓处女土 vs 诺天蝎水)', elemMult('zi','nuo')===1.25);
+  ok('被克反向 ×0.80(诺 vs 梓)', elemMult('nuo','zi')===0.80);
   ok('同象=1(瑾风 vs 增风)、隔位=1(梓土 vs 琳火)', elemMult('jin','zeng')===1&&elemMult('zi','lin')===1);
   ok('幽灵/未知一律1、不 NaN', elemMult('ghost','zi')===1&&elemMult(undefined,undefined)===1);
   ok('全35单位有星座归象', UNITS.every(u=>ZODIAC[u.id]&&ELEM_CN[ZODIAC[u.id][1]]));
@@ -4097,7 +4097,7 @@ function showHowto(){
   开战狙击（诺 / 菀）同样点名后排——<b>护盾能挡狙击</b>：琳/涵的全队盾、白鹤/浩的自体盾都是明牌反制。`)
   +sec('星象四象环（星座相克）',`
   每位学员都有真实星座，十二星座归四象成环：<b style="color:var(--gold2)">土掩水 → 水灭火 → 火灼风 → 风蚀土</b>（箭头指向被克方）。
-  基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +15%（金字·克）</b>、打到<b>克自己</b>的敌人时 -15%（淡字）。
+  基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +25%（金字·克）</b>、打到<b>克自己</b>的敌人时 -20%（淡字）。
   <b>全员参与</b>——点立绘看每人的星座与象。相克与阵营脱钩：阵营管羁绊凑人，四象管对位克制，两条线各算各的。`)
   +sec('演武（自动对战）',`
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
@@ -4109,7 +4109,7 @@ function showHowto(){
   卡上紫标 = 买它能推进羁绊；卡上<b style="color:var(--gold2)">金标「成套」</b> = 买它立刻触发；底部货架<b style="color:var(--gold2)">虚线金「差1」</b> = 再来一人就满档。<br><br>
   <b>第一轴 · 星象四象</b>（十二星座归四象，同象 2 名一档，凑满 4 名／水象 3 名 再升一档；点立绘看每人星座）：<br>
   <b style="color:var(--gold2)">厚土载物</b>（土）：2名 全队+3生命／4名 再+开战2护盾 ｜ <b style="color:var(--gold2)">疾风借势</b>（风）：2名 全队+1速／4名 +2速·穿透+1攻 ｜
-  <b style="color:var(--gold2)">烈焰同燃</b>（火）：2名 火象+1攻／4名 +3攻 ｜ <b style="color:var(--gold2)">潮汐同悲</b>（水）：2名 阵亡溅射敌1／3名 溅射2。<br><br>
+  <b style="color:var(--gold2)">烈焰同燃</b>（火）：2名 火象+1攻／4名 +2攻 ｜ <b style="color:var(--gold2)">潮汐同悲</b>（水）：2名 阵亡溅射敌1／3名 溅射2。<br><br>
   <b>第二轴 · 打法</b>（跨象，看的是作战方式）：<br>
   <b style="color:var(--gold2)">破云之矢</b>（穿透：梓/诺/斥候/信鸽/璇）：2名 穿透单位开战+2护盾／4名 再+1攻——补的是穿透一身纸血。<br>
   <b style="color:var(--gold2)">不退之誓</b>（嘲讽：增/守望/麒/荣/浩）：2名 嘲讽单位被普攻命中时<b>反震 1 伤</b>／3名 反震 2 伤——挨打也能还手。<i style="color:var(--ink3)">（两队都堆嘲讽墙时，反震会逐回合累积成碾压——想破嘲讽墙，用穿透绕后排。）</i><br><br>
