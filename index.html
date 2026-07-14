@@ -332,6 +332,10 @@ body.playing #hud{display:flex}
 .bunit:hover{border-color:var(--gold)}
 .bunit .g{position:relative;width:46px;height:46px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;font-size:21px;border:1px solid var(--line2);border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,rgba(201,166,74,.12),transparent 70%)}
 .bunit .g .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
+/* 星芒角标+词缀品质点(2026-07-14 星辉词缀) */
+.halo-tag{position:absolute;top:-6px;right:-4px;font-size:10px;color:var(--gold2);text-shadow:0 0 6px rgba(232,199,104,.6);letter-spacing:0}
+.af-dot{position:absolute;bottom:-3px;right:-3px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,.5);box-shadow:0 0 5px currentColor}
+.bunit .g{position:relative}
 .bunit .n{font-size:11px;color:var(--ink2);letter-spacing:.08em}
 .bunit .st{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
 .bunit.star2 .g::after{content:' ★★';font-size:10px;color:var(--gold2)}
@@ -1493,9 +1497,17 @@ function loadBak(){try{return validSave(JSON.parse(localStorage.getItem('dyyw1_b
 /* 单位实例 */
 function mkInst(id){return {uid:uidSeq++, id, star:1, gAtk:0, gHp:0}}
 // 三档星级：hp 倍率略低于 atk，防 3★ 龟缩被 30 回合血量比裁决偏袒；spd 不随星，速度留给站位/技能
-const STAR_ATK=[1,1.6,2.2], STAR_HP=[1,1.5,1.9];
-function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;
-  return {atk:Math.round(u.atk*(STAR_ATK[s]||1))+inst.gAtk, hp:Math.round(u.hp*(STAR_HP[s]||1))+inst.gHp, spd:u.spd};}
+// 2026-07-14 寒门翻身:分稀有度星级倍率(TFT式"1费3★≈4费1★")——N/R 合星质变,SSR/UR 微降;低阶卡从装饰变真C位
+const RAR_STAR={
+  N:  {a:[1,1.9,3.2], h:[1,1.8,2.9]},
+  R:  {a:[1,1.8,2.8], h:[1,1.7,2.6]},
+  SR: {a:[1,1.6,2.2], h:[1,1.5,1.9]},
+  SSR:{a:[1,1.55,2.1],h:[1,1.45,1.85]},
+  UR: {a:[1,1.5,2.0], h:[1,1.4,1.8]},
+};
+const STAR_ATK=RAR_STAR.SR.a, STAR_HP=RAR_STAR.SR.h; // 兼容旧引用(默认SR曲线)
+function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;const rs=RAR_STAR[u.rar]||RAR_STAR.SR;
+  return {atk:Math.round(u.atk*(rs.a[s]||1))+inst.gAtk, hp:Math.round(u.hp*(rs.h[s]||1))+inst.gHp, spd:u.spd};}
 // —— 课堂榜「荣耀分」：皇冠优先 + 战力破平（自解码，后端只存一个整数）——
 // 战力=阵容全体 atk+hp 之和（instBase 已含星级/成长）。荣耀分把皇冠放高位、战力放中位、微分放低位：
 //   皇冠一定压倒战力(子分<10万)；同皇冠比战力，几乎不再并列；防刷(coins 封顶20、皇冠须真赢)。
@@ -2033,8 +2045,10 @@ function showUnitDetail(id,inst){
   const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-20%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
   modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
-    <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}</span></h3>
+    <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b style="color:var(--gold2)">✦'+inst.halo+'</b>':''}</span></h3>
     <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
+    ${affixLine(inst)}
+    ${(inst&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${4+2*(inst.rf||0)} 铸币</span></button></div>`:''}
     <div class="stat-set" style="font-size:16px;margin-bottom:6px">
       ${statToken('stat-attack',b.atk,'攻击','atk')}${statToken('stat-vitality',b.hp,'生命','hp')}${statToken('stat-speed',b.spd,'速度','spd')}</div>
     <h4>作战方式</h4>${archTxt}
@@ -2093,7 +2107,7 @@ function renderDraft(fresh){
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
       if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
-      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===2)?' · ★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · ★★可合星':''));
+      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===3)?' · ✦星芒可叠':(p.army.some(a=>a.id===u.id&&a.star===2)?' · ★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · ★★可合星':'')));
       // 羁绊推进徽标：紫=在攒（N/门槛）· 金=买它立刻成套。开局点将不显（人人第一张）
       const advs=origin?[]:bondAdvList(p,u);
       const advHTML=advs.length
@@ -2186,7 +2200,7 @@ function renderBench(p){
     const d=document.createElement('div');d.className='bunit'+(a.star>=2?' star'+a.star:'');
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
-      <div class="g">${u.n[0]}${artTag(u.id,'mua')}</div><div class="n">${u.n}</div>
+      <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.halo?`<span class="halo-tag">✦${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]}" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
       <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
       <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
         <button type="button" aria-label="将${u.n}向前排移动一格" title="向前排移动" ${ai===0?'disabled':''}>${uiIcon('action-move-front')}</button>
@@ -2237,6 +2251,7 @@ function buyUnit(idx,u,price){
     snapDraft();
     p.army.push(mkInst(u.id));
     toast(`${p.name} 点将：${u.n} 入队`);
+    grantAffix(p,u,p.army[p.army.length-1]);
     S.draftIdx++;
     if(S.draftIdx>=S.draftQueue.length){S.offers=[];S.solo?soloRound():startWave()}
     else{S.offers=genOriginOffers();S.offersSold=[false,false,false];dealReveal=true;renderDraft()}
@@ -2244,7 +2259,14 @@ function buyUnit(idx,u,price){
   }
   if(p.coins<price){toast(S.solo?'铸币不够——过关自有进账':'铸币不够——先答题赚钱去');return}
   const cap=ARMY_CAP[Math.min(S.act,3)];
-  if(p.army.some(a=>a.id===u.id&&a.star===3)){toast(`${u.n} 已 ★★★ 满级，无需再练`,2200);return} // 防已满级再买造出 ★1 破坏同名≤2
+  const maxed=p.army.find(a=>a.id===u.id&&a.star===3);
+  if(maxed){ // ✦星芒:三星后的同名卡不再无用——每张 +1芒(+1攻+2命,无上限),合卡追求无尽化(替代7/8星方案)
+    snapDraft();
+    p.coins-=price;S.offersSold[idx]=true;
+    maxed.halo=(maxed.halo||0)+1;maxed.gAtk+=1;maxed.gHp+=2;
+    toast(`✦ ${u.n} 星芒 +1（共 ✦${maxed.halo}）—— 攻+1 命+2`,2600);SFX.play('merge');
+    renderDraft();hud();save();return;
+  }
   const twin2=p.army.find(a=>a.id===u.id&&a.star===2); // 优先喂高星，避免出现两个 ★★
   const twin1=p.army.find(a=>a.id===u.id&&a.star===1);
   const mergeTarget=twin2||twin1;
@@ -2268,6 +2290,7 @@ function buyUnit(idx,u,price){
     if(lit){const t=bondTier(p,lit);
       toast(`${u.n} 入队 —— ${BONDS[lit].n}${t>=2?'满档':'成阵'}：${BONDS[lit].d[t-1]}`,3200);SFX.play('reveal');
     }else toast(`${u.n} 入队`);
+    grantAffix(p,u,p.army[p.army.length-1]); // 星辉词缀:征募即roll(不中不扰,中了延时报喜)
   }
   renderDraft();hud();save();
 }
@@ -2439,8 +2462,15 @@ function buildFighters(p, evFlags){
     return {uid:inst.uid, id:inst.id, n:u.n, glyph:u.n[0], fac:u.fac, star:inst.star,
       atk:b.atk, hp:b.hp, maxhp:b.hp, spd:b.spd, shield:0, alive:true,
       tg:u.tg||'melee', taunt:!!u.taunt,
-      first:true, usedRevive:false, skill:skillFor(u,inst.star), ix};
+      first:true, usedRevive:false, skill:skillFor(u,inst.star), ix,
+      afId:inst.af?inst.af.id:null, afQ:inst.af?inst.af.q:0};
   });
+  // 星辉词缀:数值直加;先声/狼视/荆棘走平行旗(与 skill/emberCrit 同权,见 simulateBattle 首击与反震)
+  fs.forEach(f=>{if(!f.afId)return;const a=AFFIX_MAP[f.afId];if(!a)return;const v=a.vs[f.afQ||0];
+    if(f.afId==='a_atk')f.atk+=v; else if(f.afId==='a_hp'){f.hp+=v;f.maxhp+=v}
+    else if(f.afId==='a_shield')f.shield+=v; else if(f.afId==='a_spd')f.spd+=v;
+    else if(f.afId==='a_first')f.afFirst=v; else if(f.afId==='a_crit')f.afCrit=true;
+    else if(f.afId==='a_thorn')f.afThorn=v;});
   // 星象四象羁绊（效果=旧阵营效果1:1移植：土←学院/风←天之国/火←黑域/水←海族走 sideFlags）
   const bt={}; Object.keys(BONDS).forEach(f=>bt[f]=bondTier(p,f));
   if(bt.earth>=1){fs.forEach(f=>{f.hp+=3;f.maxhp+=3});}
@@ -2623,7 +2653,8 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       let amt=f.atk,crit=false;
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
-        if(f.skill.k==='firstCrit'||f.emberCrit){amt*=2;crit=true} // 秘策「余烬亲和」(名册Lv5)给火象同款首击暴击
+        if(f.afFirst)amt+=f.afFirst; // 词缀「先声」与 firstPlus 同权叠加
+        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit){amt*=2;crit=true} // 秘策「余烬亲和」/词缀「狼视」同款首击暴击
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
@@ -2632,7 +2663,8 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       // 不传 isBasic → 不吃相克；反震本身不在攻击循环里 → 嘲讽互打不会无限反弹。
       // 反震三来源可叠：不退之誓(羁绊) + 空耳机(遗物) + 空耳机的回响(事件)。没凑羁绊的人也有入口。
       const thn=(flags[1-s].vanTier?(flags[1-s].vanTier>=2?2:1):0)+(flags[1-s].thorn?1:0)+(mods.thornEv?1:0);
-      if(t.taunt&&thn)dealDmg(1-s,t,f,thn,'反震');
+      const thnAll=(t.taunt?thn:0)+(t.afThorn||0); // 词缀「荆棘」:不需嘲讽也反震(羁绊/遗物/事件三源仍走嘲讽门)
+      if(thnAll)dealDmg(1-s,t,f,thnAll,'反震');
       // 晰 · 软抵抗：被打一次强一次（只随基本攻击；死了就不再叠）
       if(t.alive&&t.skill.k==='soak'){t.atk+=t.skill.v;log.push({t:'buff',d:t.uid,txt:'攻击 +'+t.skill.v+' · 软抵抗'})}
       processDeaths();
@@ -2677,8 +2709,8 @@ function runSelftest(){
   // —— 星级三档倍率 ——
   const b1=instBase(lin(1)),b2=instBase(lin(2)),b3=instBase(lin(3));
   ok('lin ★1 atk=3/hp=10', b1.atk===3&&b1.hp===10);
-  ok('lin ★★ atk=round(3*1.6)=5', b2.atk===Math.round(3*1.6));
-  ok('lin ★★★ atk=round(3*2.2)=7 / hp=round(10*1.9)=19', b3.atk===Math.round(3*2.2)&&b3.hp===Math.round(10*1.9));
+  ok('lin(SSR) ★★ atk=round(3*1.55)=5', b2.atk===Math.round(3*RAR_STAR.SSR.a[1]));
+  ok('lin(SSR) ★★★ atk=round(3*2.1)=6 / hp=round(10*1.85)=19', b3.atk===Math.round(3*RAR_STAR.SSR.a[2])&&b3.hp===Math.round(10*RAR_STAR.SSR.h[2]));
   ok('hp倍率<atk倍率（防3★龟缩）', STAR_HP[2]<STAR_ATK[2]);
   // —— 技能值随星步进，且不污染 UNITS 原型 ——
   const s1=skillFor(UMAP['lin'],1), s3=skillFor(UMAP['lin'],3);
@@ -3154,6 +3186,26 @@ function runSelftest(){
      return !!f&&f.length===1&&f[0].star===3&&ghostToFoe({army:[{id:'nope'}]})===null})());
    S={solo:true,ghostFoe:{r:4,name:'测'},round:4};
    ok('影军名覆盖: 命中关显示「影军 · 名」', soloFoeName(4)==='影军 · 测'&&soloFoeName(5)!=='影军 · 测');
+   // —— 星辉词缀 & 星芒 & 寒门倍率(2026-07-14 P1) ——
+   ok('寒门星倍率: N三星倍>SSR三星·全表随星单调', RAR_STAR.N.a[2]>RAR_STAR.SSR.a[2]&&['N','R','SR','SSR','UR'].every(r=>RAR_STAR[r].a[2]>RAR_STAR[r].a[1]&&RAR_STAR[r].a[1]>1&&RAR_STAR[r].h[2]>RAR_STAR[r].h[1]));
+   ok('N卡三星质变: 守望3★=1/8→2/23', (()=>{const b=instBase({id:'guard',star:3,gAtk:0,gHp:0});return b.atk===Math.round(1*3.2)&&b.hp===Math.round(8*2.9)})());
+   ok('词缀表: id唯一·四品数值·minQ合法', new Set(AFFIXES.map(a=>a.id)).size===AFFIXES.length&&AFFIXES.every(a=>a.vs.length===4&&(a.minQ||0)<=3));
+   {const _r=rng;rng=mulberry32(7);let bad=0,qc=0,qe=0;
+    for(let i=0;i<60;i++){const c=rollAffix({cost:1},20+(i%20)),e=rollAffix({cost:3},20+(i%20));
+      [c,e].forEach(x=>{if(x&&(!AFFIX_MAP[x.id]||x.q<0||x.q>3))bad++});
+      if(c)qc+=c.q; if(e)qe+=e.q}
+    ok('词缀roll: 60抽全合法·寒门品质总和≥贵卡(同种子)', bad===0&&qc>=qe); rng=_r;}
+   {const p={army:[{uid:901,id:'lin',star:1,gAtk:0,gHp:0,af:{id:'a_atk',q:3}},{uid:902,id:'guard',star:1,gAtk:0,gHp:0,af:{id:'a_thorn',q:1}}],relics:[]};
+    const F=buildFighters(p,{});
+    ok('词缀应用: 传世锋锐+5攻·荆棘挂旗', F.find(f=>f.id==='lin').atk===UMAP.lin.atk+5&&F.find(f=>f.id==='guard').afThorn===1);} // lin+guard=火1土1均不成阵→纯词缀+5
+   {const A=ghostFighters([{id:'d9',n:'靶',glyph:'靶',atk:2,hp:40,spd:9,skill:{k:'none'}}]);
+    const p={army:[{uid:903,id:'crane',star:1,gAtk:0,gHp:0,af:{id:'a_thorn',q:3}}],relics:[]};
+    const B=buildFighters(p,{});
+    const r=simulateBattle(A,B,{},sideFlags(p),mulberry32(5),{});
+    ok('荆棘词缀: 非嘲讽单位被打也反震(白鹤记账>0)', (r.dmgByUid[903]||0)>0);}
+   {const p={army:[{uid:904,id:'rui',star:1,gAtk:0,gHp:0,af:{id:'a_first',q:3}}],relics:[]};
+    const F=buildFighters(p,{});
+    ok('先声词缀: 与 firstPlus 平行旗共存(睿 afFirst=8 且 skill 不变)', F[0].afFirst===8&&F[0].skill.k==='firstPlus');}
    S=_S9;}
   // —— 批⑩ 平衡探针（固定种子胜率带宽 · 现状指纹）——
   // 带宽取 2026-07-10 实测值 ± 宽容带。红了≠一定坏，是「有人动了平衡，来看一眼」的铃铛。
@@ -3592,6 +3644,57 @@ function metaCommit(ctx){
   const after=levelOf(_meta.xp).lv;
   saveMeta();
   return {gain,lvUp:after>before,lv:after,ach:got};
+}
+/* ============ 星辉词缀(暗黑式随机词缀 · 单多人同享 · 2026-07-14) ============ */
+// 全部复用已验证战斗通道:纯属性直加 / 首击·暴击走平行旗(与 skill/emberCrit 同权) / 荆棘并入反震结算
+const AFFIX_Q=['凡','秀','珍','传世'], AFFIX_QC=['#9a9686','#7fc4d8','#c77dff','#ffb13c'];
+const AFFIXES=[
+ {id:'a_atk',   n:'锋锐', vs:[1,2,3,5],  d:v=>`攻击 +${v}`},
+ {id:'a_hp',    n:'磐石', vs:[2,4,6,10], d:v=>`生命 +${v}`},
+ {id:'a_shield',n:'铁幕', vs:[1,2,3,5],  d:v=>`开战护盾 +${v}`},
+ {id:'a_spd',   n:'疾影', vs:[1,1,2,3],  d:v=>`速度 +${v}`},
+ {id:'a_first', n:'先声', vs:[2,3,5,8],  d:v=>`首次攻击 +${v} 伤`},
+ {id:'a_crit',  n:'狼视', vs:[0,0,0,0],  d:()=>'首次攻击必定暴击 ×2', minQ:2}, // 只出珍/传世
+ {id:'a_thorn', n:'荆棘', vs:[1,1,2,3],  d:v=>`被普攻命中反震 ${v} 伤(不需嘲讽)`},
+];
+const AFFIX_MAP=AFFIXES.reduce((m,a)=>(m[a.id]=a,m),{});
+function rollAffix(u,depth,force){ // 纯靠全局rng;depth=单人S.round/多人S.act*3;寒门(≤2费)率×1.8+品质+1="寒门出贵子"
+  const cheap=(u.cost||3)<=2;
+  if(!force){const p=Math.min(.92,(.22+depth*.02)*(cheap?1.8:1)); if(rng()>p)return null}
+  const dq=Math.min(30,depth||0);
+  const r=rng()*100, w0=Math.max(15,55-dq*1.2), w1=30, w2=12+dq*.6; // 越深凡越少·珍越多
+  let q = r<w0?0 : r<w0+w1?1 : r<w0+w1+w2?2 : 3;
+  if(cheap)q=Math.min(3,q+1);
+  const pool=AFFIXES.filter(a=>q>=(a.minQ||0));
+  return {id:pool[ri(pool.length)].id, q};
+}
+function affixDepth(){return S?(S.solo?S.round:(S.act||1)*3):1}
+function grantAffix(p,u,inst){ // 征募即roll——惊喜时刻;不中不打扰
+  const af=rollAffix(u,affixDepth()); if(!af)return;
+  inst.af=af;
+  const a=AFFIX_MAP[af.id];
+  setTimeout(()=>{toast(`词缀天成 —— ${u.n} 获得【${AFFIX_Q[af.q]} · ${a.n}】${a.d(a.vs[af.q])}`,3400);SFX.play(af.q>=2?'crit':'reveal')},420);
+}
+function affixLine(inst){ // 详情/军团架共用的一行词缀描述
+  if(!inst)return '';
+  const bits=[];
+  if(inst.af&&AFFIX_MAP[inst.af.id]){const a=AFFIX_MAP[inst.af.id],q=inst.af.q;
+    bits.push(`<b style="color:${AFFIX_QC[q]}">【${AFFIX_Q[q]} · ${a.n}】</b> ${a.d(a.vs[q])}`)}
+  if(inst.halo)bits.push(`<b style="color:var(--gold2)">✦${inst.halo} 星芒</b>(攻+${inst.halo} 命+${inst.halo*2})`);
+  return bits.length?`<div style="text-align:center;margin:-4px 0 10px;font-size:13px">${bits.join(' · ')}</div>`:'';
+}
+function reforgeAffix(uid){ // 重铸:金币无尽出口——费用随该单位重铸次数递增,必得词缀(品质按当前深度roll)
+  if(!S||S.phase!=='draft')return;
+  const p=curDrafter(); const inst=p&&p.army.find(a=>a.uid===uid); if(!inst)return;
+  const cost=4+2*(inst.rf||0);
+  if(p.coins<cost){toast(`重铸需 ${cost} 铸币`);return}
+  snapDraft();
+  p.coins-=cost; inst.rf=(inst.rf||0)+1;
+  inst.af=rollAffix(UMAP[inst.id],affixDepth(),true);
+  const a=AFFIX_MAP[inst.af.id];
+  closeModal();renderDraft();hud();save();
+  toast(`重铸完成 —— ${UMAP[inst.id].n}【${AFFIX_Q[inst.af.q]} · ${a.n}】${a.d(a.vs[inst.af.q])}`,3200);
+  SFX.play(inst.af.q>=2?'crit':'coin');
 }
 /* ============ 狼牙悬赏(单人·每局3张·借鉴云顶任务/酒馆任务) ============ */
 const BOUNTIES=[
