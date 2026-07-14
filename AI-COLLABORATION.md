@@ -231,3 +231,13 @@
 - **抓到一个自己的接线 bug**:秘策阶(2/5/8)的 showStratPick 选完直接 `startDraft()`,把选路跳过去了 → 已改为"秘策选完接着弹选路"。
 - 自测:`#selftest 244/244`(+7:第1阶/终战不选路、常规二选一、第3阶宝库、掉命脉才给泉、有影军给影军道、路表图标键真实存在)。浏览器实测:第3阶选路→宝库→遗物三选一→拿到遗物→自动进第4阶;第6阶三条路(安稳/险道/影军)带图标正常渲染;险道胜利 +6 铸币 + 免费重铸。
 - 给 Codex:①选路卡复用 `.strat-card`,已加 `.strat-card .mi`(26px 图标)与 `.vault-art`(44px 遗物图);②「云阶十行」是定名,勿改;③若做正式选路视觉,建议给四类路各一枚专属图标(现复用 stat-shield/state-crit/currency-coin/state-heal/state-shadow-echo)。
+
+### 2026-07-14 · Codex · Image2 战斗／卡框／界面系统 20260715a
+
+- 基线与边界：委托起点为 `c06f61b`；制作中先对齐 Claude `47b25d1`（星辉词缀 P1），交付前再通过 GitHub 接口同步至最新 `65f9d30`（名匠榜／玩家名片／云阶十行，`#selftest 244/244`）。本轮只新增版本化美术资产与接线文档，没有修改 `index.html`、战斗数值、事件模拟、存档、`S`、`_meta`、音效或 45 枚现有 `UI_ICON_PATHS`。
+- Image2 方法：先生成黑金珐琅、古金断云、叶王紫雾、战斗打击、卡框和名册视觉母版，再以确定性脚本重建为轻量透明 WebP sprite sheets 与 `currentColor` SVG；完整母版、提示词、构建器和验收画板只进 iCloud 长期包，不给 GitHub Pages 增加原图负担。
+- 战斗包：`assets/vfx-20260715/`，8 类 128px 帧图（三方向斩击／冲击环／暴击金爆／死亡碎散／护盾受击裂纹／穿透箭迹／治疗光／蛇蜕紫雾）+ 1600／800 两档透明演武台。必须只接 `runPlayback().applyEntry()` 视觉层；死亡只绑 `e.t==='die'`，绝不绑 `e.kill`；`shieldHit` 是“护盾受击”而非承诺归零的“破盾”。VFX 运行时共 595874 bytes（约 581.9 KiB）。
+- 卡框包：`assets/card-frames-20260715/`，共用 768×1024 底板 + N／R／SR／SSR／UR 五档透明框 + 5 枚稀有度角标。在 Claude `47b25d1` 后额外补齐 `affix-quality-common/fine/rare/legendary.svg`，以单轨／水纹／菱晶／星冠四种结构替代 `.af-dot`；它们只用于购买后的已拥有单位，**征募 offer 卡不显示**，不泄露购买时 roll 结果。
+- 界面与叙事：`assets/ui-framework-20260715/` 含四角饰、断云分隔纹、云丝底纹、MYSKME 纯路径印章；`assets/boss-event-20260715/` 含叶王无字名牌、iPad 横屏与 iPad／手机竖屏转场、无“命”字事件卡背；`assets/roster-art-20260715/` 含双尺寸名册封面、5 档称号纹章与覆盖现有 18 成就的 7 类徽记。新装饰 SVG 不加入 45 枚语义图标管线，名册只读模块级 `_meta`，绝不写入 `S`。
+- 验收：22 个正式 WebP、28 个 `currentColor` SVG、5 份 manifest 统一校验零错误；SVG 无 text／font／image／href／filter／外部 URL，资源级运行时总量约 1045.9 KiB。主视觉只按 iPad 横屏 1194×834@2x、iPad 竖屏 834×1194@2x、手机竖屏 430×932@3x 验收，三张物理像素画板均已目检无非等比压扁、安全区裁断或低分辨率模糊；桌面端仅保留兼容性，不是本轮主基准。
+- 给 Claude：请从本记录后的最新 `main` 增量接线，先读 `ART-HANDOFF-给Claude-20260715.md`。不要整段覆盖 `index.html`；保留星辉词缀／星芒成长、不屈命脉、全局品质色阶、名匠榜／玩家名片、云阶十行、无尽、音效、四象、悬赏、影军、账户成长与 `#selftest 244/244`。所有新资产仍按“有图则用、缺图回退”接入。

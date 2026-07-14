@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-roster-art-20260715",
+  "metaBoundary": "只读取模块级 _meta；不得写入 S/dyyw1；继续使用 zmq_meta",
+  "rankOrder": [
+    "roster-rank-novice.svg",
+    "roster-rank-apprentice.svg",
+    "roster-rank-adept.svg",
+    "roster-rank-first-disciple.svg",
+    "roster-rank-duanyun-disciple.svg"
+  ],
+  "achievementMap": {
+    "achievement-victory.svg": [
+      "a_first",
+      "a_clear",
+      "a_nodeath"
+    ],
+    "achievement-shadow.svg": [
+      "a_deep20",
+      "a_slay1",
+      "a_slay10"
+    ],
+    "achievement-bounty.svg": [
+      "a_bounty10",
+      "a_rich"
+    ],
+    "achievement-growth.svg": [
+      "a_star3",
+      "a_star10",
+      "a_lv10"
+    ],
+    "achievement-tactics.svg": [
+      "a_elem4",
+      "a_bridge"
+    ],
+    "achievement-devotion.svg": [
+      "a_runs10",
+      "a_runs50"
+    ],
+    "achievement-collection.svg": [
+      "a_seen20",
+      "a_seenAll",
+      "a_mvp5"
+    ]
+  },
+  "files": {
+    "roster-cover-1200.webp": {
+      "bytes": 51440,
+      "sha256": "7483a8ed26791c40f85ee16c76931512d13a0260c1516b05cdc3dad8ddf9503e",
+      "width": 1200,
+      "height": 420,
+      "alpha": false
+    },
+    "roster-cover-600.webp": {
+      "bytes": 12258,
+      "sha256": "9fa308b04ad3dd2c8551b293178737f154294224189b1e5b4a304a710ff73c9f",
+      "width": 600,
+      "height": 210,
+      "alpha": false
+    },
+    "roster-rank-novice.svg": {
+      "bytes": 417,
+      "sha256": "5992f5fbfa2497ae84fb73b910a018f577edd5886edad4f548835150aa3aa6bd",
+      "format": "svg",
+      "currentColor": true
+    },
+    "roster-rank-apprentice.svg": {
+      "bytes": 528,
+      "sha256": "1e8cd9c6c22359ea3686ddf6c0c2762ac3c78dd948f989b8ee894367bd997911",
+      "format": "svg",
+      "currentColor": true
+    },
+    "roster-rank-adept.svg": {
+      "bytes": 495,
+      "sha256": "0f523d2d784867762058bfc4171245a672fa433aea6272dddd10327d842ef981",
+      "format": "svg",
+      "currentColor": true
+    },
+    "roster-rank-first-disciple.svg": {
+      "bytes": 557,
+      "sha256": "40fd21279463600c8fc117eafa165343d14851d0ff228bfa17cca8463638e86f",
+      "format": "svg",
+      "currentColor": true
+    },
+    "roster-rank-duanyun-disciple.svg": {
+      "bytes": 564,
+      "sha256": "f82ce878e3314dcf1c254e3b12fede91f1153f859367e4942067c18944e53b77",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-victory.svg": {
+      "bytes": 540,
+      "sha256": "299800d43d46dfbd7ead0c930aba5d16ea69e86322faace74d8b12493e277b40",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-shadow.svg": {
+      "bytes": 437,
+      "sha256": "4cc10f013ef119279f621733474b84bdcfbab9a9abc4c23ff73bd8ef77d57d3a",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-bounty.svg": {
+      "bytes": 467,
+      "sha256": "67f03b461b67f373f6882992aace2fdaca463038127bda6b18b1a2c0edaaf625",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-growth.svg": {
+      "bytes": 501,
+      "sha256": "d62b7aae7f3df32eb166a3f1365ddac8adf17f6ff61045f56f20b843e6b7dbad",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-tactics.svg": {
+      "bytes": 695,
+      "sha256": "3ae40e4cdddaa02f0df89379a7a45067297a2e8810e25faa76968019c1dc3481",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-devotion.svg": {
+      "bytes": 477,
+      "sha256": "73c79429a1a9c9704d2a3f716240294ffaa37f8bf28f88a85dee0e31a240a94d",
+      "format": "svg",
+      "currentColor": true
+    },
+    "achievement-collection.svg": {
+      "bytes": 537,
+      "sha256": "45656b14bd8cde93090ef70634e4597b1d29dd4ab1afd254da1457361a972826",
+      "format": "svg",
+      "currentColor": true
+    },
+    "preview.webp": {
+      "bytes": 98384,
+      "sha256": "3261d385d924b3158e8fd6e0494cca4438e1d605e1cc93d51716948281691d62",
+      "width": 1600,
+      "height": 940,
+      "alpha": false
+    }
+  }
+}

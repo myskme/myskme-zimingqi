@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-vfx-20260715",
+  "artDirection": "MYSKME 黑金珐琅；紫=斩击/蛇蜕，金=冲击/暴击/死亡，青=护盾，绿=治疗",
+  "sourcesInLongTermPack": {
+    "image2ArtDirection": "assets/art-direction-20260715/image2-vfx-master.png",
+    "arenaTransparentMaster": "assets/art-direction-20260715/arena-dais-alpha.png",
+    "buildScript": "scripts/build-vfx.mjs"
+  },
+  "sheetContract": {
+    "cellWidth": 128,
+    "cellHeight": 128,
+    "safePaddingPx": 4,
+    "order": "row-major（先从左到右，再从上到下）",
+    "playback": "steps(帧数)，仅播放一次；pointer-events:none；aria-hidden:true",
+    "maxConcurrentRecommended": 10,
+    "reducedMotion": "只显示 peakFrame 约 120ms；若资源加载失败则保留原 CSS hit/float 回退"
+  },
+  "metrics": {
+    "runtimeBytesExcludingPreview": 595874,
+    "runtimeKiBExcludingPreview": 581.9,
+    "previewIsDeliveryOnly": true
+  },
+  "effects": {
+    "slash": {
+      "file": "vfx-slash.webp",
+      "grid": [
+        6,
+        3
+      ],
+      "framesPerSequence": 6,
+      "sequences": [
+        "down-right",
+        "up-right",
+        "horizontal-arc"
+      ],
+      "fps": 24,
+      "blend": "screen",
+      "targetAnchor": [
+        0.5,
+        0.38
+      ],
+      "renderSize": [
+        128,
+        96
+      ],
+      "peakFrame": 2
+    },
+    "impact": {
+      "file": "vfx-impact-ring.webp",
+      "grid": [
+        6,
+        1
+      ],
+      "frames": 6,
+      "fps": 24,
+      "blend": "screen",
+      "targetAnchor": [
+        0.5,
+        0.5
+      ],
+      "renderSize": [
+        112,
+        88
+      ],
+      "peakFrame": 2
+    },
+    "critical": {
+      "file": "vfx-crit-gold.webp",
+      "grid": [
+        4,
+        2
+      ],
+      "frames": 8,
+      "fps": 24,
+      "blend": "screen",
+      "targetAnchor": [
+        0.5,
+        0.42
+      ],
+      "renderSize": [
+        148,
+        112
+      ],
+      "peakFrame": 3
+    },
+    "death": {
+      "file": "vfx-death-shatter.webp",
+      "grid": [
+        4,
+        2
+      ],
+      "frames": 8,
+      "fps": 24,
+      "blend": "normal",
+      "targetAnchor": [
+        0.5,
+        0.48
+      ],
+      "renderSize": [
+        148,
+        112
+      ],
+      "peakFrame": 3
+    },
+    "shieldHit": {
+      "file": "vfx-shield-crack.webp",
+      "grid": [
+        6,
+        1
+      ],
+      "frames": 6,
+      "fps": 20,
+      "blend": "screen",
+      "targetAnchor": [
+        0.5,
+        0.44
+      ],
+      "renderSize": [
+        120,
+        92
+      ],
+      "peakFrame": 2
+    },
+    "pierce": {
+      "file": "vfx-pierce-trail.webp",
+      "grid": [
+        6,
+        1
+      ],
+      "frames": 6,
+      "fps": 24,
+      "blend": "screen",
+      "sourceAnchor": [
+        0.5,
+        0.45
+      ],
+      "targetAnchor": [
+        0.5,
+        0.42
+      ],
+      "headingDeg": 0,
+      "travelMs": 260,
+      "renderSize": [
+        128,
+        72
+      ],
+      "peakFrame": 3
+    },
+    "heal": {
+      "file": "vfx-heal-light.webp",
+      "grid": [
+        4,
+        2
+      ],
+      "frames": 8,
+      "fps": 24,
+      "blend": "screen",
+      "targetAnchor": [
+        0.5,
+        0.5
+      ],
+      "renderSize": [
+        128,
+        100
+      ],
+      "peakFrame": 3
+    },
+    "shed": {
+      "file": "vfx-shed-mist.webp",
+      "grid": [
+        6,
+        2
+      ],
+      "frames": 12,
+      "fps": 15,
+      "blend": "normal",
+      "targetAnchor": [
+        0.5,
+        0.45
+      ],
+      "renderSize": [
+        186,
+        142
+      ],
+      "peakFrame": 6,
+      "visualRule": "只表现紫色鳞膜、雾与弧线；不画第二个完整蛇头。"
+    }
+  },
+  "arena": {
+    "files": [
+      "arena-dais-1600.webp",
+      "arena-dais-800.webp"
+    ],
+    "fit": "contain；置于 #arena 内容层下、页面背景层上",
+    "pointerEvents": "none",
+    "ariaHidden": true
+  },
+  "routing": [
+    {
+      "when": "e.t === 'dmg' && e.tag === '攻击'，且源 fighter 的 tg !== 'pierce'",
+      "play": [
+        "slash（按敌我方向选行）",
+        "impact"
+      ]
+    },
+    {
+      "when": "e.t === 'dmg' && e.tag === '攻击'，且源 fighter 的 tg === 'pierce'",
+      "play": [
+        "pierce（从 sourceAnchor 飞到 targetAnchor）",
+        "impact"
+      ],
+      "note": "e.eff 是四象伤害倍率，不是穿透标记；穿透须由 e.s 反查 fighter.tg。"
+    },
+    {
+      "when": "e.t === 'dmg' && e.tag !== '攻击'",
+      "play": [
+        "impact"
+      ],
+      "note": "技能伤害不叠斩击，避免视觉误导。"
+    },
+    {
+      "when": "e.t === 'dmg' && e.crit === true",
+      "play": [
+        "critical"
+      ],
+      "note": "与本次伤害的基础命中特效叠加。"
+    },
+    {
+      "when": "e.t === 'die'",
+      "play": [
+        "death"
+      ],
+      "critical": "死亡碎散必须绑定 die，绝不能绑定 dmg.kill。kill=true 之后可能进入 revive 或 shed，尚未真正阵亡。"
+    },
+    {
+      "when": "e.t === 'shieldHit'",
+      "play": [
+        "shieldHit"
+      ],
+      "critical": "当前事件只给出本次吸收量，没有剩余护盾值；语义应为护盾受击/裂痕，不应承诺护盾已破。"
+    },
+    {
+      "when": "e.t === 'heal'",
+      "play": [
+        "heal"
+      ]
+    },
+    {
+      "when": "e.t === 'shed'",
+      "play": [
+        "shed"
+      ],
+      "note": "蛇蜕是复起分支，应先移除 dead 残留，再播紫雾。"
+    }
+  ],
+  "files": {
+    "vfx-slash.webp": {
+      "bytes": 75860,
+      "sha256": "df8bfba7f264fc955a4a0d51bb682c1ed4fd00e29514250b84a383e14b7a5253",
+      "width": 768,
+      "height": 384,
+      "alpha": true
+    },
+    "vfx-impact-ring.webp": {
+      "bytes": 40474,
+      "sha256": "734692eb8a4bae6bd75ec86b7b21302d713a55974bf0383b65606b45a9d92c86",
+      "width": 768,
+      "height": 128,
+      "alpha": true
+    },
+    "vfx-crit-gold.webp": {
+      "bytes": 48488,
+      "sha256": "ee33a6ebcb6b313c2e22100fdab57f0d5bae6b093ee335cb9dbc8b9b33ee074c",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "vfx-death-shatter.webp": {
+      "bytes": 49688,
+      "sha256": "649536883a805c1b0d4e30ad6299e95debca8d66ac52b6ee35fd6607858e9d05",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "vfx-shield-crack.webp": {
+      "bytes": 51784,
+      "sha256": "d6286c505c56fe84d7175a2fcf24d295dc19a0477f94814ca9281d72602999ac",
+      "width": 768,
+      "height": 128,
+      "alpha": true
+    },
+    "vfx-pierce-trail.webp": {
+      "bytes": 26706,
+      "sha256": "a702815c63139e3f70b4b00b34b6fd79f148eecba1866d664a035b28052de4f8",
+      "width": 768,
+      "height": 128,
+      "alpha": true
+    },
+    "vfx-heal-light.webp": {
+      "bytes": 48732,
+      "sha256": "99a173b4b8a42c38f89c9032231a4983052b995f9060109b468db82ecefc89d8",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "vfx-shed-mist.webp": {
+      "bytes": 52724,
+      "sha256": "4eaa4cb8e55160fcb27fdc5aef84bcd698adb4ade98856e2b13c19c76bb3c0cb",
+      "width": 768,
+      "height": 256,
+      "alpha": true
+    },
+    "arena-dais-1600.webp": {
+      "bytes": 155172,
+      "sha256": "e80cc3f0bd272f88feabb035b0cca677736f9e9d73d5800c81b8dcd644a5c4e4",
+      "width": 1600,
+      "height": 420,
+      "alpha": true
+    },
+    "arena-dais-800.webp": {
+      "bytes": 46246,
+      "sha256": "ee6774c6f70b9dfe25f69f3ca7effa2ace7a268a7b7909c8a2224768a7e13b2d",
+      "width": 800,
+      "height": 210,
+      "alpha": true
+    },
+    "preview.webp": {
+      "bytes": 149928,
+      "sha256": "97d50b6988d05b4a635386602005ea8c6c944f6b8e6d080353fcfe0a3439dcf3",
+      "width": 1600,
+      "height": 1840,
+      "alpha": false
+    }
+  }
+}

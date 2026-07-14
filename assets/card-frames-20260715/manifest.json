@@ -1,0 +1,230 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-card-frames-20260715",
+  "sourceReferenceInLongTermPack": "assets/art-direction-20260715/image2-card-frames-master.png",
+  "sourcePolicy": "Image2 母版仅作材质与层级参考；正式资产按原生 3:4 重建，未横向拉伸偏窄母版。",
+  "canvas": {
+    "width": 768,
+    "height": 1024,
+    "ratio": "3:4"
+  },
+  "artWell": {
+    "x": 64,
+    "y": 60,
+    "width": 640,
+    "height": 900
+  },
+  "layerOrder": [
+    "recruit-backplate",
+    "character-art inside artWell",
+    "recruit-frame-{rarity}",
+    "rarity-corner-{rarity} and semantic UI",
+    "affix-quality-{quality} only after purchase"
+  ],
+  "tiers": {
+    "n": {
+      "label": "N",
+      "frame": "recruit-frame-n.webp",
+      "corner": "rarity-corner-n.svg",
+      "structure": "单轨旧铁；磨损切角；无宝石",
+      "color": "#9a978e"
+    },
+    "r": {
+      "label": "R",
+      "frame": "recruit-frame-r.webp",
+      "corner": "rarity-corner-r.svg",
+      "structure": "蓝钢双轨；四角铆钉；内侧短鳍",
+      "color": "#bdd8e9"
+    },
+    "sr": {
+      "label": "SR",
+      "frame": "recruit-frame-sr.webp",
+      "corner": "rarity-corner-sr.svg",
+      "structure": "紫银双框；四角晶面；中轴菱晶",
+      "color": "#d2bee6"
+    },
+    "ssr": {
+      "label": "SSR",
+      "frame": "recruit-frame-ssr.webp",
+      "corner": "rarity-corner-ssr.svg",
+      "structure": "鎏金三轨；四枚锁扣；上下星钻",
+      "color": "#f4d782"
+    },
+    "ur": {
+      "label": "UR",
+      "frame": "recruit-frame-ur.webp",
+      "corner": "rarity-corner-ur.svg",
+      "structure": "象牙金双冠；日轮羽饰；外扩星芒",
+      "color": "#fff4d0"
+    }
+  },
+  "affixQualities": {
+    "common": {
+      "label": "凡",
+      "frame": "affix-quality-common.svg",
+      "structure": "单轨短签",
+      "color": "#9a9686"
+    },
+    "fine": {
+      "label": "秀",
+      "frame": "affix-quality-fine.svg",
+      "structure": "双翼水纹",
+      "color": "#7fc4d8"
+    },
+    "rare": {
+      "label": "珍",
+      "frame": "affix-quality-rare.svg",
+      "structure": "菱晶双环",
+      "color": "#c77dff"
+    },
+    "legendary": {
+      "label": "传世",
+      "frame": "affix-quality-legendary.svg",
+      "structure": "星芒金冠",
+      "color": "#ffb13c"
+    }
+  },
+  "integration": {
+    "frameFit": "width/height 100%；保持 3:4，不做非等比缩放",
+    "transparentCharacterArt": "在 artWell 内 contain，bottom center",
+    "opaqueCharacterArt": "在 artWell 内 cover，center top；必要时按角色单独调 object-position",
+    "missingAssetFallback": "任一新资产失败时回退现有征募布局，不阻断选择。",
+    "affixPolicy": "征募候选卡不显示词缀品质；购买后才在已拥有单位详情／名册中显示，不泄露购买时随机结果。",
+    "svgContract": "角标 160×56，词缀框 96×24；currentColor；无文字、无外链、无 filter。"
+  },
+  "metrics": {
+    "runtimeBytes": 105113,
+    "runtimeKiB": 102.6,
+    "previewIsDeliveryOnly": true
+  },
+  "files": {
+    "recruit-backplate.webp": {
+      "bytes": 12928,
+      "sha256": "45da77a2c8fc93bbdbaa4e1d03736f16536d03984cd55d8ae664bd4f03c5debd",
+      "width": 768,
+      "height": 1024,
+      "alpha": false,
+      "format": "webp"
+    },
+    "recruit-frame-n.webp": {
+      "bytes": 10938,
+      "sha256": "8d4d68330d4f9898a9a00b813783dc7b914335730dca29d57e9dd59d21a15e38",
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "format": "webp"
+    },
+    "recruit-frame-r.webp": {
+      "bytes": 14408,
+      "sha256": "469ec7fbe8c3d5112a9eed78a8a2a549b9ae142248804f4895b706aeb3def63c",
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "format": "webp"
+    },
+    "recruit-frame-sr.webp": {
+      "bytes": 17230,
+      "sha256": "d03dd82878f6c7fe27cde96424bda77f4d80a75df84cdaf2769016555f19a526",
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "format": "webp"
+    },
+    "recruit-frame-ssr.webp": {
+      "bytes": 19194,
+      "sha256": "1f26c89c440cda2b53bfec67150f78ed1c9c9c17f7efa2525b8f339f03b13c00",
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "format": "webp"
+    },
+    "recruit-frame-ur.webp": {
+      "bytes": 26326,
+      "sha256": "0f2f738820aacf9405e8219b81d0f13236fa1d02b01d5d367c6d6065e6ea9db9",
+      "width": 768,
+      "height": 1024,
+      "alpha": true,
+      "format": "webp"
+    },
+    "rarity-corner-n.svg": {
+      "bytes": 344,
+      "sha256": "8f423dcb3fc454c54a1ecd29d587c6ea8b13549ca3afe172dcf049dad434de1a",
+      "width": 160,
+      "height": 56,
+      "alpha": true,
+      "format": "svg"
+    },
+    "rarity-corner-r.svg": {
+      "bytes": 428,
+      "sha256": "a24e547f1f3d73d2563a86795fcbac62b5d3f806bcc9e9376bccc9c5835e6072",
+      "width": 160,
+      "height": 56,
+      "alpha": true,
+      "format": "svg"
+    },
+    "rarity-corner-sr.svg": {
+      "bytes": 419,
+      "sha256": "8a3a0aa364b42a8cba890af4a4f319d37c35aac36a41108fcdc6178263f643a0",
+      "width": 160,
+      "height": 56,
+      "alpha": true,
+      "format": "svg"
+    },
+    "rarity-corner-ssr.svg": {
+      "bytes": 457,
+      "sha256": "07c906f3948eec9141447ff0ecb6c4625b25bdb51a98333c88f95d01aa831923",
+      "width": 160,
+      "height": 56,
+      "alpha": true,
+      "format": "svg"
+    },
+    "rarity-corner-ur.svg": {
+      "bytes": 512,
+      "sha256": "44a8beb2803acee1bb762598b398a60624de5c8ff9abcc8c93d42cda0c77e1b7",
+      "width": 160,
+      "height": 56,
+      "alpha": true,
+      "format": "svg"
+    },
+    "affix-quality-common.svg": {
+      "bytes": 347,
+      "sha256": "31a0651e29715af5f7ec41ad0714ae2c6bc9870c6c8b58fe17e5751fe54754c0",
+      "width": 96,
+      "height": 24,
+      "alpha": true,
+      "format": "svg"
+    },
+    "affix-quality-fine.svg": {
+      "bytes": 502,
+      "sha256": "60d8cb2e60e44d4d0c4cbc2132bfd15a335a7252fd68eaf9922d29f7ac81d3f4",
+      "width": 96,
+      "height": 24,
+      "alpha": true,
+      "format": "svg"
+    },
+    "affix-quality-rare.svg": {
+      "bytes": 523,
+      "sha256": "393ea8a1754037b2bb5d989fdc298caed3f55f9fb946bb4f9e831789f20678e4",
+      "width": 96,
+      "height": 24,
+      "alpha": true,
+      "format": "svg"
+    },
+    "affix-quality-legendary.svg": {
+      "bytes": 557,
+      "sha256": "3e71487d4077c0f48f8cfff2165f503f75b5577ce6492bf5933b1db29aa423f3",
+      "width": 96,
+      "height": 24,
+      "alpha": true,
+      "format": "svg"
+    },
+    "preview.webp": {
+      "bytes": 64496,
+      "sha256": "1deba31b86888d45c7b9e5510f1bb737ff9cc6256dc3721eafcaa04259286be5",
+      "width": 1600,
+      "height": 930,
+      "alpha": false,
+      "format": "webp"
+    }
+  }
+}

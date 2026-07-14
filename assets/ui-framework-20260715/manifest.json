@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-ui-framework-20260715",
+  "contract": {
+    "color": "currentColor",
+    "externalLinks": false,
+    "fonts": false,
+    "filters": false,
+    "semanticIconCountUntouched": 43,
+    "usage": "独立装饰映射或 CSS mask；不加入 UI_ICON_PATHS"
+  },
+  "files": {
+    "ornament-corner-tl.svg": {
+      "bytes": 603,
+      "sha256": "0e2d2e280fa41fa6cb98eb46aab4d2819930b1ad1e1f4e3a1e8825b3ddcf2c49"
+    },
+    "ornament-corner-tr.svg": {
+      "bytes": 650,
+      "sha256": "1f4c2b46b5d33722648d43352ed78c3e0da48748ddb0b7ce46c30d08c733c028"
+    },
+    "ornament-corner-br.svg": {
+      "bytes": 652,
+      "sha256": "c569e0d702185c7c69a01557c69833c5b458ca9bbbf41a02970947d170d7ebb5"
+    },
+    "ornament-corner-bl.svg": {
+      "bytes": 650,
+      "sha256": "e1dc5048482c495f67ff34ab53690279596babb3c07369c9487ca85d2e15e5d5"
+    },
+    "divider-broken-cloud.svg": {
+      "bytes": 635,
+      "sha256": "5a51ac2cfb026486cf484bdd4c994d2c14f4865bf59d1af1bd6e52a6cc4066bb"
+    },
+    "pattern-cloudsilk-mask.svg": {
+      "bytes": 499,
+      "sha256": "d26c8f6d451cc378d99a714781c2dd59b94084f58a117cee03fdf5391df23917"
+    },
+    "brand-myskme-seal.svg": {
+      "bytes": 740,
+      "sha256": "84ead81064ef2a7d11a9dc5dc7272ca52d48cdaa95aed6456825a1a968796334"
+    },
+    "preview.webp": {
+      "bytes": 31376,
+      "sha256": "4ae830b2d463e4b9f2165700d86ce0036f266dd6a89f9740ed34292895a9a8b0"
+    }
+  }
+}

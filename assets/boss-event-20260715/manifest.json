@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-boss-event-20260715",
+  "rules": {
+    "nameplateDomText": true,
+    "transitionCenterClear": true,
+    "eventBackTextFree": true,
+    "fallback": "有图则用、缺图回退；不改变 bossResolved、续局幂等、发奖与抓人逻辑"
+  },
+  "files": {
+    "boss-yewang-nameplate.webp": {
+      "bytes": 50136,
+      "sha256": "de857cfc551e28f57a9f65a19ce11eceb4ae18122b708917251bf1f9c78cf132",
+      "width": 1024,
+      "height": 256,
+      "alpha": true
+    },
+    "boss-yewang-transition-landscape.webp": {
+      "bytes": 124754,
+      "sha256": "0adf82fc9017dc41c2e28560a2a75c7bf4a5cf9e38b1b28cbf5616fea5266d1c",
+      "width": 1600,
+      "height": 900,
+      "alpha": true
+    },
+    "boss-yewang-transition-portrait.webp": {
+      "bytes": 90076,
+      "sha256": "bde11178cec1c9bbd51196c1dd44da73e6f96ee0f4c3b54c6f4b042899487dce",
+      "width": 900,
+      "height": 1600,
+      "alpha": true
+    },
+    "event-card-back.webp": {
+      "bytes": 30710,
+      "sha256": "3a8e739a31a83b5469ae6b187a4fa67a9600566470dec179f2a27df85a6af31d",
+      "width": 840,
+      "height": 600,
+      "alpha": false
+    },
+    "preview.webp": {
+      "bytes": 53116,
+      "sha256": "1d508a9b9b80a229b61d12276e2ef287dbe947353e8bdaf28b5d95ecb687844b",
+      "width": 1600,
+      "height": 870,
+      "alpha": false
+    }
+  }
+}
