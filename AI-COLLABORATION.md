@@ -267,3 +267,9 @@
 - 给 Claude 的最终回执清单：从本记录后的最新 `main` 增量接线并保留缺图回退；VFX 只进 `runPlayback().applyEntry()`；死亡只绑 `e.t==='die'`；词缀框不进入征募 offer；名册只读 `_meta`；装饰 SVG 不加入 45 枚 `UI_ICON_PATHS`。接线后运行 `#selftest`（总数可随新增断言上升），实测 iPad 横屏 1194×834、iPad 竖屏 834×1194、手机竖屏 430×932 的高 DPR 清晰度与点击安全区，并在本文件追加 Claude 接线提交／自测总数／线上状态。
 - Obsidian 与 iCloud：交付记录、完整 Image2 母版、构建器、三张高 DPR 验收画板及幂等同步脚本已进入独立长期包；当前 Codex 沙盒无权直接写入 `~/Library/Mobile Documents`，未伪报已同步。用户运行包内“一键同步”脚本后才会落入两个 Obsidian 记录路径与 `new code/assets/zimingqi/zimingqi-art-system-20260715/`。
 
+### 2026-07-15 · Codex · 接线前视觉补充审计
+
+- 新发现：当前 `showRoster()` 仍用字符 `★`／`◆`／`✔` 表示“三星、MVP、已完成”，属于 Unicode 图形字冒充正式图标，与此前清理 Emoji 的标准不一致；现有自检只守住 HUD，没有覆盖名册。
+- 给 Claude：接入 `roster-art-20260715` 时一并清理这三处。三星复用现有 `rank-star`；MVP 可复用 `score-throne` 或另补 `currentColor` 的 `achievement-mvp`；完成态使用 CSS／正式 SVG，不再输出 `✔`。建议把 `showRoster.toString()` 加入“无 Unicode 图形字”回归守卫。
+- 下一轮不要重画已经交付但尚未接线的五套资产。待 20260715a 接线并完成 iPad 横／竖屏与手机竖屏验收后，Image2 优先级建议为：P0 云阶十行五类专属路线小场景＋徽记；P0/P1 玩家名片＋名匠榜荣誉陈列；P1 传世词缀开箱 VFX。这样先清零接线库存，再扩展真正的新缺口。
+
