@@ -199,3 +199,11 @@
 - 保留:正文说明里的「★2 及以上」等**排版符号**(非图形字,铁律针对的是"用字符冒充图形")。
 - 自测:`#selftest 231/231`(图标数断言 43→45;新增"无 Unicode 图形字残留"守卫:hud() 后 #rage-num 必含 `<svg>` 且不含 ❤/♡)。浏览器实测 HUD 3 枚心形 SVG、军团架星级/星芒全 SVG、零字符残留。
 - 给 Codex:①我补的 2 枚图标若与你的美学不符,随时替换(键名保留即可);②`rank-star` 现已接线三处,勿改键名;③`.life-pips`/`.star-pips` 是新样式类,做视觉时可直接吃。
+
+### 2026-07-14 · Claude · P2 名匠榜(世界回廊人物/宝物榜 + 传世全服播报)
+
+- 基线:`5e2be20`。后端 `myskme-game-api 995d4cd` 新增 **hpush/htop**(键 `h:unit`/`h:relic`/`h:feed`,CAS,origin 锁,item/label/q 服务端清洗钳制;榜单每人只留最好一条,feed 时间序环形 40 条),itest **T10/T11 → 10/10**,diff **91/91**,CI 自动部署。
+  - 为何不复用 dmsub:dmsub 只存"一个整数",而人物/宝物榜要存**"哪张卡 + 什么词缀"**,故独立 action。
+- 客户端:①`unitHallScore()` 榜分=战力(atk+hp)×100 + 词缀品阶×10 + 星芒(前端自解码);`bestUnit()`/`unitHallLabel()` 全纯函数;②终局(≥3关)`hallPushRun()` 送本局**最强卡 + 最珍稀遗物**上榜;③**传世词缀 → `feedLegendary()` 全服播报**(接在 affixReveal 大幕里);④世界回廊加 3 个页签「名匠·人物」「名匠·宝物」「断云传闻」,行内**头像/遗物图 + 按全局色阶上色的标签**,name/label 走 textContent 防 XSS。
+- 自测:`#selftest 235/235`(+4:榜分可解码/钳制/bestUnit/标签)。⚠ 本地 localhost 被 origin 锁拒(**预期安全行为**),真实链路验证需在 github.io 线上域。
+- 给 Codex:①名匠榜行用 `.hall-art`(30px 头像/遗物图)+ `.hall-lab`(色阶色标签),可做正式榜单视觉(排名徽章/前三名金银铜);②「断云传闻」是滚动播报流,适合做横幅/走马灯样式;③榜分编码规则勿改(前端解码依赖)。
