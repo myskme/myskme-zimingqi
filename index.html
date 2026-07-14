@@ -1443,7 +1443,7 @@ function hud(){
   if(!S){document.body.classList.remove('playing');return}
   document.body.classList.add('playing');
   $('#hud-act').textContent=S.solo?('第 '+S.round+' 关'):(ACT_CN[S.act]||'终幕');
-  $('#hud-actname').textContent=S.solo?((S.daily?'今日试炼 · ':'单人试炼 · ')+(SOLO_DIFF[S.difficulty]||'')+(S.endless?' · 无尽':'')):(ACT_NAMES[S.act]||'王座之前');
+  $('#hud-actname').textContent=S.solo?((S.daily?'今日试炼 · ':(S.endless?'无尽回廊 · ':'单人试炼 · '))+(SOLO_DIFF[S.difficulty]||'')):(ACT_NAMES[S.act]||'王座之前');
   $('#rage-wrap').style.display=S.rageMax?'flex':'none'; // 单人/暴走关闭时不占位挤 standings
   const pct=S.rageMax?Math.min(100,S.rage/S.rageMax*100):0;
   $('#rage-bar i').style.width=pct+'%';
@@ -2986,7 +2986,10 @@ function runSelftest(){
    const _sd=document.getElementById('seg-daily');
    ok('设置页征程=经典十关/无尽回廊(今日试炼已删)', !!_sd&&_sd.textContent.indexOf('无尽回廊')>=0&&_sd.textContent.indexOf('今日试炼')<0);
    const _rm=document.getElementById('row-mode');
-   ok('设置页模式行已隐藏(入口即模式)', !!_rm&&getComputedStyle(_rm).display==='none');}
+   ok('设置页模式行已隐藏(入口即模式)', !!_rm&&getComputedStyle(_rm).display==='none');
+   S={act:1};
+   ok('秘策池: 牌力满级过滤星尘牵引·未满保留', stratPool({tier:5}).every(x=>x.id!=='st_tier')&&stratPool({tier:1}).some(x=>x.id==='st_tier'));
+   S=_S9;}
   // —— 批⑩ 平衡探针（固定种子胜率带宽 · 现状指纹）——
   // 带宽取 2026-07-10 实测值 ± 宽容带。红了≠一定坏，是「有人动了平衡，来看一眼」的铃铛。
   // 已知现状（探针锚住而非掩盖）：①学院盾体系同费最强(实测100%) ②swing/novice 为经济/成长系,单场对局天然低（价值在经济层）③solo 中后期相对偏软(曲线递增)。
@@ -3339,10 +3342,13 @@ const STRATS=[
  {id:'st_tier',    n:'星尘牵引', d:'牌力立即 +1 级'},
  {id:'st_reroll',  n:'商队特许', d:'每关免费刷新 +1 次'},
 ];
+function stratPool(you){ // 纯函数便于自检:排除已拥有 + 牌力已满时的星尘牵引(选了=纯空操作的死项)
+  const owned=new Set(you.strats||[]);
+  return STRATS.filter(s=>!owned.has(s.id)&&!(s.id==='st_tier'&&effTier(you)>=5));
+}
 function showStratPick(){
   const you=S.players[0];
-  const owned=new Set(you.strats||[]);
-  const pool=STRATS.filter(s=>!owned.has(s.id));
+  const pool=stratPool(you);
   const picks=[];
   while(picks.length<3&&pool.length){const s=pool[ri(pool.length)];
     if(!picks.includes(s))picks.push(s)}
@@ -3401,7 +3407,7 @@ function soloPreBattle(){
   $('#battle-act-tag').textContent=boss?'终 战':('第 '+S.round+' 关');
   $('#battle-sub').textContent=boss
     ?`单人试炼 · 终战 —— 叶王亲临 · 蛇蜕两形 · 胜则加冕`
-    :`单人试炼 · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
+    :`${S.endless?'无尽回廊':'单人试炼'} · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
   const you=S.players[0], foe=S.soloFoe||[];
   const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
   const ghostMini=us=>us.map(g=>`<span class="mini-u f-dark" title="${g.n}">${g.glyph}</span>`).join('');
@@ -4004,6 +4010,15 @@ function showHowto(){
   梓的「先见」开战惠及全队；增在梓同场时会替她挡下第一击、自己也更猛——把他俩凑到一队，是这个夏天的构筑浪漫。<br><br>
   <b style="color:var(--gold2)">正典补全 · 第一批</b>：赤狐少女<b>瑾</b>、帝企鹅少女<b>涵</b>、原牛少年<b>浩</b>已入征募池，分别补上学院的暴击输出、开战支援与嘲讽前排。<br><br>
   <b style="color:var(--gold2)">正典补全 · 第二批</b>：雪豹少年<b>睿</b>、驼鹿少女<b>海</b>、刺猬少女<b>欣</b>已入征募池，分别带来天之国首击重题、海族节拍控速与学院半血复起。三人均不增加穿透／嘲讽成员，避免旧羁绊无意膨胀。`));
+  if(S&&S.solo){ // 单人视角重排:标题去"课堂"、单人节置顶展开、课堂开篇节收起(不改模板本体,DOM后处理)
+    try{
+      const mb=document.getElementById('modal-box'); // 容器实为 #modal-box(modal()生成)
+      const h3=mb&&mb.querySelector('h3'); if(h3)h3.textContent='玩法说明';
+      const ds=mb?[...mb.querySelectorAll('details')]:[];
+      const soloSec=ds.find(d=>(d.querySelector('summary')||{}).textContent.includes('单人试炼'));
+      if(soloSec&&ds[0]&&soloSec!==ds[0]){ds[0].removeAttribute('open');soloSec.setAttribute('open','');ds[0].parentNode.insertBefore(soloSec,ds[0])}
+    }catch(e){}
+  }
 }
 function showMenu(){
   modal(`<h3>菜 单</h3>
