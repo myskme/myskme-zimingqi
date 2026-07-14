@@ -213,7 +213,8 @@ body.playing #hud{display:flex}
 .pcard .res b{color:var(--gold2);font-weight:500;font-family:var(--mono);font-size:15px}
 .pcard .mini-army{display:flex;gap:5px;margin-bottom:10px;min-height:26px;flex-wrap:wrap}
 .mini-u{width:26px;height:26px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
-  font-size:14px;position:relative;background:rgba(0,0,0,.25)}
+  font-size:14px;position:relative;background:rgba(0,0,0,.25);overflow:hidden}
+.mini-u .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%}
 .mini-u.star2::after{content:'★★';position:absolute;top:-7px;right:-5px;font-size:8px;color:var(--gold2)}
 .mini-u.star3::after{content:'★★★';position:absolute;top:-7px;right:-6px;font-size:7.5px;color:#fff;text-shadow:0 0 5px var(--gold)}
 /* 军团位阵营色边框：一眼读出军团阵营构成（功能整合） */
@@ -329,7 +330,9 @@ body.playing #hud{display:flex}
 .bunit{border:1px solid var(--line);background:var(--panel);padding:7px 10px;text-align:center;
   transition:border-color .2s;position:relative;min-width:78px}
 .bunit:hover{border-color:var(--gold)}
-.bunit .g{font-size:21px} .bunit .n{font-size:11px;color:var(--ink2);letter-spacing:.08em}
+.bunit .g{position:relative;width:46px;height:46px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;font-size:21px;border:1px solid var(--line2);border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,rgba(201,166,74,.12),transparent 70%)}
+.bunit .g .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
+.bunit .n{font-size:11px;color:var(--ink2);letter-spacing:.08em}
 .bunit .st{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
 .bunit.star2 .g::after{content:' ★★';font-size:10px;color:var(--gold2)}
 .bunit.star3 .g::after{content:' ★★★';font-size:9px;color:#fff;text-shadow:0 0 6px var(--gold)}
@@ -1398,7 +1401,7 @@ function cardURL(id){const u=ART_DIR+(ART['card_'+id]||('card-'+id+'.webp'));
 function artTag(key,cls){const u=artURL(key);
   return u?`<img class="${cls||'art'}" src="${u}" alt="" decoding="async" onerror="this.remove()">`:''}
 function relicArtTag(id,cls){return artTag('relic_'+id,cls||'relic-art')}
-function relicDetailHTML(r){return `${relicArtTag(r.id,'relic-detail-art')}<h3>${r.icon} ${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`}
+function relicDetailHTML(r){return `${relicArtTag(r.id,'relic-detail-art')}<h3>${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`}
 function showFinalArt(){
   const wrap=$('#final-art');if(!wrap)return;
   const large=artURL('ending'),small=artURL('endingSmall'),im=wrap.querySelector('img');
@@ -1712,7 +1715,7 @@ function renderWave(){
     d.innerHTML=`<h4>${p.name} <span class="crown icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
       <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
-        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} f-${u.fac}" title="${u.n} · ${FACS[u.fac]?FACS[u.fac].n:''}">${u.n[0]}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
+        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} f-${u.fac}" title="${u.n} · ${FACS[u.fac]?FACS[u.fac].n:''}">${u.n[0]}${artTag(u.id,'mua')}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
         <button class="btn ok"   data-a="ok">答对 +2</button>
         <button class="btn hard" data-a="hard">难题 +3</button>
@@ -2160,7 +2163,7 @@ function renderFoeIntel(p){
   }
   if(ghostUnits)chips=ghostUnits.map(g=>`<span class="mini-u" title="${g.n}">${g.glyph}</span>`).join('');
   else chips=(army||[]).map(a=>{const u=UMAP[a.id];
-    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}</span>`}).join('')
+    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}${artTag(u.id,'mua')}</span>`}).join('')
     ||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>';
   let hint='';
   if(army&&army.length){
@@ -2182,7 +2185,7 @@ function renderBench(p){
     const d=document.createElement('div');d.className='bunit'+(a.star>=2?' star'+a.star:'');
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
-      <div class="g">${u.n[0]}</div><div class="n">${u.n}</div>
+      <div class="g">${u.n[0]}${artTag(u.id,'mua')}</div><div class="n">${u.n}</div>
       <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
       <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
         <button type="button" aria-label="将${u.n}向前排移动一格" title="向前排移动" ${ai===0?'disabled':''}>${uiIcon('action-move-front')}</button>
@@ -3601,7 +3604,7 @@ function soloPreBattle(){
     ?`单人试炼 · 终战 —— 叶王亲临 · 蛇蜕两形 · 胜则加冕`
     :`${S.endless?'无尽回廊':'单人试炼'} · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
   const you=S.players[0], foe=S.soloFoe||[];
-  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
+  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}${artTag(a.id,'mua')}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
   const ghostMini=us=>us.map(g=>`<span class="mini-u f-dark" title="${g.n}">${g.glyph}</span>`).join('');
   const box=$('#pairings');box.style.display='';
   const foeChips=boss?ghostMini(soloBossUnits()):mini(foe);
