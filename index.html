@@ -775,6 +775,7 @@ body.playing #hud{display:flex}
       <h5>—— 军 团 ——</h5>
       <div id="bench-units"></div>
       <div id="bond-shelf"></div>
+      <div id="bounty-shelf"></div>
       <div id="relic-shelf"></div>
     </div>
   </section>
@@ -1618,7 +1619,9 @@ $('#btn-start').onclick=()=>{
     S.solo=true; S.difficulty=segVal('#seg-diff'); S.round=1; S.soloFoe=null; S.soloWins=0;
     if(segVal('#seg-daily')===1){S.endless=true} // 无尽回廊·直开:第1关起无终点爬层(soloIsBoss 恒 false,soloBuildFoe 无上限缩放);经典征程通关后仍可续入无尽
     rng=mulberry32(S.seed);
+    assignBounties(); // 狼牙悬赏:每局3张(种子内发,断电续局不重抽)
     setAct(1);hud();startOriginDraft();save();BGM.auto('play',true); // 单人娱乐默认开背景音乐
+    ghostPull(); // 影军回响:异步拉同学军团(离线静默跳过)
   }else{
     S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1);
     rng=mulberry32(S.seed);
@@ -2188,7 +2191,7 @@ function renderBench(p){
   $$('#relic-shelf .relic-chip[data-rid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.rid];
       modal(relicDetailHTML(r))}});
-  renderBonds(p);
+  renderBonds(p);renderBounties();
   // 被叶王收走的单位 · 赎回
   if(S.captured&&S.captured.pi===p.i){
     const u=UMAP[S.captured.inst.id];
@@ -2289,7 +2292,7 @@ $('#btn-forge').onclick=()=>{
   document.querySelectorAll('#modal-box [data-fi]').forEach(btn=>btn.onclick=()=>{
     const inst=p.army[+btn.dataset.fi];if(!inst)return;
     snapDraft();
-    p.coins-=cost;inst.gAtk+=1;inst.gHp+=2;
+    p.coins-=cost;inst.gAtk+=1;inst.gHp+=2;S._forgeRun=(S._forgeRun||0)+1; // 悬赏「星尘炼体」计数
     p.forgeN=(p.forgeN||0)+1;p._forgedRound=S.round;
     closeModal();SFX.play('merge');flash(false);
     toast(`${UMAP[inst.id].n} 淬炼成功 · 攻击 +1 · 生命 +2`,2400);
@@ -3091,6 +3094,14 @@ function runSelftest(){
    ok('设置页模式行已隐藏(入口即模式)', !!_rm&&getComputedStyle(_rm).display==='none');
    S={act:1};
    ok('秘策池: 牌力满级过滤星尘牵引·未满保留', stratPool({tier:5}).every(x=>x.id!=='st_tier')&&stratPool({tier:1}).some(x=>x.id==='st_tier'));
+   // —— 狼牙悬赏 & 影军回响(2026-07-14 新机制) ——
+   ok('悬赏池: id唯一·chk全函数·赏金为正', new Set(BOUNTIES.map(b=>b.id)).size===BOUNTIES.length&&BOUNTIES.every(b=>typeof b.chk==='function'&&b.r>0));
+   ok('悬赏判定: 烈焰3火/三星/轻装(第4关起)', (()=>{const p={army:[{id:'lin',star:1},{id:'yin',star:3},{id:'qi',star:1}],coins:0};
+     return BOUNTY_MAP.b_fire3.chk(p,{round:2})&&BOUNTY_MAP.b_star3.chk(p,{})&&BOUNTY_MAP.b_lean.chk(p,{round:5})&&!BOUNTY_MAP.b_lean.chk(p,{round:2})})());
+   ok('影军映射: 非法id丢弃·星级钳1-3·全空null', (()=>{const f=ghostToFoe({army:[{id:'lin',star:9},{id:'nope',star:1}]});
+     return !!f&&f.length===1&&f[0].star===3&&ghostToFoe({army:[{id:'nope'}]})===null})());
+   S={solo:true,ghostFoe:{r:4,name:'测'},round:4};
+   ok('影军名覆盖: 命中关显示「影军 · 名」', soloFoeName(4)==='影军 · 测'&&soloFoeName(5)!=='影军 · 测');
    S=_S9;}
   // —— 批⑩ 平衡探针（固定种子胜率带宽 · 现状指纹）——
   // 带宽取 2026-07-10 实测值 ± 宽容带。红了≠一定坏，是「有人动了平衡，来看一眼」的铃铛。
@@ -3433,10 +3444,61 @@ const SOLO_DIFF=['见习','精英','宗师'];
 const SOLO_FINAL=10; // 十关征程：第10关叶王亲临=终局；通关后解锁无尽回廊
 function soloIsBoss(){return S&&S.solo&&S.round===SOLO_FINAL&&!S.endless}
 function soloFoeName(round){
+  if(S&&S.ghostFoe&&S.ghostFoe.r===round)return '影军 · '+S.ghostFoe.name;
   if(round===SOLO_FINAL&&!S.endless)return '叶王 · 亲临';
   if(round>SOLO_FINAL)return '无尽回廊 · 第 '+(round-SOLO_FINAL)+' 层';
   const tiers=['谷地游兵','断云宿敌','黑域斥候','蛇纹战团','鹦鹉亲卫','紫光军阵','叶王余党'];
   return tiers[Math.min(tiers.length-1,Math.floor((round-1)/2))];
+}
+/* ============ 狼牙悬赏(单人·每局3张·借鉴云顶任务/酒馆任务) ============ */
+const BOUNTIES=[
+ {id:'b_fire3', n:'烈焰行军', d:'军团含 ≥3 名火象单位取胜', r:4, chk:(p,c)=>p.army.filter(a=>unitElem(a.id)==='fire').length>=3},
+ {id:'b_wind',  n:'疾风之约', d:'风象羁绊成阵时取胜',       r:4, chk:p=>bondTier(p,'wind')>=1},
+ {id:'b_earth', n:'厚土之约', d:'土象羁绊成阵时取胜',       r:4, chk:p=>bondTier(p,'earth')>=1},
+ {id:'b_water', n:'潮汐之约', d:'水象羁绊成阵时取胜',       r:4, chk:p=>bondTier(p,'water')>=1},
+ {id:'b_nodeath',n:'零损之战', d:'一场胜利中我方无人阵亡',   r:3, chk:(p,c)=>!!(c&&c.result&&c.A&&c.result.surv[0].length===c.A.length)},
+ {id:'b_taunt', n:'不退壁垒', d:'嘲讽羁绊成阵时取胜',       r:3, chk:p=>bondTier(p,'vanguard')>=1},
+ {id:'b_pierce',n:'破云列阵', d:'穿透羁绊成阵时取胜',       r:3, chk:p=>bondTier(p,'pierce')>=1},
+ {id:'b_star3', n:'三星闪耀', d:'军团中有三星单位时取胜',   r:5, chk:p=>p.army.some(a=>(a.star||1)>=3)},
+ {id:'b_rich',  n:'富甲断云', d:'取胜时持币 ≥10',           r:3, chk:p=>p.coins>=10},
+ {id:'b_forge2',n:'星尘炼体', d:'本局淬炼 ≥2 次后取胜',     r:3, chk:()=>(S._forgeRun||0)>=2},
+ {id:'b_lean',  n:'轻装深入', d:'第 4 关起以 ≤4 名成员取胜', r:4, chk:(p,c)=>c.round>=4&&p.army.length<=4},
+ {id:'b_slay',  n:'斩影为荣', d:'战胜一支影军',             r:4, chk:(p,c)=>!!c.ghost, net:true},
+];
+const BOUNTY_MAP=BOUNTIES.reduce((m,b)=>(m[b.id]=b,m),{});
+function assignBounties(){ // 开局按局种子发3张(离线时不发需联网的斩影)
+  const pool=BOUNTIES.filter(b=>!b.net||(typeof LB_ON!=='undefined'&&LB_ON)).slice();
+  const picks=[];while(picks.length<3&&pool.length)picks.push(pool.splice(ri(pool.length),1)[0]);
+  S.bounties=picks.map(b=>({id:b.id,done:0}));
+}
+function renderBounties(){
+  const el=$('#bounty-shelf');if(!el)return;
+  if(!S||!S.solo||!Array.isArray(S.bounties)||!S.bounties.length){el.innerHTML='';return}
+  el.innerHTML='<span class="bond-lab">悬赏</span>'+S.bounties.map(x=>{const b=BOUNTY_MAP[x.id];if(!b)return '';
+    return `<span class="bond-chip ${x.done?'bond-t2':''}" data-b="${x.id}" title="${b.d} · 赏 ${b.r} 铸币">${x.done?'✓ ':''}${b.n} ${x.done?'已领':'+'+b.r}</span>`}).join('');
+  el.querySelectorAll('.bond-chip[data-b]').forEach(ch=>{ch.style.cursor='pointer';
+    ch.onclick=()=>{const b=BOUNTY_MAP[ch.dataset.b];if(b)modal(`<h3>狼牙悬赏 · ${b.n}</h3><div style="text-align:center;line-height:2">${b.d}<br>赏金 <b style="color:var(--gold2)">${b.r} 铸币</b> · 达成即发</div>`)}});
+}
+/* ============ 影军回响(单人·第4/7关·借鉴 Super Auto Pets 异步幽灵战) ============ */
+function ghostToFoe(g){ // 纯函数,#selftest 可测:校验+映射影军army→本地实例;非法id丢弃,星级钳1-3,全空null
+  if(!g||!Array.isArray(g.army))return null;
+  const out=[];g.army.slice(0,6).forEach((u,i)=>{if(u&&UMAP[u.id])out.push({uid:'gh'+i+'_'+u.id,id:u.id,star:Math.max(1,Math.min(3,(u.star|0)||1)),gAtk:0,gHp:0})});
+  return out.length?out:null;
+}
+function ghostPull(){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo)return;
+  try{fetch(LB_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpull',difficulty:S.difficulty})})
+    .then(r=>r.json()).then(j=>{if(j&&j.ok&&Array.isArray(j.ghosts)&&S&&S.solo){S.ghostPool=j.ghosts.filter(g=>g&&g.id!==lbId());save()}}).catch(()=>{})}catch(e){}}
+function ghostPush(cleared){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo||!(cleared>=3))return; // 至少打到第3关才够格当影军
+  try{const you=S.players[0];
+    fetch(LB_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpush',id:lbId(),name:(you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者',difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))})}).catch(()=>{})}catch(e){}}
+function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销(经典/无尽/终战通用)
+  const you=S.players[0];let ghost=false;
+  if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;you.coins+=2;S.slainN=(S.slainN||0)+1;
+    toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);S.ghostFoe=null;}
+  const ctx={result,A,round:S.round,ghost};
+  (S.bounties||[]).forEach(x=>{if(x.done)return;const b=BOUNTY_MAP[x.id];if(!b)return;
+    let hit=false;try{hit=!!b.chk(you,ctx)}catch(e){}
+    if(hit){x.done=1;you.coins+=b.r;toast(`✦ 悬赏达成「${b.n}」 +${b.r} 铸币`,3200);SFX.play('coin')}});
 }
 /* 单人秘策：第2/5/8关开局三选一，run-identity 决策（多人版坚决不上） */
 const STRATS=[
@@ -3504,6 +3566,13 @@ function soloRound(){
   S.act=Math.min(3,1+Math.floor((S.round-1)/2));      // 军团上限/场景随关数成长
   setAct(S.act);
   S.soloFoe=soloIsBoss()?[]:soloBuildFoe(S.round,S.difficulty); // 第10关=叶王亲临（幽灵制式，见 soloRunBattle）
+  // 影军回响:第4/7关若池中有"打得更深"的同学军团→本关宿敌换成它(离线/空池/无效army自动跳过)
+  S.ghostFoe=null;
+  if((S.round===4||S.round===7)&&!soloIsBoss()&&Array.isArray(S.ghostPool)&&!(S.ghostUsed||[]).includes(S.round)){
+    const gi=S.ghostPool.findIndex(g=>g&&g.cleared>=S.round&&ghostToFoe(g));
+    if(gi>=0){const g=S.ghostPool.splice(gi,1)[0],foe=ghostToFoe(g);
+      if(foe){S.soloFoe=foe;S.ghostFoe={r:S.round,name:(g.name||'无名同窗')};(S.ghostUsed=S.ghostUsed||[]).push(S.round);
+        toast(`影军回响——${S.ghostFoe.name} 的军团挡在第 ${S.round} 关`,3200)}}}
   // 秘策节点：第2/5/8关开局三选一（每节点只发一次；先落一次档，断电续局最多丢一次秘策不重复领）
   if([2,5,8].includes(S.round)&&!(S.stratsGiven||[]).includes(S.round)){S.phase='draft';save();showStratPick();return}
   startDraft();                                        // 复用征募（内含本关自动收入+利息结算）
@@ -3557,13 +3626,13 @@ function soloResolve(result,A,B){
   you.coins+=result.coinsGain[0]||0;
   const banner=document.createElement('div');banner.className='result-banner';
   if(win&&soloIsBoss()){ // 十关全破——试炼通关
-    you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;
+    you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
     banner.innerHTML=`<h1>十关全破 · 试炼通关</h1><p>叶王退走——断云为你加冕</p>${dmgRecap(result,A,B)}<p class="hint">点击加冕</p>`;
     document.body.appendChild(banner);flash(false);shake();
     burst(innerWidth/2,innerHeight/3,null,44);SFX.play('crown');
     banner.onclick=()=>{banner.remove();soloEnd(true)};
   }else if(win){
-    you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;
+    you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
     banner.innerHTML=`<h1>第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p>${dmgRecap(result,A,B)}<p class="hint">点击继续</p>`;
     document.body.appendChild(banner);flash(false);
     burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],28);SFX.play('win');
@@ -3753,6 +3822,7 @@ function soloEnd(victory){
     <div class="army-line">${you.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div>
     ${victory?'<button class="btn gold" id="btn-endless" style="margin-top:12px">无尽回廊 · 继续深入</button>':''}
     ${(LB_ON&&cleared>0)?'<button class="btn" id="btn-lbup" style="margin-top:10px">登临世界回廊</button>':''}</div>`;
+  ghostPush(cleared); // 影军回响:把本局军团留作同学的关卡宿敌(≥3关才够格,离线静默跳过)
   drawReport([you]);
   const _cb=$('#btn-classup');if(_cb)_cb.style.display='none'; // 单人结算隐藏多人课堂榜上传
   go('final');flash(false);shake();
