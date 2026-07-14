@@ -1645,7 +1645,9 @@ function resumePhase(){
   const map={
     origin:()=>{setPhase('开局点将');renderDraft();go('draft')},
     wave:()=>startWave(),
-    draft:()=>{setPhase('征募');renderDraft();go('draft')},
+    draft:()=>{ // 秘策节点关在 startDraft 结算前落档 phase='draft'——直进 renderDraft 会吞掉秘策+整关收入/利息;重走 soloRound 补发(仅未领秘策时,常规档不受影响)
+      if(S.solo&&[2,5,8].includes(S.round)&&!(S.stratsGiven||[]).includes(S.round)){soloRound();return}
+      setPhase('征募');renderDraft();go('draft')},
     event:()=>{ if(S.eventResolved){ S.bossPending?startBossSequence():startBattlePhase() } else if(S.actEvent){ S.phase='event'; renderEvent() } else startEvent() },
     battle:()=>{ if(S.solo){soloPreBattle()} else {setPhase('演武');renderPairings();go('battle')} },
     boss:()=>{ if(S.bossResolved){$('#boss-veil').classList.remove('on');actEnd()} else startBossSequence() },
@@ -2134,7 +2136,7 @@ function renderFoeIntel(p){
   const el=$('#foe-intel');if(!el)return;
   if(S.phase==='origin'){el.innerHTML='';return}
   let name='',chips='',army=null,ghostUnits=null;
-  if(S.solo){name=soloFoeName(S.round);army=S.soloFoe||[]}
+  if(S.solo){name=soloFoeName(S.round);army=S.soloFoe||[];if(soloIsBoss()){ghostUnits=soloBossUnits();army=null}} // 终战:叶王军走幽灵制式,别显示成"尚无军团"
   else{
     const pr=(S.pairs||[]).find(x=>x.a===p.i||x.b===p.i);
     if(!pr){el.innerHTML='';return}
@@ -2151,7 +2153,7 @@ function renderFoeIntel(p){
     const main=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
     const killer=main&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===main); // 四象:克 main 的那个象
     hint=main?`主打${ELEM_CN[main]} —— ${ELEM_CN[killer]}克它 +25%`:'不参与相克';
-  }else if(ghostUnits)hint='幽灵军 —— 不参与相克';
+  }else if(ghostUnits)hint=(S.solo&&soloIsBoss())?'终战 · 蛇蜕两形 —— 幽灵制式不参与相克':'幽灵军 —— 不参与相克';
   el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${name}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
 }
 function renderBench(p){
@@ -2358,6 +2360,7 @@ $('#event-card').onclick=()=>{
   setTimeout(()=>{applyEvent(EVENTS.find(e=>e.id===S.actEvent));$('#btn-event-done').disabled=false},900);
 };
 function applyEvent(ev){
+  if(!ev)ev={id:'ev_void',n:'星轨已移'}; // 旧档续局翻到已退池事件(ev_roll/ev_edge)→安全空转结算,防 undefined.n 软锁
   S.evLog.push(ev.n);S.evFlags={};
   switch(ev.id){
     case 'ev_rain': S.players.forEach(p=>p.coins+=3);toast('所有人 +3 铸币');break;
@@ -2478,7 +2481,8 @@ function resolveTarget(f, foes){
 }
 function sideFlags(p){ // 边级效果
   if(!p) return {seaTier:0,vanTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false};
-  return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), // seaTier字段名保留(sim内部锚点),语义=水象·潮汐同悲 shards:hasRelic(p,'shards'),
+  // seaTier 字段名保留(sim内部锚点),语义=水象·潮汐同悲
+  return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), shards:hasRelic(p,'shards'),
     ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf'),
     thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary')};
 }
@@ -2497,7 +2501,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   function dealDmg(srcSide,src,tgt,amt,tag,crit,isBasic){
     if(!tgt||!tgt.alive)return;
     let eff=1;
-    if(isBasic&&src){eff=elemMult(src.id,tgt.id); if(eff!==1)amt=Math.max(1,Math.round(amt*eff))} // 四象相克只调基本攻击、不破盾(幽灵无id→1)
+    if(isBasic&&src){eff=elemMult(src.id,tgt.id); if(eff!==1&&amt>0)amt=Math.max(1,Math.round(amt*eff))} // 四象相克只调基本攻击、不破盾(幽灵无id→1;amt=0不抬——被克不该比无相克更疼)
     let rest=amt;
     if(tgt.shield>0){const ab=Math.min(tgt.shield,rest);tgt.shield-=ab;rest-=ab;
       if(ab>0)log.push({t:'shieldHit',d:tgt.uid,amt:ab})}
@@ -2527,7 +2531,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
           adj.atk+=f.skill.v;log.push({t:'buff',d:adj.uid,txt:'攻击 +'+f.skill.v+' · 低语'})}}
       if(f.skill.k==='coinDeath'){coinsGain[s]+=f.skill.v||1;log.push({t:'coin',side:s,amt:f.skill.v||1})}
       // 边级：海雾同悲 / 爆炸残片 / 菀的旧日记
-      if(flags[s].seaTier){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,flags[s].seaTier>=2?2:1,'海雾')}
+      if(flags[s].seaTier){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,flags[s].seaTier>=2?2:1,'潮汐')}
       if(flags[s].shards){foesOf(s).forEach(e=>dealDmg(s,null,e,1,'残片'))}
       // 菀的旧日记：己方阵亡 +1 铸币，但每场封顶 3——否则「铺廉价队故意全灭稳收 6 币」的送死套路成立
       if(flags[s].diary){diaryCoins[s]=(diaryCoins[s]||0);if(diaryCoins[s]<3){diaryCoins[s]++;coinsGain[s]+=1;log.push({t:'coin',side:s,amt:1})}}
@@ -2697,6 +2701,9 @@ function runSelftest(){
   ok('同名不叠：琳×2 仍算1名→无羁绊', bondTier(parmy('lin','lin'),'fire')===0);
   ok('土象4档 开战全队+2盾', buildFighters(parmy('zi','lu','guard','xuan'),{}).every(f=>f.shield>=2));
   ok('水象档位入 sideFlags.seaTier(字段名保留)', sideFlags(parmy('nuo','scout','pigeon')).seaTier===2);
+  ok('火象t1: 火象单位+1攻·非火不加', (()=>{const F=buildFighters(parmy('lin','yin','guard'),{});return F.find(f=>f.id==='lin').atk===UMAP['lin'].atk+1&&F.find(f=>f.id==='guard').atk===UMAP['guard'].atk})());
+  ok('土象t1: 全队+3命(含非土成员)', (()=>{const F=buildFighters(parmy('lu','guard','lin'),{});return F.every(f=>f.hp===UMAP[f.id].hp+3)})());
+  ok('残片接线在 sideFlags(防注释吞字段回归)', sideFlags({army:[],relics:['shards']}).shards===true);
   // —— 断云牌力（金币消耗出口 + 高稀有门控）——
   S={act:3};
   ok('牌力保底封顶2级（act3→2级，升牌力才解锁tier3+）', tierFloor()===2);
@@ -2860,7 +2867,7 @@ function runSelftest(){
    const D=ghostFighters([{id:'hammer',n:'重锤',glyph:'锤',atk:20,hp:100,spd:9,skill:{k:'none'}}]);
    const xr=simulateBattle(X,D,{seaTier:1,diary:true},{},mulberry32(47),{});
    ok('欣首次阵亡恰复起一次、第二次正常结算', xr.log.filter(e=>e.t==='revive'&&e.d===X[0].uid).length===1&&xr.log.filter(e=>e.t==='die'&&e.d===X[0].uid).length===1&&xr.winner===1);
-   ok('欣的假死不触发阵亡连锁（海雾/日记各仅真死1次）', xr.log.filter(e=>e.tag==='海雾').length===1&&xr.coinsGain[0]===1);
+   ok('欣的假死不触发阵亡连锁（潮汐/日记各仅真死1次）', xr.log.filter(e=>e.tag==='潮汐').length===1&&xr.coinsGain[0]===1);
    ok('站起八次不随星增加复起次数', !SKILL_SV['revive1']);}
   // —— 批⑪ 第二羁绊轴（打法轴：破云之矢 / 不退之誓）——
   {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'b'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
@@ -3229,6 +3236,7 @@ function unitEl(f){
     <span class="sh" style="display:none" aria-label="护盾已激活">${uiIcon('stat-shield')}</span>`;
   if(UMAP[f.id])bindDetail(d,()=>{ // 点战斗单位看详情(幽灵无档案跳过);按uid反查真实实例——否则淬炼/成长加成在详情页显示为0,玩家误以为淬炼没生效
     let _inst=null;for(const _p of S.players){_inst=(_p.army||[]).find(a=>String(a.uid)===String(f.uid));if(_inst)break}
+    if(!_inst&&S.soloFoe)_inst=S.soloFoe.find(a=>String(a.uid)===String(f.uid))||null; // 单人AI宿敌的灌成长也要显真值
     showUnitDetail(f.id,_inst||{star:f.star,gAtk:0,gHp:0})});
   return d;
 }
@@ -3295,7 +3303,7 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
         tgt.querySelector('.hpb').classList.toggle('low',pct<32);
         const hv=tgt.querySelector('.num .h');hv.querySelector('.stat-v').textContent=hpNow[e.d];hv.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
         if(animate){tgt.classList.remove('hit');void tgt.offsetWidth;tgt.classList.add('hit');
-          const eff=e.eff||1; // 相克：克染金标「克」、被克淡化，不刷屏
+          const eff=e.eff||1; // 相克：克染青标「克」、被克淡化，不刷屏(金色专属暴击)
           floatNum(tgt,'-'+e.amt+(e.crit?'!':'')+(eff>1?' 克':''),e.crit?'#ffd075':(eff>1?'var(--teal)':(eff<1?'#9a9686':'var(--red2)')),e.crit); // 暴击金/相克青/被克灰/普通红 四态分色
           if(e.s){const src=el(e.s);if(src){src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
           blog.innerHTML=`<b>${nameOf[e.s]||e.tag||'——'}</b> ${e.tag||'攻击'} <b>${nameOf[e.d]}</b>，造成 ${e.amt}${e.crit?' 暴击!':''}`;
@@ -4097,8 +4105,8 @@ function showHowto(){
   开战狙击（诺 / 菀）同样点名后排——<b>护盾能挡狙击</b>：琳/涵的全队盾、白鹤/浩的自体盾都是明牌反制。`)
   +sec('星象四象环（星座相克）',`
   每位学员都有真实星座，十二星座归四象成环：<b style="color:var(--gold2)">土掩水 → 水灭火 → 火灼风 → 风蚀土</b>（箭头指向被克方）。
-  基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +25%（金字·克）</b>、打到<b>克自己</b>的敌人时 -20%（淡字）。
-  <b>全员参与</b>——点立绘看每人的星座与象。相克与阵营脱钩：阵营管羁绊凑人，四象管对位克制，两条线各算各的。`)
+  基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +25%（<span style="color:var(--teal)">青字·克</span>）</b>、打到<b>克自己</b>的敌人时 -20%（淡字）。
+  <b>全员参与</b>——点立绘看每人的星座与象。羁绊与相克同看星象——凑人看象、对位克制也看象；阵营（学院／黑域…）只是剧情归属，不管数值。`)
   +sec('演武（自动对战）',`
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
   胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
@@ -4114,7 +4122,7 @@ function showHowto(){
   <b style="color:var(--gold2)">破云之矢</b>（穿透：梓/诺/斥候/信鸽/璇）：2名 穿透单位开战+2护盾／4名 再+1攻——补的是穿透一身纸血。<br>
   <b style="color:var(--gold2)">不退之誓</b>（嘲讽：增/守望/麒/荣/浩）：2名 嘲讽单位被普攻命中时<b>反震 1 伤</b>／3名 反震 2 伤——挨打也能还手。<i style="color:var(--ink3)">（两队都堆嘲讽墙时，反震会逐回合累积成碾压——想破嘲讽墙，用穿透绕后排。）</i><br><br>
   <i style="color:var(--ink3)">两轴的妙处：军团位子有限（3→4→5），同象满档要 4 人、打法满档也要 4 人——用<b>一牌两算</b>的桥牌单位（既推象又推打法，如梓=土+穿透、增=风+嘲讽、麒=火+嘲讽）才能双档齐开。<br>
-  星象还管<b>相克</b>：土掩水→水灭火→火灼风→风蚀土（见下一节）——同一个星座，一边凑羁绊，一边算克制。<br>
+  星象还管<b>相克</b>：土掩水→水灭火→火灼风→风蚀土（见「星象四象环」一节）——同一个星座，一边凑羁绊，一边算克制。<br>
   反震让站位有讲究：穿透绕过嘲讽直取后排，所以<b>别把门神藏在最后一格</b>——那正是箭要落的地方。</i>`)
   +sec('单人试炼（回家挑战）',`
   两条征程开局任选——<b>经典十关</b>：逐关变强的宿敌，第 10 关<b>叶王亲临（蛇蜕两形）</b>，胜则加冕，通关后还可续入无尽回廊；
