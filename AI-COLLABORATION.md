@@ -241,3 +241,13 @@
 - 界面与叙事：`assets/ui-framework-20260715/` 含四角饰、断云分隔纹、云丝底纹、MYSKME 纯路径印章；`assets/boss-event-20260715/` 含叶王无字名牌、iPad 横屏与 iPad／手机竖屏转场、无“命”字事件卡背；`assets/roster-art-20260715/` 含双尺寸名册封面、5 档称号纹章与覆盖现有 18 成就的 7 类徽记。新装饰 SVG 不加入 45 枚语义图标管线，名册只读模块级 `_meta`，绝不写入 `S`。
 - 验收：22 个正式 WebP、28 个 `currentColor` SVG、5 份 manifest 统一校验零错误；SVG 无 text／font／image／href／filter／外部 URL，资源级运行时总量约 1045.9 KiB。主视觉只按 iPad 横屏 1194×834@2x、iPad 竖屏 834×1194@2x、手机竖屏 430×932@3x 验收，三张物理像素画板均已目检无非等比压扁、安全区裁断或低分辨率模糊；桌面端仅保留兼容性，不是本轮主基准。
 - 给 Claude：请从本记录后的最新 `main` 增量接线，先读 `ART-HANDOFF-给Claude-20260715.md`。不要整段覆盖 `index.html`；保留星辉词缀／星芒成长、不屈命脉、全局品质色阶、名匠榜／玩家名片、云阶十行、无尽、音效、四象、悬赏、影军、账户成长与 `#selftest 244/244`。所有新资产仍按“有图则用、缺图回退”接入。
+## 2026-07-14 · Claude · 全日验收猎杀(25 agent 对抗式)→ 19 bug 修复
+- **HIGH 影军回响整套是死的**:`ghostPull`/`ghostPush` 里写的是 `LB_API`,真常量叫 `LB_URL` → ReferenceError 被 `catch(e){}` 静默吞掉。后果:影军池永远空、影军道永不出现、悬赏「斩影为荣」100% 不可能达成(白占 3 个悬赏位之一)、后端 `g:<diff>` 池永远空。**教训:`catch(e){}` 会把拼写错误伪装成"离线"。**
+- **HIGH 选路/宝库大幕断电续局**:`resumePhase` 没有选路相位 → 直落 renderDraft,吞掉整关收入+利息,选路机会和白拿的遗物一起丢。修:新增 `pick` 相位 + `S.vaultPend` 落档 + `showVault()` 可重入。
+- **MED 经济重复发放**:败而未死「重打本关」重走 `soloRound`→`startDraft`,整关收入/利息/遗物收益/免费刷新再发一遍。修:`S.econRound` 门控,单人局同一关只结算一次。
+- **MED 假斩影**:第4/7关自动影军 + 选路选「险道」→ 宿敌被顶掉但 `S.ghostFoe` 不清 → 白拿 +2 币、悬赏、名册斩影数。修:`peril` 分支清 `ghostFoe`。
+- **MED 名册重复计数**:通关后点「无尽回廊·继续深入」= 同一局二次 `metaCommit`。修:`metaCommitRun()` + `S.metaBase` 只补增量。
+- **MED 名片令牌永久 403**:令牌由后端下发且只发一次,弱网丢一次响应就永远锁死,且改名 UI 谎报成功。修:令牌**客户端自铸并先落盘**(后端规则本就是"prev 无令牌则采信客户端令牌"),失败据实报。
+- 另修:plike 读错字段(后端返 `{ok,likes,liked}` 不是 `profile.likes`)、Enter 键绕过 `disabled` 并发上传、「不败之姿」回血就洗白、撤销+刷新商店白嫖重摇词缀、影军池挂 S 被撤销抹掉、旧档续局不补命脉、一条空转的自检断言。
+- **影军池 `_ghostPool` 改模块级 transient** —— 与 `dealReveal` 同理:异步回填的东西挂 S 上会被 `snapDraft`/`draftUndo` 整体回滚,还会写进存档。
+- #selftest 244 → **253**(新增 9 条回归钉子,含"同一关只发一次经济""名册二次结算只补增量""撤销不回滚 meta(真跑 snapDraft/draftUndo,不再空转)")。
