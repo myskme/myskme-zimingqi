@@ -1,0 +1,269 @@
+{
+  "name": "MYSKME 通用游戏图标系统",
+  "version": "20260714a",
+  "grid": 24,
+  "count": 37,
+  "authorship": "MYSKME 项目原创矢量；无第三方图标依赖",
+  "design": "断云黑金珐琅，currentColor 双层矢量，20–32px 优先",
+  "icons": [
+    {
+      "key": "stat-attack",
+      "label": "攻击",
+      "english": "Attack",
+      "category": "属性",
+      "file": "svg/stat-attack.svg"
+    },
+    {
+      "key": "stat-vitality",
+      "label": "生命晶核",
+      "english": "Vitality",
+      "category": "属性",
+      "file": "svg/stat-vitality.svg"
+    },
+    {
+      "key": "stat-speed",
+      "label": "速度风羽",
+      "english": "Speed",
+      "category": "属性",
+      "file": "svg/stat-speed.svg"
+    },
+    {
+      "key": "stat-shield",
+      "label": "护盾",
+      "english": "Shield",
+      "category": "属性",
+      "file": "svg/stat-shield.svg"
+    },
+    {
+      "key": "currency-coin",
+      "label": "断云铸币",
+      "english": "Coin",
+      "category": "经济",
+      "file": "svg/currency-coin.svg"
+    },
+    {
+      "key": "score-throne",
+      "label": "王座分",
+      "english": "Throne score",
+      "category": "经济",
+      "file": "svg/score-throne.svg"
+    },
+    {
+      "key": "rank-star",
+      "label": "星级",
+      "english": "Rank star",
+      "category": "属性",
+      "file": "svg/rank-star.svg"
+    },
+    {
+      "key": "state-rage",
+      "label": "暴走",
+      "english": "Rage",
+      "category": "状态",
+      "file": "svg/state-rage.svg"
+    },
+    {
+      "key": "action-move-front",
+      "label": "移向前排",
+      "english": "Move front",
+      "category": "站位",
+      "file": "svg/action-move-front.svg"
+    },
+    {
+      "key": "action-move-back",
+      "label": "移向后排",
+      "english": "Move back",
+      "category": "站位",
+      "file": "svg/action-move-back.svg"
+    },
+    {
+      "key": "action-swap",
+      "label": "交换站位",
+      "english": "Swap",
+      "category": "站位",
+      "file": "svg/action-swap.svg"
+    },
+    {
+      "key": "action-sell",
+      "label": "出售退场",
+      "english": "Sell",
+      "category": "站位",
+      "file": "svg/action-sell.svg"
+    },
+    {
+      "key": "action-undo",
+      "label": "撤销",
+      "english": "Undo",
+      "category": "操作",
+      "file": "svg/action-undo.svg"
+    },
+    {
+      "key": "action-refresh",
+      "label": "刷新",
+      "english": "Refresh",
+      "category": "操作",
+      "file": "svg/action-refresh.svg"
+    },
+    {
+      "key": "action-lock",
+      "label": "锁定",
+      "english": "Lock",
+      "category": "操作",
+      "file": "svg/action-lock.svg"
+    },
+    {
+      "key": "action-unlock",
+      "label": "解锁",
+      "english": "Unlock",
+      "category": "操作",
+      "file": "svg/action-unlock.svg"
+    },
+    {
+      "key": "action-tier-up",
+      "label": "牌力升格",
+      "english": "Tier up",
+      "category": "操作",
+      "file": "svg/action-tier-up.svg"
+    },
+    {
+      "key": "action-forge",
+      "label": "淬炼",
+      "english": "Forge",
+      "category": "操作",
+      "file": "svg/action-forge.svg"
+    },
+    {
+      "key": "action-random",
+      "label": "随机",
+      "english": "Random",
+      "category": "操作",
+      "file": "svg/action-random.svg"
+    },
+    {
+      "key": "action-save",
+      "label": "保存",
+      "english": "Save",
+      "category": "操作",
+      "file": "svg/action-save.svg"
+    },
+    {
+      "key": "action-merge",
+      "label": "合成",
+      "english": "Merge",
+      "category": "操作",
+      "file": "svg/action-merge.svg"
+    },
+    {
+      "key": "nav-menu",
+      "label": "菜单",
+      "english": "Menu",
+      "category": "导航",
+      "file": "svg/nav-menu.svg"
+    },
+    {
+      "key": "nav-back",
+      "label": "返回",
+      "english": "Back",
+      "category": "导航",
+      "file": "svg/nav-back.svg"
+    },
+    {
+      "key": "nav-next",
+      "label": "前进",
+      "english": "Next",
+      "category": "导航",
+      "file": "svg/nav-next.svg"
+    },
+    {
+      "key": "nav-close",
+      "label": "关闭",
+      "english": "Close",
+      "category": "导航",
+      "file": "svg/nav-close.svg"
+    },
+    {
+      "key": "play-fast",
+      "label": "倍速",
+      "english": "Fast forward",
+      "category": "播放",
+      "file": "svg/play-fast.svg"
+    },
+    {
+      "key": "play-skip",
+      "label": "跳过",
+      "english": "Skip",
+      "category": "播放",
+      "file": "svg/play-skip.svg"
+    },
+    {
+      "key": "state-crit",
+      "label": "暴击",
+      "english": "Critical",
+      "category": "状态",
+      "file": "svg/state-crit.svg"
+    },
+    {
+      "key": "state-heal",
+      "label": "治疗",
+      "english": "Heal",
+      "category": "状态",
+      "file": "svg/state-heal.svg"
+    },
+    {
+      "key": "state-revive",
+      "label": "复活",
+      "english": "Revive",
+      "category": "状态",
+      "file": "svg/state-revive.svg"
+    },
+    {
+      "key": "state-win",
+      "label": "胜利",
+      "english": "Win",
+      "category": "状态",
+      "file": "svg/state-win.svg"
+    },
+    {
+      "key": "state-loss",
+      "label": "失败",
+      "english": "Loss",
+      "category": "状态",
+      "file": "svg/state-loss.svg"
+    },
+    {
+      "key": "state-pierce",
+      "label": "穿透",
+      "english": "Pierce",
+      "category": "战术",
+      "file": "svg/state-pierce.svg"
+    },
+    {
+      "key": "state-taunt",
+      "label": "嘲讽",
+      "english": "Taunt",
+      "category": "战术",
+      "file": "svg/state-taunt.svg"
+    },
+    {
+      "key": "sound-on",
+      "label": "声音开启",
+      "english": "Sound on",
+      "category": "声音",
+      "file": "svg/sound-on.svg"
+    },
+    {
+      "key": "sound-off",
+      "label": "声音关闭",
+      "english": "Sound off",
+      "category": "声音",
+      "file": "svg/sound-off.svg"
+    },
+    {
+      "key": "help-book",
+      "label": "说明",
+      "english": "Help",
+      "category": "导航",
+      "file": "svg/help-book.svg"
+    }
+  ]
+}

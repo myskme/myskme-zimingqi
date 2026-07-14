@@ -111,6 +111,20 @@ h2.sec em{font-style:normal;color:var(--gold);font-weight:500}
 .btn.danger:hover{box-shadow:var(--glow-red)}
 .btn:disabled{opacity:.35;pointer-events:none}
 .btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
+/* MYSKME 通用游戏图标系统 v20260714a：24px 网格、currentColor 双层珐琅、无字体/Emoji 依赖 */
+.mi{width:1.18em;height:1.18em;display:inline-block;vertical-align:-.19em;overflow:visible;flex:0 0 auto}
+.mi *{vector-effect:non-scaling-stroke}
+.mi-slot{display:inline-flex;align-items:center;justify-content:center;line-height:0}
+.btn .mi{font-size:1.18em;margin-right:.42em}
+.btn.icon-only{width:42px;height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;letter-spacing:0}
+.btn.icon-only .mi{width:22px;height:22px;margin:0}
+.stat-set{display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap;font-family:var(--mono)}
+.stat-token{display:inline-flex;align-items:center;gap:.32em;white-space:nowrap}
+.stat-token .mi{font-size:1.2em}
+.stat-token.atk{color:var(--red2)}.stat-token.hp{color:#9fd49f}.stat-token.spd{color:#9cc0e8}
+.stat-token.shield{color:var(--shield)}.stat-token.coin,.stat-token.throne{color:var(--gold2)}
+.icon-label{display:inline-flex;align-items:center;gap:.38em}
+.icon-label .mi{font-size:1.12em}
 
 /* ============ HUD ============ */
 #hud{position:sticky;top:0;z-index:40;display:none;align-items:center;gap:14px;
@@ -288,7 +302,8 @@ body.playing #hud{display:flex}
 @keyframes dealFlip{0%{transform:perspective(900px) rotateY(88deg)}100%{transform:perspective(900px) rotateY(0deg)}}
 .offer .cardback{position:absolute;inset:0;z-index:4;pointer-events:none;background:var(--panel2);
   display:flex;align-items:center;justify-content:center;animation:backFade .5s ease both}
-.offer .cardback::after{content:'✦';font-size:34px;color:var(--gold2);opacity:.45}
+.offer .cardback::after{content:'';width:34px;height:34px;opacity:.58;
+  background:center/contain no-repeat url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.8l2.1 6.3 6.4 2.9-6.4 2.9L12 21.2l-2.1-6.3L3.5 12l6.4-2.9z' fill='none' stroke='%23e8c768' stroke-width='1.25'/%3E%3Ccircle cx='12' cy='12' r='2.1' fill='%23e8c768' fill-opacity='.25' stroke='%23e8c768' stroke-width='1'/%3E%3C/svg%3E")}
 @keyframes backFade{0%,40%{opacity:1}75%,100%{opacity:0;visibility:hidden}}
 /* 叶王乱入印章副行：败方荣誉档「曾破一形」 */
 .stamp .sub{font-size:11px;letter-spacing:.22em;margin-top:4px;color:var(--gold2)}
@@ -318,17 +333,16 @@ body.playing #hud{display:flex}
 .bunit .st{font-family:var(--mono);font-size:10.5px;color:var(--ink3)}
 .bunit.star2 .g::after{content:' ★★';font-size:10px;color:var(--gold2)}
 .bunit.star3 .g::after{content:' ★★★';font-size:9px;color:#fff;text-shadow:0 0 6px var(--gold)}
-/* 站位编辑：◀▶ 调整（左=前排），✕ 出售 */
+/* 站位编辑：棋位轨道图标（左=前排）+ 铸币退场图标 */
 .bunit .bmove{display:flex;gap:3px;justify-content:center;margin-top:5px}
 .bunit .bmove button{font-family:var(--serif);cursor:pointer;background:rgba(0,0,0,.35);
   border:1px solid var(--line2);color:var(--ink2);font-size:11px;padding:2px 7px;transition:all .15s}
 .bunit .bmove button:hover{border-color:var(--gold);color:var(--gold2)}
 .bunit .bmove button:disabled{opacity:.22;pointer-events:none}
 .bunit .bmove .bx:hover{border-color:var(--red2);color:var(--red2)}
-.bunit .bmove button .ico{width:12px;height:12px;display:block;fill:none;stroke:currentColor;
-  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-/* 护盾标识（SVG 盾，取代 emoji） */
-.u .sh .shico{width:15px;height:15px;display:block;fill:rgba(74,120,180,.85);stroke:#cfe4ff;stroke-width:.8}
+.bunit .bmove button .mi{width:18px;height:18px;display:block;margin:0}
+/* 护盾标识也复用同一系统，不再保留临时 SVG */
+.u .sh .mi{width:17px;height:17px;display:block;color:var(--shield)}
 .bunit .front-tag{position:absolute;top:-9px;left:-1px;background:var(--gold3);color:var(--ink);
   font-size:9.5px;letter-spacing:.12em;padding:1px 7px;z-index:1}
 /* 宿敌预告 */
@@ -557,6 +571,13 @@ body.playing #hud{display:flex}
 #final-art::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 68%,rgba(4,8,12,.42));box-shadow:inset 0 0 70px rgba(0,0,0,.28)}
 #final-art img{width:100%;height:100%;display:block;object-fit:cover}
 
+/* iPad 竖屏也必须是课堂可点的尺寸；768px 不再落在手机断点外而得到 24px 小按钮 */
+@media (max-width:900px){
+  button{min-height:40px}
+  .bunit .bmove{gap:7px}
+  .bunit .bmove button{min-width:40px;min-height:40px;padding:8px 10px}
+  .bunit .bmove button .mi{width:20px;height:20px}
+}
 @media (max-width:760px){
   main{padding:12px 10px 40px}
   #offers{grid-template-columns:1fr;max-width:340px;margin:0 auto}
@@ -566,10 +587,10 @@ body.playing #hud{display:flex}
   .side{gap:5px}
   #hud{flex-wrap:wrap;gap:8px}
   .judge .btn{font-size:12px;padding:7px 2px}
-  /* 触屏站位按钮：≥40px 触控目标，✕（卖出）与 ◀▶ 拉开 */
+  /* 手机触屏站位按钮进一步拉开 */
   .bunit .bmove{gap:7px}
   .bunit .bmove button{padding:8px 12px;font-size:13px}
-  .bunit .bmove button .ico{width:14px;height:14px}
+  .bunit .bmove button .mi{width:19px;height:19px}
   .bunit .bmove .bx{margin-left:5px}
   #title-kv{margin-bottom:20px}
   .relic-chip{min-height:32px;padding-right:8px;gap:5px}
@@ -638,9 +659,9 @@ body.playing #hud{display:flex}
   <span class="act-chip" id="hud-act">序幕</span>
   <span class="act-name" id="hud-actname">断云之上</span>
   <span class="phase" id="hud-phase">答题波</span>
-  <div id="rage-wrap"><span class="lbl">暴走槽</span><div class="bar" id="rage-bar"><i></i></div><span class="lbl" id="rage-num">0/8</span></div>
+  <div id="rage-wrap"><span class="lbl icon-label"><span class="mi-slot" data-ui-icon="state-rage"></span>暴走槽</span><div class="bar" id="rage-bar"><i></i></div><span class="lbl" id="rage-num">0/8</span></div>
   <div class="standings" id="hud-standings"></div>
-  <button class="btn mini" id="btn-menu">☰</button>
+  <button class="btn mini icon-only" id="btn-menu" aria-label="打开游戏菜单" aria-controls="modal-veil" aria-expanded="false" title="游戏菜单"><span class="mi-slot" data-ui-icon="nav-menu"></span></button>
 </header>
 
 <main>
@@ -662,11 +683,11 @@ body.playing #hud{display:flex}
       </button>
     </div>
     <div class="btnrow">
-      <button class="btn big" id="btn-continue" style="display:none">续 局</button>
-      <button class="btn" id="btn-howto">玩法与课堂说明</button>
-      <button class="btn" id="btn-lbhall" style="display:none">世界回廊 · 排行</button>
+      <button class="btn big" id="btn-continue" style="display:none"><span class="mi-slot" data-ui-icon="nav-next"></span>续 局</button>
+      <button class="btn" id="btn-howto"><span class="mi-slot" data-ui-icon="help-book"></span>玩法与课堂说明</button>
+      <button class="btn" id="btn-lbhall" style="display:none"><span class="mi-slot" data-ui-icon="score-throne"></span>世界回廊 · 排行</button>
     </div>
-    <p class="title-foot"><a href="https://myskme.github.io/myskme-hub/" style="color:inherit;text-decoration:underline dotted rgba(201,166,74,.5)">← 作品总目</a>　·　MAKE YOURSELF SPECIAL &amp; KIND — MYSKME · Mr. Wang</p>
+    <p class="title-foot"><a href="https://myskme.github.io/myskme-hub/" aria-label="返回 MYSKME 作品总目" style="color:inherit;text-decoration:underline dotted rgba(201,166,74,.5)"><span class="mi-slot" data-ui-icon="nav-back"></span> 作品总目</a>　·　MAKE YOURSELF SPECIAL &amp; KIND — MYSKME · Mr. Wang</p>
   </section>
 
   <!-- 开局设置 -->
@@ -708,8 +729,8 @@ body.playing #hud{display:flex}
       </div>
     </div>
     <div class="btnrow">
-      <button class="btn" id="btn-back-title">返回</button>
-      <button class="btn gold big" id="btn-start">启 程</button>
+      <button class="btn" id="btn-back-title"><span class="mi-slot" data-ui-icon="nav-back"></span>返回</button>
+      <button class="btn gold big" id="btn-start"><span class="mi-slot" data-ui-icon="nav-next"></span>启 程</button>
     </div>
   </section>
 
@@ -724,10 +745,10 @@ body.playing #hud{display:flex}
     <div id="pair-preview"></div>
     <div id="pgrid"></div>
     <div class="btnrow">
-      <button class="btn" id="btn-wheel">随机点名</button>
-      <button class="btn" id="btn-undo">撤销上一判定</button>
+      <button class="btn" id="btn-wheel"><span class="mi-slot" data-ui-icon="action-random"></span>随机点名</button>
+      <button class="btn" id="btn-undo"><span class="mi-slot" data-ui-icon="action-undo"></span>撤销上一判定</button>
       <button class="btn" id="btn-pace">课堂节奏</button>
-      <button class="btn gold big" id="btn-endwave">结束答题波 → 征募</button>
+      <button class="btn gold big" id="btn-endwave">结束答题波 <span class="mi-slot" data-ui-icon="nav-next"></span> 征募</button>
     </div>
   </section>
 
@@ -738,17 +759,17 @@ body.playing #hud{display:flex}
     <div id="draft-order"></div>
     <div id="draft-top">
       <span id="drafter-name">轮到 <em>—</em></span>
-      <span id="draft-coins">◈ 0</span>
+      <span id="draft-coins" aria-label="铸币 0"><span class="mi-slot" data-ui-icon="currency-coin"></span> 0</span>
     </div>
     <div id="foe-intel"></div>
     <div id="offers"></div>
     <div id="draft-actions">
-      <button class="btn" id="btn-tier">牌力 ↑</button>
-      <button class="btn" id="btn-forge" style="display:none">淬炼</button>
-      <button class="btn" id="btn-reroll">刷新 · 2 铸币</button>
-      <button class="btn" id="btn-lock">锁定本轮</button>
-      <button class="btn" id="btn-draft-undo" style="display:none">↩ 撤销一步</button>
-      <button class="btn gold" id="btn-draft-done">征募毕 · 下一位</button>
+      <button class="btn" id="btn-tier"><span class="mi-slot" data-ui-icon="action-tier-up"></span>牌力</button>
+      <button class="btn" id="btn-forge" style="display:none"><span class="mi-slot" data-ui-icon="action-forge"></span>淬炼</button>
+      <button class="btn" id="btn-reroll"><span class="mi-slot" data-ui-icon="action-refresh"></span>刷新 · 2 铸币</button>
+      <button class="btn" id="btn-lock"><span class="mi-slot" data-ui-icon="action-lock"></span>锁定本轮</button>
+      <button class="btn" id="btn-draft-undo" style="display:none"><span class="mi-slot" data-ui-icon="action-undo"></span>撤销一步</button>
+      <button class="btn gold" id="btn-draft-done">征募毕 <span class="mi-slot" data-ui-icon="nav-next"></span> 下一位</button>
     </div>
     <div id="bench">
       <h5>—— 军 团 ——</h5>
@@ -768,7 +789,7 @@ body.playing #hud{display:flex}
         <div class="ev-face ev-front"><div class="ev-art"><img id="ev-art-img" alt=""></div><div class="ev-icon" id="ev-icon"></div><h3 id="ev-name"></h3><p id="ev-desc"></p></div>
       </div>
     </div>
-    <div class="btnrow"><button class="btn gold big" id="btn-event-done" disabled>宣读完毕 → 演武</button></div>
+    <div class="btnrow"><button class="btn gold big" id="btn-event-done" disabled>宣读完毕 <span class="mi-slot" data-ui-icon="play-skip"></span> 演武</button></div>
   </section>
 
   <!-- 演武 -->
@@ -785,12 +806,12 @@ body.playing #hud{display:flex}
       </div>
       <div id="blog"></div>
       <div id="battle-ctl">
-        <button class="btn mini" id="btn-speed">▶▶ 二倍速</button>
-        <button class="btn mini" id="btn-skipb">跳过演出</button>
+        <button class="btn mini" id="btn-speed" aria-label="切换为二倍速" aria-pressed="false"><span class="mi-slot" data-ui-icon="play-fast"></span><span class="speed-label">二倍速</span></button>
+        <button class="btn mini" id="btn-skipb"><span class="mi-slot" data-ui-icon="play-skip"></span>跳过演出</button>
       </div>
     </div>
     <div class="btnrow" id="battle-next-row" style="display:none">
-      <button class="btn gold big" id="btn-battle-next">下一场</button>
+      <button class="btn gold big" id="btn-battle-next">下一场 <span class="mi-slot" data-ui-icon="nav-next"></span></button>
     </div>
   </section>
 
@@ -802,9 +823,9 @@ body.playing #hud{display:flex}
     <div id="podium"></div>
     <div id="report-wrap"><canvas id="report-canvas" width="1000" height="1400"></canvas></div>
     <div class="btnrow">
-      <button class="btn gold" id="btn-save-report">保存战报卡 PNG</button>
-      <button class="btn" id="btn-classup" style="display:none">上传课堂榜</button>
-      <button class="btn" id="btn-again">再来一局</button>
+      <button class="btn gold" id="btn-save-report"><span class="mi-slot" data-ui-icon="action-save"></span>保存战报卡 PNG</button>
+      <button class="btn" id="btn-classup" style="display:none"><span class="mi-slot" data-ui-icon="score-throne"></span>上传课堂榜</button>
+      <button class="btn" id="btn-again"><span class="mi-slot" data-ui-icon="action-refresh"></span>再来一局</button>
     </div>
   </section>
 </main>
@@ -856,6 +877,62 @@ const FAC_EMBLEM = {
 };
 function facEmblem(f){const s=FAC_EMBLEM[f];return s?`<span class="fac-emblem fem-${f}">${s}</span>`:'';}
 
+// MYSKME 通用游戏图标系统：Image2 负责黑金珐琅视觉母版，最终图形为原创 24px 矢量。
+// 语义键可跨游戏复用；这里内联 SVG，保证 GitHub Pages、课堂断网与 file:// 均不依赖外部字体。
+const UI_ICON_VER='20260714a';
+const UI_ICON_PATHS=Object.freeze({
+  'stat-attack':'<path d="M5.1 20.2 16.5 3.1l2.4 1.7L9.2 21.7z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M5.1 20.2 16.5 3.1l2.4 1.7L9.2 21.7z"/><path d="m8.5 15.2 4.8 3.3M4 20.6l3-4.1 2.8 2-3.1 3.9M15 5.8l2.4 1.7"/></g>',
+  'stat-vitality':'<path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z"/><path d="m7.2 12 2.6-.1 1.3-3 2.1 6.1 1.5-3h2.2"/><path d="m9.4 5.2 2.6 8.9 2.6-9" opacity=".42"/></g>',
+  'stat-speed':'<path d="M5 18.7C8.4 15 10.5 9.4 18.8 4.4c-1 7.6-5 13.4-13.8 14.3z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 18.7C8.4 15 10.5 9.4 18.8 4.4c-1 7.6-5 13.4-13.8 14.3z"/><path d="M5.2 18.5 15 8.2M8.2 15.4l-4.7-.2M11.2 12.2l-5.3-.8M14.3 9l-4.7-1.1"/></g>',
+  'stat-shield':'<path d="M12 2.8 19 5.5v5.7c0 4.6-2.9 8-7 10-4.1-2-7-5.4-7-10V5.5z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M12 2.8 19 5.5v5.7c0 4.6-2.9 8-7 10-4.1-2-7-5.4-7-10V5.5z"/><path d="M12 5.8v11.9M6.2 10.6h11.6"/><path d="m8.6 8 3.4-2.2L15.4 8" opacity=".5"/></g>',
+  'currency-coin':'<path d="M12 2.8 19.8 7v10L12 21.2 4.2 17V7z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M12 2.8 19.8 7v10L12 21.2 4.2 17V7z"/><path d="M8.8 8.8h6.4v6.4H8.8z"/><path d="M12 2.8V7M19.8 7l-3.6 2.1M19.8 17l-3.6-2.1M12 21.2V17M4.2 17l3.6-2.1M4.2 7l3.6 2.1" opacity=".5"/></g>',
+  'score-throne':'<path d="m4.2 8 4.3 3 3.5-7 3.5 7 4.3-3-1.2 10H5.4z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="m4.2 8 4.3 3 3.5-7 3.5 7 4.3-3-1.2 10H5.4z"/><path d="M6 15.3h12M6.5 21h11M8.5 18v3M15.5 18v3"/><circle cx="12" cy="12.6" r="1.4"/></g>',
+  'rank-star':'<path d="m12 2.5 2.3 7.2 7.2 2.3-7.2 2.3-2.3 7.2-2.3-7.2L2.5 12l7.2-2.3z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="m12 2.5 2.3 7.2 7.2 2.3-7.2 2.3-2.3 7.2-2.3-7.2L2.5 12l7.2-2.3z"/><circle cx="12" cy="12" r="2.1"/></g>',
+  'state-rage':'<path d="M12.2 21c-4.2 0-7.2-2.7-7.2-6.5 0-3.2 2.1-5.2 4.7-8.5.2 2.5 1.3 3.5 2.3 4.2.3-3.8 2.5-5.7 4.2-7.2-.1 4.7 2.8 6.5 2.8 10.9 0 4.2-2.8 7.1-6.8 7.1z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M12.2 21c-4.2 0-7.2-2.7-7.2-6.5 0-3.2 2.1-5.2 4.7-8.5.2 2.5 1.3 3.5 2.3 4.2.3-3.8 2.5-5.7 4.2-7.2-.1 4.7 2.8 6.5 2.8 10.9 0 4.2-2.8 7.1-6.8 7.1z"/><path d="M12 18.8c-1.8 0-3.1-1.2-3.1-2.9 0-1.5 1-2.4 2.2-3.9.1 1.2.6 1.8 1.2 2.2.2-1.5.9-2.4 1.7-3.2 0 2 1.2 2.9 1.2 4.7 0 1.8-1.3 3.1-3.2 3.1z"/></g>',
+  'action-move-front':'<path d="M14 7.2h4l2 2v5.6l-2 2h-4l-2-2V9.2z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4v16M14 7.2h4l2 2v5.6l-2 2h-4l-2-2V9.2zM18 17v2H9v-2M17 12H7M10.2 8.9 7 12l3.2 3.1"/></g>',
+  'action-move-back':'<path d="M6 7.2h4l2 2v5.6l-2 2H6l-2-2V9.2z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 4v16M6 7.2h4l2 2v5.6l-2 2H6l-2-2V9.2zM7 17v2h9v-2M7 12h10M13.8 8.9 17 12l-3.2 3.1"/></g>',
+  'action-swap':'<g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-2.8-2.8M20 16H7l2.8 2.8"/><path d="M5 12.5v3.8M19 7.7v3.8"/><path d="M2.8 18.8h4.4M16.8 13.2h4.4"/></g><circle cx="5" cy="12" r="2.4" fill="currentColor" opacity=".14"/><circle cx="19" cy="12" r="2.4" fill="currentColor" opacity=".14"/>',
+  'action-sell':'<path d="M4.2 4.2h9.2v15.6H4.2z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M4.2 4.2h9.2v15.6H4.2zM7.2 12h9.5M13.8 8.9l3.1 3.1-3.1 3.1"/><path d="M17.7 15.3 21 17v3.1l-3.3 1.7-3.3-1.7V17z"/><path d="M17 17.7h1.4v1.4H17z"/></g>',
+  'action-undo':'<path d="M7.5 5 3.2 9.2l4.3 4.2V11h4.7c4.1 0 6.8 2.1 8.3 6.8-.2-7.2-3.5-10.3-8.3-10.3H7.5z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 5 3.2 9.2l4.3 4.2V11h4.7c4.1 0 6.8 2.1 8.3 6.8-.2-7.2-3.5-10.3-8.3-10.3H7.5z"/><path d="M6.2 17.8h7.1" opacity=".55"/></g>',
+  'action-refresh':'<path d="m12 8 4 4-4 4-4-4z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19.2 8.1A8 8 0 0 0 6.1 5.3L4 7.5M4.8 15.9a8 8 0 0 0 13.1 2.8l2.1-2.2"/><path d="M3.8 3.8 4 7.5l3.7-.1M20.2 20.2l-.2-3.7-3.7.1"/><path d="m12 8 4 4-4 4-4-4z"/></g>',
+  'action-lock':'<path d="M5.2 10h13.6v11H5.2z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 10h13.6v11H5.2zM8 10V7a4 4 0 0 1 8 0v3"/><path d="M12 13.2v4.5"/><circle cx="12" cy="13.2" r="1.1" fill="currentColor" stroke="none"/></g>',
+  'action-unlock':'<path d="M5.2 10h13.6v11H5.2z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><path d="M5.2 10h13.6v11H5.2zM8 10V7a4 4 0 0 1 7.2-2.4"/><path d="M12 13.2v4.5"/><circle cx="12" cy="13.2" r="1.1" fill="currentColor" stroke="none"/></g>',
+  'action-tier-up':'<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 19h6v-4h5v-4h5V6h2"/><path d="M15.8 5.5 19 2.5l3.2 3M19 2.8v8.3"/><path d="M3 21h18" opacity=".5"/></g>',
+  'action-forge':'<path d="M4 12h13.5c0 3.4-2.1 5.5-5.5 5.5H7.5C5.4 17.5 4 15.4 4 12z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13.5c0 3.4-2.1 5.5-5.5 5.5H7.5C5.4 17.5 4 15.4 4 12zM8.2 17.5v3.2M13.5 17.5v3.2M5.8 20.7h10.1"/><path d="m13.2 3 1.3 2.7 2.9.4-2.1 2 .5 2.8-2.6-1.3-2.5 1.3.5-2.8-2.1-2 2.9-.4z"/></g>',
+  'action-random':'<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 6.5h3.2c5 0 5.2 11 10.6 11H21M17.6 14.2l3.4 3.3-3.4 3.3"/><path d="M3.5 17.5h3.2c2.2 0 3.5-2.1 4.7-4.4M13.5 8.7c1-1.4 2.1-2.2 3.8-2.2H21M17.6 3.2 21 6.5l-3.4 3.3"/></g>',
+  'action-save':'<path d="M5 3.5h12.2L20 6.3v14.2H5z" fill="currentColor" opacity=".11"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M5 3.5h12.2L20 6.3v14.2H5zM8 3.5v5h8v-5M8 20.5v-7h9v7"/><path d="m10.2 16.6 1.4 1.4 3.2-3.2"/></g>',
+  'action-merge':'<path d="m4 7 4-4 4 4-4 4zm8 10 4-4 4 4-4 4z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="m4 7 4-4 4 4-4 4zM12 17l4-4 4 4-4 4zM8 11v3c0 1.7 1.3 3 3 3h1"/><path d="m10 14 2 3-2 3"/></g>',
+  'nav-menu':'<path d="M4 4h4v16H4zM10 4h4v16h-4zM16 4h4v16h-4z" fill="currentColor" opacity=".11"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M4 4h4v16H4zM10 4h4v16h-4zM16 4h4v16h-4z"/><path d="M5.5 7h1M11.5 7h1M17.5 7h1M5.5 17h1M11.5 17h1M17.5 17h1" opacity=".55"/></g>',
+  'nav-back':'<g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4v16M19 12H7M11 8l-4 4 4 4"/><path d="M5 4h4M5 20h4" opacity=".5"/></g>',
+  'nav-next':'<g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M19 4v16M5 12h12M13 8l4 4-4 4"/><path d="M15 4h4M15 20h4" opacity=".5"/></g>',
+  'nav-close':'<path d="m12 2.8 9.2 9.2-9.2 9.2L2.8 12z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 2.8 9.2 9.2-9.2 9.2L2.8 12zM8.2 8.2l7.6 7.6M15.8 8.2l-7.6 7.6"/></g>',
+  'play-fast':'<path d="m3.8 5.2 6.8 6.8-6.8 6.8zm7.2 0 6.8 6.8-6.8 6.8z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"><path d="m3.8 5.2 6.8 6.8-6.8 6.8zM11 5.2l6.8 6.8-6.8 6.8zM21 5v14"/></g>',
+  'play-skip':'<path d="m4 5 11 7L4 19z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linejoin="round"><path d="m4 5 11 7L4 19zM19 5v14"/></g>',
+  'state-crit':'<path d="m12 2.8 1.7 5.5 5.5-1.7-2.7 5 4.7 3.2-5.7.5.4 5.7-3.9-4.1L8.1 21l.4-5.7-5.7-.5 4.7-3.2-2.7-5 5.5 1.7z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"><path d="m12 2.8 1.7 5.5 5.5-1.7-2.7 5 4.7 3.2-5.7.5.4 5.7-3.9-4.1L8.1 21l.4-5.7-5.7-.5 4.7-3.2-2.7-5 5.5 1.7z"/><path d="m8.6 15.4 6.8-6.8M8.1 11l4.9 4.9"/></g>',
+  'state-heal':'<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.5 19.7S4.2 16 4.2 11.2c0-2.9 1.9-4.7 4.1-4.7 1 0 1.7.3 2.2 1M17.5 3v7M14 6.5h7"/><path d="M10.5 19.7s5.1-3 6.1-7.1"/></g>',
+  'state-revive':'<path d="M12 20.7c-3.8 0-6.9-2.9-6.9-6.6 0-2.4 1.2-4.4 3.1-5.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8.4 4.8 8.2 8.5l-3.7-.2M15.6 4.1a7 7 0 0 1 3.3 5.9c0 2.6-1.4 4.9-3.5 6.1"/><path d="M12 17V7M8.6 10.4 12 7l3.4 3.4"/></g>',
+  'state-win':'<path d="m8 7 2.2 1.5L12 5l1.8 3.5L16 7l-.7 5H8.7z" fill="currentColor" opacity=".15"/><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7.5 20c-3-1.7-4.7-5-4.5-8.3M16.5 20c3-1.7 4.7-5 4.5-8.3M5.1 17.9l-2.9.3M18.9 17.9l2.9.3M4 14.5l-2.6-.8M20 14.5l2.6-.8"/><path d="m8 7 2.2 1.5L12 5l1.8 3.5L16 7l-.7 5H8.7zM8.8 12h6.4"/></g>',
+  'state-loss':'<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5h14v6.2c0 4.6-2.8 7.7-7 9.3-4.2-1.6-7-4.7-7-9.3z"/><path d="m15.8 4.5-2.4 5.2 2.2 2.2-4.8 4.4M7.5 8.5h3" opacity=".65"/></g>',
+  'state-pierce':'<g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h16M14 7l5 5-5 5M7 5v14M10 7v10" opacity=".55"/><path d="M3 12h16"/></g>',
+  'state-taunt':'<path d="M12 6 18 8v4.2c0 3.8-2.4 6.5-6 8-3.6-1.5-6-4.2-6-8V8z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6 18 8v4.2c0 3.8-2.4 6.5-6 8-3.6-1.5-6-4.2-6-8V8zM12 1.8v2M4.6 4.2l1.5 1.5M19.4 4.2l-1.5 1.5"/><path d="M9 11h6"/></g>',
+  'sound-on':'<path d="M4 9h4l4-4v14l-4-4H4z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l4-4v14l-4-4H4zM15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11"/></g>',
+  'sound-off':'<path d="M4 9h4l4-4v14l-4-4H4z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l4-4v14l-4-4H4zM16 9l5 5M21 9l-5 5"/></g>',
+  'help-book':'<path d="M3.5 5h6.2c1.4 0 2.3.9 2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2H3.5zm17 0h-6.2c-1.4 0-2.3.9-2.3 2.2V20c0-1.3.9-2.2 2.3-2.2h6.2z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M3.5 5h6.2c1.4 0 2.3.9 2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2H3.5zM20.5 5h-6.2c-1.4 0-2.3.9-2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2h6.2z"/><path d="M15.4 8.8c.2-1 2.3-1 2.4.4.1 1.1-1.3 1.1-1.3 2.1M16.5 14.2h.01" stroke-linecap="round"/></g>'
+});
+function uiIcon(name,cls){
+  const body=UI_ICON_PATHS[name];if(!body)return '';
+  return '<svg class="mi mi-'+name+(cls?' '+cls:'')+'" viewBox="0 0 24 24" aria-hidden="true" focusable="false">'+body+'</svg>';
+}
+function hydrateUiIcons(root){
+  (root||document).querySelectorAll('[data-ui-icon]').forEach(el=>{
+    const key=el.dataset.uiIcon;if(UI_ICON_PATHS[key])el.innerHTML=uiIcon(key);
+  });
+}
+function statToken(kind,value,label,cls){
+  return '<span class="stat-token '+(cls||kind)+'" aria-label="'+label+' '+value+'">'+uiIcon(kind)+'<span>'+value+'</span></span>';
+}
+hydrateUiIcons();
+
 // 单位池（cost=征募价 / atk攻 hp血 spd速 / rar稀有度 / w=出现权重）
 // skill.k 效果键：见 simulateBattle
 const UNITS = [
@@ -865,17 +942,17 @@ const UNITS = [
   skill:{k:'inspireAll', v:1, t:'先见：开战时全队 +1 攻'}, lore:'初代首徒归来。「走得再远，我的课桌一直在这里。」'},
  {id:'zeng', n:'增',   fac:'academy', cost:3, atk:3, hp:12, spd:3, rar:'SSR', w:6,  taunt:true, beast:'熊',
   skill:{k:'pairZi', v:2, t:'双璧：开战时若梓在场，梓获 2 盾、自己 +2 攻'}, lore:'初代先锋。第一个冲上去，也第一个回头看有没有人跟上'},
- {id:'lin',  n:'琳',   fac:'academy', cost:3, atk:3, hp:10, spd:4, rar:'SSR', w:7,  beast:'⚔',
+ {id:'lin',  n:'琳',   fac:'academy', cost:3, atk:3, hp:10, spd:4, rar:'SSR', w:7,  beast:'剑',
   skill:{k:'shieldAll', v:2, t:'开战时：全队获得 2 护盾'}, lore:'首徒。剑横膝上，一坐十年'},
- {id:'yin',  n:'音',   fac:'academy', cost:2, atk:3, hp:5,  spd:6, rar:'SR',  w:9,  beast:'♪',
+ {id:'yin',  n:'音',   fac:'academy', cost:2, atk:3, hp:5,  spd:6, rar:'SR',  w:9,  beast:'弦',
   skill:{k:'boostLin', v:3, t:'阵亡时：若琳在场，琳 +3 攻（归于琳）'}, lore:'琳的独立形态，一缕离体的弦音'},
- {id:'lu',   n:'璐',   fac:'academy', cost:2, atk:2, hp:6,  spd:3, rar:'SR',  w:9,  beast:'♬',
+ {id:'lu',   n:'璐',   fac:'academy', cost:2, atk:2, hp:6,  spd:3, rar:'SR',  w:9,  beast:'歌',
   skill:{k:'healLow', v:2, t:'每回合：治疗血量最低的友军 2'}, lore:'独立受教，带来哼唱'},
- {id:'wolf', n:'狼先生',fac:'academy', cost:5, atk:2, hp:8,  spd:2, rar:'UR',  w:2,  beast:'◐',
+ {id:'wolf', n:'狼先生',fac:'academy', cost:5, atk:2, hp:8,  spd:2, rar:'UR',  w:2,  beast:'月',
   skill:{k:'aura11', t:'光环：其余友军 +2 攻 +1 速（他自己只喝茶）'}, lore:'「我只让你们变得有趣一点。」'},
  {id:'guard',n:'谷地守望',fac:'academy',cost:1, atk:1, hp:8,  spd:2, rar:'N',   w:12, taunt:true, beast:'盾',
   skill:{k:'none', t:'无技能。便宜、扛打、忠诚'}, lore:'学院墙上第一盏不灭的灯'},
- {id:'carter',n:'星尘车夫',fac:'academy',cost:1,atk:1, hp:6,  spd:5, rar:'N',   w:11, beast:'✦',
+ {id:'carter',n:'星尘车夫',fac:'academy',cost:1,atk:1, hp:6,  spd:5, rar:'N',   w:11, beast:'尘',
   skill:{k:'coinDeath', v:1, t:'阵亡时：主人 +1 铸币（车翻了，货还在）'}, lore:'拉着星尘车跑遍谷地'},
  // 正典补全批⑮：瑾 / 涵 / 浩。输出、支援、前排三种轮廓，先小批进入棋池观察。
  {id:'jin',  n:'瑾',   fac:'academy', cost:3, atk:5, hp:6,  spd:7, rar:'SSR', w:6,  beast:'狐',
@@ -1077,9 +1154,9 @@ function shockwave(x,y){
   (function tick(){ t++; r.style.transform=`scale(${1+t*0.72})`; r.style.opacity=Math.max(0,1-t/26);
     t<26?requestAnimationFrame(tick):r.remove(); })();
 }
-function modal(html){$('#modal-box').innerHTML=html+'<div class="btnrow"><button class="btn gold" onclick="closeModal()">关 闭</button></div>';
-  $('#modal-veil').classList.add('on')}
-function closeModal(){$('#modal-veil').classList.remove('on')}
+function modal(html){$('#modal-box').innerHTML=html+'<div class="btnrow"><button class="btn gold" onclick="closeModal()">'+uiIcon('nav-close')+'关 闭</button></div>';
+  $('#modal-veil').classList.add('on');const mb=$('#btn-menu');if(mb)mb.setAttribute('aria-expanded','true')}
+function closeModal(){$('#modal-veil').classList.remove('on');const mb=$('#btn-menu');if(mb)mb.setAttribute('aria-expanded','false')}
 $('#modal-veil').addEventListener('click',e=>{if(e.target.id==='modal-veil')closeModal()});
 
 /* ============================================================
@@ -1454,7 +1531,7 @@ function hud(){
     $('#hud-standings').innerHTML=_b?`<span>最佳纪录 <b>${_b} 关</b></span>`:'';
   }else{
     const sorted=[...S.players].sort((a,b)=>b.crowns-a.crowns||b.coins-a.coins);
-    $('#hud-standings').innerHTML=sorted.map(p=>`<span>${p.name} <b>♛${p.crowns}</b></span>`).join('');
+    $('#hud-standings').innerHTML=sorted.map(p=>'<span>'+p.name+' <b class="icon-label" aria-label="王座分 '+p.crowns+'">'+uiIcon('score-throne')+p.crowns+'</b></span>').join('');
   }
 }
 
@@ -1580,8 +1657,8 @@ function renderWave(){
     const d=document.createElement('div');d.className='pcard stag'+(p.revenge?' reveng':'');
     d.style.animationDelay=(idx*0.06)+'s';d.dataset.p=idx;
     const w=p.waveN||0;
-    d.innerHTML=`<h4>${p.name} <span class="crown">♛${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
-      <div class="res"><span>铸币 <b>◈${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
+    d.innerHTML=`<h4>${p.name} <span class="crown icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
+      <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
         return `<span class="mini-u ${a.star>=2?'star'+a.star:''} f-${u.fac}" title="${u.n} · ${FACS[u.fac]?FACS[u.fac].n:''}">${u.n[0]}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
@@ -1605,7 +1682,7 @@ function judge(pi,act,btnEl){
     else floatNum(btnEl.closest('.pcard'),'记下了','var(--ink3)'); // 暴走关闭时不谎报「暴走+1」
   }else{
     p.coins+=gain;
-    floatNum(btnEl.closest('.pcard'),'+'+gain+'◈','var(--gold2)');
+    floatNum(btnEl.closest('.pcard'),'铸币 +'+gain,'var(--gold2)');
     SFX.play('coin');
   }
   p.waveN=(p.waveN||0)+1; // 答题仪表盘：每次判定都算一次参与（含答错）
@@ -1616,7 +1693,7 @@ function renderWaveNumbersOnly(){
   updateWaveMeta();
   S.players.forEach((p,idx)=>{
     const card=$(`.pcard[data-p="${idx}"]`);if(!card)return;
-    card.querySelector('.res b').textContent='◈'+p.coins;
+    const cb=card.querySelector('.res b');cb.setAttribute('aria-label','铸币 '+p.coins);cb.innerHTML=uiIcon('currency-coin')+p.coins;
     const wn=card.querySelector('.wn');
     if(wn){const w=p.waveN||0;wn.textContent=w?('答 '+w):'未答';wn.classList.toggle('wn0',!w)}
   });
@@ -1632,9 +1709,9 @@ $('#btn-undo').onclick=()=>{
 };
 $('#btn-endwave').onclick=(e)=>{ // 两段确认：这是不可逆的幕初经济结算，防手滑
   const b=e.currentTarget;
-  if(b.dataset.arm==='1'){b.dataset.arm='';b.textContent='结束答题波 → 征募';startDraft();return}
-  b.dataset.arm='1';b.textContent='再点一次确认 → 结算进征募';
-  clearTimeout(b._tm);b._tm=setTimeout(()=>{b.dataset.arm='';b.textContent='结束答题波 → 征募'},3000);
+  if(b.dataset.arm==='1'){b.dataset.arm='';b.innerHTML='结束答题波 '+uiIcon('nav-next')+' 征募';startDraft();return}
+  b.dataset.arm='1';b.innerHTML='再点一次确认 '+uiIcon('nav-next')+' 结算进征募';
+  clearTimeout(b._tm);b._tm=setTimeout(()=>{b.dataset.arm='';b.innerHTML='结束答题波 '+uiIcon('nav-next')+' 征募'},3000);
 };
 /* —— 课堂节奏阀：拖堂提前收官 / 时间富余加时 —— */
 $('#btn-pace').onclick=()=>{
@@ -1905,8 +1982,8 @@ function showUnitDetail(id,inst){
   modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}</span></h3>
     <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
-    <div style="display:flex;justify-content:center;gap:20px;font-family:var(--mono);font-size:16px;margin-bottom:6px">
-      <span style="color:var(--red2)">⚔ 攻 ${b.atk}</span><span style="color:#9fd49f">♥ 命 ${b.hp}</span><span style="color:#9cc0e8">» 速 ${b.spd}</span></div>
+    <div class="stat-set" style="font-size:16px;margin-bottom:6px">
+      ${statToken('stat-attack',b.atk,'攻击','atk')}${statToken('stat-vitality',b.hp,'生命','hp')}${statToken('stat-speed',b.spd,'速度','spd')}</div>
     <h4>作战方式</h4>${archTxt}
     <h4>技能</h4>${u.skill.t}
     <h4>星象相克</h4>${clashTxt}
@@ -1937,21 +2014,21 @@ function renderDraft(fresh){
     :(S.solo?'试炼征募 · 迎战前补强军团':'按排名从后往前挑 · 落后者先选'))+' · 点立绘看详情'; // 单人不渗漏多人措辞
   $('#btn-reroll').style.display=origin?'none':'';
   $('#btn-draft-done').style.display=origin?'none':'';
-  $('#btn-draft-done').textContent=S.solo?'征募毕 · 迎战':'征募毕 · 下一位';
+  $('#btn-draft-done').innerHTML=S.solo?('征募毕 '+uiIcon('play-skip')+' 迎战'):('征募毕 '+uiIcon('nav-next')+' 下一位');
   $('#btn-draft-undo').style.display=draftHist.length?'':'none';
   // 牌力升级按钮
   const bt=$('#btn-tier');
   if(origin){bt.style.display='none';}
   else{bt.style.display='';const et=effTier(p),cost=nextTierCost(p);
     bt.disabled=false;
-    bt.textContent=cost==null?`牌力 ${et} · 满`:`牌力 ${et} ↑ · ${cost} 铸币`;
+    bt.innerHTML=uiIcon('action-tier-up')+(cost==null?'牌力 '+et+' · 满':'牌力 '+et+' · '+cost+' 铸币');
     bt.classList.toggle('gold',cost!=null&&p.coins>=cost);}
   $('#draft-order').innerHTML=S.solo?'':S.draftQueue.map((pi,k)=>{ // 单人无轮转队列
     const cls=k<S.draftIdx?'done':(k===S.draftIdx?'cur':'');
     return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
   $('#drafter-name').innerHTML=S.solo?`<em>${p.name}</em> 的军团`:`轮到 <em>${p.name}</em>`;
   const _int=previewInterest(p),_per=hasRelic(p,'dustbag')?4:5;
-  $('#draft-coins').innerHTML='◈ '+p.coins+`<i class="int-hint">存${_per}生1 · 下${S.solo?'关':'幕'}息+${_int}</i>`;
+  $('#draft-coins').setAttribute('aria-label','铸币 '+p.coins);$('#draft-coins').innerHTML=uiIcon('currency-coin')+' '+p.coins+'<i class="int-hint">存'+_per+'生1 · 下'+(S.solo?'关':'幕')+'息+'+_int+'</i>';
   if(p._notes&&p._notes.length){toast(`${p.name}：${p._notes.join(' · ')}`,2600);p._notes=null}
   const box=$('#offers');box.innerHTML='';
   const rv=dealReveal;dealReveal=false; // 发现时刻：一次性消费，买卡/撤销/换位/续局的重渲染走原 stag 路径不重播
@@ -1974,7 +2051,7 @@ function renderDraft(fresh){
         <div class="badge r-${u.rar}" data-fac="${u.fac}">${facEmblem(u.fac)}<span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
         <h3>${u.n}</h3><div class="rar-tag rt-${u.rar}">${u.rar}${mergeHint}</div>
         <div class="bond-advrow">${advHTML}</div>
-        <div class="stats"><span class="atk">⚔${u.atk}</span><span class="hp">♥${u.hp}</span><span class="spd">»${u.spd}</span></div>
+        <div class="stats">${statToken('stat-attack',u.atk,'攻击','atk')}${statToken('stat-vitality',u.hp,'生命','hp')}${statToken('stat-speed',u.spd,'速度','spd')}</div>
         ${(a=>a?`<div class="arch-tag arch-${a.c}">${a.t}</div>`:'')(archOf(u))}
         <div class="skill">${u.skill.t}</div>
         <div class="lore">${u.lore}</div>
@@ -2008,15 +2085,15 @@ function renderDraft(fresh){
   renderBench(p);
   renderFoeIntel(p);
   const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
-  $('#btn-reroll').textContent=freeRr?'刷新 · 免费':'刷新 · 2 铸币';
+  $('#btn-reroll').innerHTML=uiIcon('action-refresh')+(freeRr?'刷新 · 免费':'刷新 · 2 铸币');
   const bl=$('#btn-lock');
   if(bl){bl.style.display=origin?'none':'';
-    bl.textContent=p._lockOn?('已锁定 · 下'+(S.solo?'关':'次')+'送达'):'锁定本轮';
+    bl.innerHTML=uiIcon(p._lockOn?'action-unlock':'action-lock')+(p._lockOn?('已锁定 · 下'+(S.solo?'关':'次')+'送达'):'锁定本轮');
     bl.classList.toggle('gold',!!p._lockOn)}
   const bf=$('#btn-forge');
   if(bf){bf.style.display=(S.solo&&!origin)?'':'none';
     if(S.solo&&!origin){const fc=forgeCost(p.forgeN),fdone=p._forgedRound===S.round;
-      bf.textContent=fdone?'本关已淬炼':('淬炼 · '+fc+' 铸币');bf.disabled=fdone;
+      bf.innerHTML=uiIcon('action-forge')+(fdone?'本关已淬炼':('淬炼 · '+fc+' 铸币'));bf.disabled=fdone;
       bf.classList.toggle('gold',!fdone&&p.coins>=fc)}}
 }
 /* 宿敌情报条：征募时看得见本幕要打谁——征募从「买好卡」升级成「针对宿敌构筑」 */
@@ -2046,7 +2123,7 @@ function renderFoeIntel(p){
 }
 function renderBench(p){
   const cap=ARMY_CAP[Math.min(S.act,3)];
-  $('#bench h5').textContent=`—— ${p.name} 的军团 ${p.army.length}/${cap} ·（最左 = 前排先承伤，◀▶ 调站位）——`;
+  $('#bench h5').innerHTML='—— '+p.name+' 的军团 '+p.army.length+'/'+cap+' ·（最左 = 前排先承伤 · '+uiIcon('action-move-front')+uiIcon('action-move-back')+' 调站位）——';
   const bx=$('#bench-units');bx.innerHTML='';
   if(!p.army.length)bx.innerHTML='<span style="color:var(--ink4);font-size:12px;letter-spacing:.2em;align-self:center">虚位以待</span>';
   p.army.forEach((a,ai)=>{
@@ -2056,11 +2133,11 @@ function renderBench(p){
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
       <div class="g">${u.n[0]}</div><div class="n">${u.n}</div>
-      <div class="st">⚔${st.atk} ♥${st.hp}</div>
-      <div class="bmove">
-        <button title="向前排移动" ${ai===0?'disabled':''}><svg class="ico" viewBox="0 0 16 16"><path d="M10.5 3 5.5 8l5 5"/></svg></button>
-        <button title="向后排移动" ${ai===p.army.length-1?'disabled':''}><svg class="ico" viewBox="0 0 16 16"><path d="M5.5 3l5 5-5 5"/></svg></button>
-        <button class="bx" title="出售，返还 ${refund} 铸币"><svg class="ico" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8"/></svg></button>
+      <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
+      <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
+        <button type="button" aria-label="将${u.n}向前排移动一格" title="向前排移动" ${ai===0?'disabled':''}>${uiIcon('action-move-front')}</button>
+        <button type="button" aria-label="将${u.n}向后排移动一格" title="向后排移动" ${ai===p.army.length-1?'disabled':''}>${uiIcon('action-move-back')}</button>
+        <button type="button" class="bx" aria-label="出售${u.n}，返还${refund}铸币" title="出售，返还 ${refund} 铸币">${uiIcon('action-sell')}</button>
       </div>`;
     const [bL,bR,bX]=d.querySelectorAll('.bmove button');
     bL.onclick=()=>{snapDraft();[p.army[ai-1],p.army[ai]]=[p.army[ai],p.army[ai-1]];renderDraft();save()};
@@ -2082,7 +2159,7 @@ function renderBench(p){
     const u=UMAP[S.captured.inst.id];
     const chip=document.createElement('span');chip.className='relic-chip';
     chip.style.borderColor='var(--purple)';chip.style.color='var(--purple)';
-    chip.textContent=`${u.n} 被叶王扣押 · 点击赎回 3◈`;chip.style.cursor='pointer';
+    chip.setAttribute('aria-label',u.n+' 被叶王扣押，点击花费 3 铸币赎回');chip.innerHTML=u.n+' 被叶王扣押 · 点击赎回 '+uiIcon('currency-coin')+' 3';chip.style.cursor='pointer';
     chip.onclick=()=>{
       if(p.coins<3){toast('铸币不够赎回');return}
       const inst=S.captured.inst, twin=p.army.find(a=>a.id===inst.id);
@@ -2173,14 +2250,14 @@ $('#btn-forge').onclick=()=>{
   modal(`<h3>星尘淬炼</h3><p style="text-align:center;color:var(--ink3);line-height:1.8">花 <b style="color:var(--gold2)">${cost} 铸币</b>，为一名成员永久 <b>+1 攻 +2 生命</b><br>每关一次 · 费用递增（${cost}→${cost+2}→${cost+4}…）</p>
     <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px">`+
     p.army.map((a,i)=>{const u=UMAP[a.id],b=instBase(a);
-      return `<button class="btn" data-fi="${i}">${u.n}${a.star>=2?' ★'+a.star:''} ⚔${b.atk} ♥${b.hp}</button>`}).join('')+`</div>`);
+      return `<button class="btn" data-fi="${i}">${u.n}${a.star>=2?' ★'+a.star:''} ${statToken('stat-attack',b.atk,'攻击','atk')}${statToken('stat-vitality',b.hp,'生命','hp')}</button>`}).join('')+`</div>`);
   document.querySelectorAll('#modal-box [data-fi]').forEach(btn=>btn.onclick=()=>{
     const inst=p.army[+btn.dataset.fi];if(!inst)return;
     snapDraft();
     p.coins-=cost;inst.gAtk+=1;inst.gHp+=2;
     p.forgeN=(p.forgeN||0)+1;p._forgedRound=S.round;
     closeModal();SFX.play('merge');flash(false);
-    toast(`${UMAP[inst.id].n} 淬炼成功 ⚔+1 ♥+2`,2400);
+    toast(`${UMAP[inst.id].n} 淬炼成功 · 攻击 +1 · 生命 +2`,2400);
     renderDraft();hud();save();
   });
 };
@@ -2416,10 +2493,10 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       // 阵亡技
       if(f.skill.k==='splashDeath'){foesOf(s).forEach(e=>dealDmg(s,f,e,f.skill.v,'爆炸'))}
       if(f.skill.k==='boostLin'){const lin=alive(s).find(x=>x.id==='lin');
-        if(lin){lin.atk+=f.skill.v;log.push({t:'buff',d:lin.uid,txt:'+'+f.skill.v+'⚔ 归于琳'})}}
+        if(lin){lin.atk+=f.skill.v;log.push({t:'buff',d:lin.uid,txt:'攻击 +'+f.skill.v+' · 归于琳'})}}
       if(f.skill.k==='buffAdj'){const a=alive(s);
         if(a.length){const adj=a.reduce((m,x)=>Math.abs(x.ix-f.ix)<Math.abs(m.ix-f.ix)?x:m,a[0]);
-          adj.atk+=f.skill.v;log.push({t:'buff',d:adj.uid,txt:'+'+f.skill.v+'⚔ 低语'})}}
+          adj.atk+=f.skill.v;log.push({t:'buff',d:adj.uid,txt:'攻击 +'+f.skill.v+' · 低语'})}}
       if(f.skill.k==='coinDeath'){coinsGain[s]+=f.skill.v||1;log.push({t:'coin',side:s,amt:f.skill.v||1})}
       // 边级：海雾同悲 / 爆炸残片 / 菀的旧日记
       if(flags[s].seaTier){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,flags[s].seaTier>=2?2:1,'海雾')}
@@ -2434,7 +2511,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   // —— 事件：断云逆风（全场最低速 +3 攻）——
   if(mods.wind){
     const all=[...A,...B];const mn=Math.min(...all.map(f=>f.spd));
-    all.filter(f=>f.spd===mn).forEach(f=>{f.atk+=3;log.push({t:'buff',d:f.uid,txt:'+3⚔ 逆风'})});
+    all.filter(f=>f.spd===mn).forEach(f=>{f.atk+=3;log.push({t:'buff',d:f.uid,txt:'攻击 +3 · 逆风'})});
   }
   // —— 开战技（全场速度序）——
   const bsOrder=[...A.map(f=>[0,f]),...B.map(f=>[1,f])].sort((x,y)=>y[1].spd-x[1].spd||rand()-0.5);
@@ -2445,23 +2522,23 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     if(k==='snipeBack'){const t=back(1-s);if(t){dealDmg(s,f,t,f.skill.v,'狙击');processDeaths()}}
     if(k==='slowFast'){const foesA=foesOf(s);if(foesA.length){
       const t=foesA.reduce((m,x)=>x.spd>m.spd?x:m,foesA[0]);t.spd=Math.max(1,t.spd-f.skill.v);
-      log.push({t:'debuff',d:t.uid,txt:`-${f.skill.v}» 海雾`})}}
+      log.push({t:'debuff',d:t.uid,txt:'速度 -'+f.skill.v+' · 海雾'})}}
     if(k==='pairYu'){const yu=alive(s).find(x=>x.id==='yu');
-      if(yu){yu.atk+=f.skill.v;f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'兄弟羁绊 +2⚔'})}}
+      if(yu){yu.atk+=f.skill.v;f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'兄弟羁绊 · 攻击 +2'})}}
     if(k==='inspireAll'){alive(s).forEach(x=>{x.atk+=f.skill.v});
-      log.push({t:'buff',d:f.uid,txt:'+'+f.skill.v+'⚔ 先见'})} // 梓：先见惠及全队（含自己）
+      log.push({t:'buff',d:f.uid,txt:'攻击 +'+f.skill.v+' · 先见'})} // 梓：先见惠及全队（含自己）
     if(k==='atone'&&alive(s).some(x=>x.fac==='dark')){        // 马将军：他知道那条路怎么走
-      alive(s).forEach(x=>{x.atk+=f.skill.v});log.push({t:'buff',d:f.uid,txt:'+'+f.skill.v+'⚔ 归正'})}
+      alive(s).forEach(x=>{x.atk+=f.skill.v});log.push({t:'buff',d:f.uid,txt:'攻击 +'+f.skill.v+' · 归正'})}
     if(k==='probeCore'){const fo=foesOf(s);if(fo.length){     // 佳：问题直击核心（打最高血，与诺的后排狙击正交）
       const t=fo.reduce((m,x)=>x.hp>m.hp?x:m,fo[0]);dealDmg(s,f,t,f.skill.v,'探问');processDeaths()}}
     if(k==='pairZi'){const zi=alive(s).find(x=>x.id==='zi');
       if(zi){zi.shield+=f.skill.v;f.atk+=f.skill.v;              // 增：替梓挡下第一击，她在场时他浑身是劲
-        log.push({t:'shield',d:zi.uid,txt:'+'+f.skill.v+'盾 双璧'});log.push({t:'buff',d:f.uid,txt:'双璧 +'+f.skill.v+'⚔'})}}
+        log.push({t:'shield',d:zi.uid,txt:'护盾 +'+f.skill.v+' · 双璧'});log.push({t:'buff',d:f.uid,txt:'双璧 · 攻击 +'+f.skill.v})}}
   }
   // 战报羽笔：确定性点名敌方最高攻（随机-1 是没人选的废遗物）
   [0,1].forEach(s=>{if(flags[s].quill){const fo=foesOf(s);
     if(fo.length){const e=fo.reduce((m,x)=>x.atk>m.atk?x:m,fo[0]);
-      e.atk=Math.max(0,e.atk-2);log.push({t:'debuff',d:e.uid,txt:'-2⚔ 羽笔'})}}});
+      e.atk=Math.max(0,e.atk-2);log.push({t:'debuff',d:e.uid,txt:'攻击 -2 · 羽笔'})}}});
 
   // —— 回合循环 ——
   let winner=-1;
@@ -2475,11 +2552,11 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(k==='healLow'){const a=alive(s);const t=a.reduce((m,x)=>x.hp/x.maxhp<m.hp/m.maxhp?x:m,a[0]);
         const heal=Math.min(f.skill.v,t.maxhp-t.hp);
         if(heal>0){t.hp+=heal;log.push({t:'heal',d:t.uid,amt:heal})}}
-      if(k==='growAtk'){f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'+1⚔'})}
+      if(k==='growAtk'){f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'攻击 +1'})}
       if(k==='echoAll'){foesOf(s).forEach(e=>dealDmg(s,f,e,f.skill.v,'噪音'));processDeaths()}
       if(k==='weakenTop'){const foesA=foesOf(s);if(foesA.length){
         const t=foesA.reduce((m,x)=>x.atk>m.atk?x:m,foesA[0]);t.atk=Math.max(0,t.atk-f.skill.v);
-        log.push({t:'debuff',d:t.uid,txt:'-1⚔ 蛇缠'})}}
+        log.push({t:'debuff',d:t.uid,txt:'攻击 -1 · 蛇缠'})}}
     }
     // 复读风暴
     if(mods.echo){[0,1].forEach(s=>{const t=pickR(alive(s));if(t){dealDmg(1-s,null,t,1,'风暴')}});processDeaths()}
@@ -2504,7 +2581,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       const thn=(flags[1-s].vanTier?(flags[1-s].vanTier>=2?2:1):0)+(flags[1-s].thorn?1:0)+(mods.thornEv?1:0);
       if(t.taunt&&thn)dealDmg(1-s,t,f,thn,'反震');
       // 晰 · 软抵抗：被打一次强一次（只随基本攻击；死了就不再叠）
-      if(t.alive&&t.skill.k==='soak'){t.atk+=t.skill.v;log.push({t:'buff',d:t.uid,txt:'+'+t.skill.v+'⚔ 软抵抗'})}
+      if(t.alive&&t.skill.k==='soak'){t.atk+=t.skill.v;log.push({t:'buff',d:t.uid,txt:'攻击 +'+t.skill.v+' · 软抵抗'})}
       processDeaths();
       if(!alive(1-s).length)break;
     }
@@ -2533,6 +2610,15 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
 function runSelftest(){
   const res=[], ok=(name,cond)=>res.push({name,pass:!!cond});
   const lin=(star)=>({uid:0,id:'lin',star,gAtk:0,gHp:0});
+  // —— MYSKME 通用图标系统 20260714a ——
+  {const req=['stat-attack','stat-vitality','stat-speed','stat-shield','currency-coin','score-throne',
+      'action-move-front','action-move-back','action-sell','action-undo','action-refresh','action-lock','play-fast','nav-menu'];
+   ok('图标系统：37 枚语义矢量完整', UI_ICON_VER==='20260714a'&&Object.keys(UI_ICON_PATHS).length===37);
+   ok('图标系统：核心属性/站位/控制键齐全', req.every(k=>UI_ICON_PATHS[k]&&UI_ICON_PATHS[k].includes('currentColor')));
+   ok('图标系统：内联 SVG 不依赖字体或外部图片', req.every(k=>{const s=uiIcon(k);return /^<svg/.test(s)&&s.includes('aria-hidden="true"')&&!/<text|<image|href=/.test(s)}));
+   ok('图标系统：纯图标按钮具备读屏状态', $('#btn-menu').getAttribute('aria-label')==='打开游戏菜单'
+     &&$('#btn-menu').getAttribute('aria-expanded')==='false'&&$('#btn-speed').hasAttribute('aria-pressed'));
+   ok('角色印字：旧系统图形字已改为正典中文字', UMAP.lin.beast==='剑'&&UMAP.yin.beast==='弦'&&UMAP.lu.beast==='歌'&&UMAP.wolf.beast==='月'&&UMAP.carter.beast==='尘');}
   // —— 星级三档倍率 ——
   const b1=instBase(lin(1)),b2=instBase(lin(2)),b3=instBase(lin(3));
   ok('lin ★1 atk=3/hp=10', b1.atk===3&&b1.hp===10);
@@ -2607,7 +2693,7 @@ function runSelftest(){
    const hangUid=B.find(f=>f.id==='hang').uid;
    const r=simulateBattle(A,B,{quill:true},{},mulberry32(9),{});
    const q=r.log.find(e=>e.t==='debuff'&&/羽笔/.test(e.txt||''));
-   ok('羽笔点名最高攻(-2⚔)', q&&q.d===hangUid&&/-2/.test(q.txt));}
+   ok('羽笔点名最高攻（攻击 -2）', q&&q.d===hangUid&&/-2/.test(q.txt));}
   // —— 技能伤害不吃相克（isBasic 正交）——
   {const A=buildFighters(parmy('wan'),{});           // 黑域·狙击后排
    const B=buildFighters(parmy('lin','guard'),{});   // 学院（黑域克学院，仅基本攻击+15%）
@@ -3106,7 +3192,7 @@ function renderPairings(resume){
   $('#stage').style.display='none';
   $('#battle-next-row').style.display='';
   const nxt=S.pairs.findIndex(p=>!p.done);
-  $('#btn-battle-next').textContent=nxt===-1?'结束本幕 →':`开战：第 ${nxt+1} 场`;
+  $('#btn-battle-next').innerHTML=nxt===-1?('结束本幕 '+uiIcon('nav-next')):(uiIcon('play-skip')+'开战：第 '+(nxt+1)+' 场');
 }
 $('#btn-battle-next').onclick=()=>{
   if(S.solo){soloRunBattle();return}
@@ -3117,16 +3203,16 @@ $('#btn-battle-next').onclick=()=>{
 
 /* —— 战斗播放 —— */
 let PB={speed:1,skip:false,timer:null};
-$('#btn-speed').onclick=e=>{PB.speed=PB.speed===1?2:1;e.target.textContent=PB.speed===2?'▶ 一倍速':'▶▶ 二倍速'};
+$('#btn-speed').onclick=()=>{PB.speed=PB.speed===1?2:1;const b=$('#btn-speed');b.querySelector('.speed-label').textContent=PB.speed===2?'一倍速':'二倍速';b.setAttribute('aria-label',PB.speed===2?'切换为一倍速':'切换为二倍速');b.setAttribute('aria-pressed',PB.speed===2?'true':'false')};
 $('#btn-skipb').onclick=()=>{PB.skip=true};
 
 function unitEl(f){
   const d=document.createElement('div');
   d.className='u'+(f.star>=2?' star'+f.star:'');d.dataset.uid=f.uid;if(f.fac)d.dataset.fac=f.fac;
   d.innerHTML=`${f.fac?facEmblem(f.fac):''}${(x=>x?`<span class="arch-mini ${x.c}">${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}</div><span class="n">${f.n}</span>
-    <span class="num"><span class="a">⚔${f.atk}</span><span class="h">♥${f.hp}</span></span>
+    <span class="num"><span class="a stat-token" aria-label="攻击 ${f.atk}">${uiIcon('stat-attack')}<span class="stat-v">${f.atk}</span></span><span class="h stat-token" aria-label="生命 ${f.hp}">${uiIcon('stat-vitality')}<span class="stat-v">${f.hp}</span></span></span>
     <div class="hpb"><i style="width:100%"></i></div>
-    <span class="sh" style="display:none"><svg class="shico" viewBox="0 0 16 16"><path d="M8 1.5l5 2v3.8c0 3.3-2.2 5.5-5 6.7-2.8-1.2-5-3.4-5-6.7V3.5z"/></svg></span>`;
+    <span class="sh" style="display:none" aria-label="护盾已激活">${uiIcon('stat-shield')}</span>`;
   if(UMAP[f.id])bindDetail(d,()=>{ // 点战斗单位看详情(幽灵无档案跳过);按uid反查真实实例——否则淬炼/成长加成在详情页显示为0,玩家误以为淬炼没生效
     let _inst=null;for(const _p of S.players){_inst=(_p.army||[]).find(a=>String(a.uid)===String(f.uid));if(_inst)break}
     showUnitDetail(f.id,_inst||{star:f.star,gAtk:0,gHp:0})});
@@ -3193,7 +3279,7 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
         const pct=Math.max(0,hpNow[e.d]/hpMax[e.d]*100);
         barI.style.width=pct+'%';
         tgt.querySelector('.hpb').classList.toggle('low',pct<32);
-        tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
+        const hv=tgt.querySelector('.num .h');hv.querySelector('.stat-v').textContent=hpNow[e.d];hv.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
         if(animate){tgt.classList.remove('hit');void tgt.offsetWidth;tgt.classList.add('hit');
           const eff=e.eff||1; // 相克：克染金标「克」、被克淡化，不刷屏
           floatNum(tgt,'-'+e.amt+(e.crit?'!':'')+(eff>1?' 克':''),e.crit?'#ffd075':(eff>1?'var(--teal)':(eff<1?'#9a9686':'var(--red2)')),e.crit); // 暴击金/相克青/被克灰/普通红 四态分色
@@ -3210,18 +3296,18 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
     if(e.t==='revive'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead');
       hpNow[e.d]=Math.ceil(hpMax[e.d]/2);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
-      tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d]; // 修旧疾：血条回半管但 ♥ 数字停在 0
+      const rh=tgt.querySelector('.num .h');rh.querySelector('.stat-v').textContent=hpNow[e.d];rh.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]); // 复活后数值与血条同步
       if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false);SFX.play('revive')}}}
     if(e.t==='shed'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead'); // 兜住 skip 模式给 kill 加的 dead 残留
       hpNow[e.d]=e.hp;
       tgt.querySelector('.hpb i').style.width=Math.max(0,hpNow[e.d]/hpMax[e.d]*100)+'%';
-      tgt.querySelector('.num .h').textContent='♥'+e.hp;
-      tgt.querySelector('.num .a').textContent='⚔'+e.atk; // 蜕后攻击对账（事件自带 hp/atk 免查表）
+      const sh=tgt.querySelector('.num .h');sh.querySelector('.stat-v').textContent=e.hp;sh.setAttribute('aria-label','当前生命 '+e.hp+'，最大生命 '+hpMax[e.d]);
+      const sa=tgt.querySelector('.num .a');sa.querySelector('.stat-v').textContent=e.atk;sa.setAttribute('aria-label','攻击 '+e.atk); // 蜕后攻击对账
       if(animate){floatNum(tgt,'蛇蜕!','var(--purple)',true);blog.innerHTML=`<b>${nameOf[e.d]}</b> 蜕下旧皮——第二形态，更凶了！`;
         shake();flash(true);SFX.play('boss')}}} // 全屏 shake 白名单：叶王专属
     if(e.t==='heal'){const tgt=el(e.d);if(tgt){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+e.amt);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
-      tgt.querySelector('.num .h').textContent='♥'+hpNow[e.d];
+      const hh=tgt.querySelector('.num .h');hh.querySelector('.stat-v').textContent=hpNow[e.d];hh.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
       if(animate){floatNum(tgt,'+'+e.amt,'#9fd49f');SFX.play('heal')}}}
     if((e.t==='buff'||e.t==='debuff')&&animate){const tgt=el(e.d);
       if(tgt)floatNum(tgt,e.txt,e.t==='buff'?'var(--gold2)':'var(--purple)')}
@@ -3415,7 +3501,7 @@ function soloPreBattle(){
   const foeChips=boss?ghostMini(soloBossUnits()):mini(foe);
   box.innerHTML=`<div class="pairrow"><span class="who">${you.name}<div class="mini-army">${mini(you.army)}</div></span><span class="vs">VS</span><span class="who right">${soloFoeName(S.round)}<div class="mini-army" style="justify-content:flex-end">${foeChips}</div></span></div>`;
   $('#battle-next-row').style.display='';
-  $('#btn-battle-next').textContent='开 战';
+  $('#btn-battle-next').innerHTML=uiIcon('play-skip')+'开 战';
   if(boss){flash(true);SFX.play('boss')} // 终战入场压迫感
 }
 function soloBossUnits(){ // 终战叶王军：按难度缩放
@@ -3569,15 +3655,15 @@ async function showLbHall(){
   // —— 各榜格式化器（榜行显示；分数是整数，前端自解码）——
   const dec=(s,div,mod)=>Math.floor((s|0)/div)%mod;
   const FMT={
-    glory:s=>`♛${Math.floor((s|0)/100000)} · ⚔${dec(s,100,1000)}`,  // 荣耀榜：皇冠·战力
+    glory:s=>uiIcon('score-throne')+Math.floor((s|0)/100000)+' · '+uiIcon('stat-attack')+dec(s,100,1000),  // 荣耀榜：皇冠·战力
     power:s=>`${Math.min(999,s|0)} 战力`,                            // 战力榜
-    wealth:s=>`${Math.floor((s|0)/1000)}◈ · ${dec(s,100,10)}胜`,      // 财富榜：金币·战绩
+    wealth:s=>uiIcon('currency-coin')+Math.floor((s|0)/1000)+' · '+dec(s,100,10)+'胜',      // 财富榜：金币·战绩
     solo:s=>`${Math.min(999,s|0)} 关`,                               // 单人榜
-    legacy:s=>`♛${Math.min(999,s|0)}`,                               // 旧纯皇冠周（兼容）
+    legacy:s=>uiIcon('score-throne')+Math.min(999,s|0),                               // 旧纯皇冠周（兼容）
   };
   const CATS=[{k:'-0',fmt:FMT.glory,label:'荣耀榜',cap:'课堂·荣耀榜 · 皇冠优先·战力破平 · 按周结算'},
-              {k:'-1',fmt:FMT.power,label:'⚔战力榜',cap:'课堂·战力榜 · 阵容强度 · 按周结算'},
-              {k:'-2',fmt:FMT.wealth,label:'◈财富榜',cap:'课堂·财富榜 · 金币·战绩 · 按周结算'}];
+              {k:'-1',fmt:FMT.power,label:uiIcon('stat-attack')+'战力榜',cap:'课堂·战力榜 · 阵容强度 · 按周结算'},
+              {k:'-2',fmt:FMT.wealth,label:uiIcon('currency-coin')+'财富榜',cap:'课堂·财富榜 · 金币·战绩 · 按周结算'}];
   const render=(rows,fmt)=>{const el=$('#lblist');if(!el)return;
     el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow"><b>${i+1}</b><span></span><i>${fmt(e.score)}</i></div>`).join('')
       :'<div style="color:var(--ink3);text-align:center;padding:24px">这个赛季还没有成绩</div>';
@@ -3754,7 +3840,7 @@ function finale(){
     const rank=sorted.indexOf(p);
     const d=document.createElement('div');d.className='pod stag'+(rank===0?' first':'');
     d.innerHTML=`<div class="medal m${rank+1}">${medals[rank]||''}</div><h3>${p.name}</h3>
-      <div class="sc">♛ ${p.crowns} · ◈ ${p.coins}</div>
+      <div class="sc"><span class="icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span> · <span class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</span></div>
       <div class="army-line">${p.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div>`;
     pod.appendChild(d);
   });
@@ -3777,9 +3863,26 @@ function mvpInfo(){
   if(!best||!S.uidMeta||!S.uidMeta[best])return null;
   return {...S.uidMeta[best],amt};
 }
+function drawCanvasGameIcon(ctx,name,cx,cy,size,color){
+  ctx.save();ctx.translate(cx-size/2,cy-size/2);ctx.scale(size/24,size/24);
+  ctx.strokeStyle=color;ctx.fillStyle=color;ctx.lineWidth=1.5;ctx.lineCap='round';ctx.lineJoin='round';
+  if(name==='score-throne'){
+    ctx.globalAlpha=.14;ctx.beginPath();ctx.moveTo(4.2,8);ctx.lineTo(8.5,11);ctx.lineTo(12,4);ctx.lineTo(15.5,11);ctx.lineTo(19.8,8);ctx.lineTo(18.6,18);ctx.lineTo(5.4,18);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=1;ctx.beginPath();ctx.moveTo(4.2,8);ctx.lineTo(8.5,11);ctx.lineTo(12,4);ctx.lineTo(15.5,11);ctx.lineTo(19.8,8);ctx.lineTo(18.6,18);ctx.lineTo(5.4,18);ctx.closePath();ctx.stroke();
+    ctx.beginPath();ctx.moveTo(6,15.3);ctx.lineTo(18,15.3);ctx.moveTo(6.5,21);ctx.lineTo(17.5,21);ctx.moveTo(8.5,18);ctx.lineTo(8.5,21);ctx.moveTo(15.5,18);ctx.lineTo(15.5,21);ctx.stroke();
+    ctx.beginPath();ctx.arc(12,12.6,1.4,0,Math.PI*2);ctx.stroke();
+  }else if(name==='currency-coin'){
+    ctx.globalAlpha=.13;ctx.beginPath();ctx.moveTo(12,2.8);ctx.lineTo(19.8,7);ctx.lineTo(19.8,17);ctx.lineTo(12,21.2);ctx.lineTo(4.2,17);ctx.lineTo(4.2,7);ctx.closePath();ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeRect(8.8,8.8,6.4,6.4);ctx.beginPath();ctx.moveTo(12,2.8);ctx.lineTo(19.8,7);ctx.lineTo(19.8,17);ctx.lineTo(12,21.2);ctx.lineTo(4.2,17);ctx.lineTo(4.2,7);ctx.closePath();ctx.stroke();
+  }
+  ctx.restore();
+}
 async function drawReport(sorted){
   const cv=$('#report-canvas'),ctx=cv.getContext('2d');
   const W=cv.width,H=cv.height;
+  const champName=sorted[0]?sorted[0].name:'—';
+  cv.setAttribute('role','img');
+  cv.setAttribute('aria-label','MYSKME 自鸣棋战报。冠军 '+champName+'。最终排名：'+sorted.map((p,i)=>(i+1)+' '+p.name+'，王座分 '+p.crowns+'，铸币 '+p.coins).join('；'));
   // 背景：断云青蓝渐变
   const g=ctx.createLinearGradient(0,0,0,H);
   g.addColorStop(0,'#12262a');g.addColorStop(.55,'#1c3a50');g.addColorStop(1,'#27455f');
@@ -3816,7 +3919,7 @@ async function drawReport(sorted){
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,232);ctx.lineTo(W-120,232);ctx.stroke();
   // 冠军（名字带一次性金辉）
   const champ=sorted[0];
-  ctx.fillStyle=gold;ctx.font=serif(40);ctx.fillText('♛',W/2,300);
+  drawCanvasGameIcon(ctx,'score-throne',W/2,278,58,gold);
   ctx.save();ctx.shadowColor='#e8c768';ctx.shadowBlur=18;
   ctx.fillStyle=ink;ctx.font=serif(64,500);ctx.fillText(champ.name,W/2,372);ctx.restore();
   ctx.fillStyle=ink2;ctx.font=serif(26);
@@ -3898,7 +4001,7 @@ async function drawReport(sorted){
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,y-30);ctx.lineTo(W-120,y-30);ctx.stroke();
   ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('终 榜',W/2,y+14);y+=64;
   const rankRow=(p,k,xL,xR,yy,fs)=>{
-    const nameTxt=(k===0?'♛ ':'')+`${k+1} · ${p.name}`, scoreTxt=`♛${p.crowns}　◈${p.coins}`;
+    const nameTxt=(k===0?'冠军 · ':'')+`${k+1} · ${p.name}`, scoreTxt=`王座 ${p.crowns}　铸币 ${p.coins}`;
     ctx.font=serif(fs,k===0?500:400);ctx.fillStyle=k===0?gold:ink;
     ctx.textAlign='left';ctx.fillText(nameTxt,xL,yy);
     const nw=ctx.measureText(nameTxt).width;
@@ -3949,7 +4052,7 @@ $('#btn-save-report').onclick=()=>{
 function showHowto(){
   const sec=(t,body,open)=>`<details${open?' open':''}><summary>${t}</summary><div class="dbody">${body}</div></details>`;
   modal(`<h3>玩法与课堂说明</h3>
-  <p style="text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.1em;margin-bottom:10px">符号：⚔ 攻击 · ♥ 生命 · » 速度 · ◈ 铸币 · ♛ 王座分</p>`
+  <p class="stat-set" style="color:var(--ink3);font-size:12.5px;margin-bottom:10px">${statToken('stat-attack','攻击','图标','atk')}${statToken('stat-vitality','生命','图标','hp')}${statToken('stat-speed','速度','图标','spd')}${statToken('currency-coin','铸币','图标','coin')}${statToken('score-throne','王座分','图标','throne')}</p>`
   +sec('一局怎么跑（一节课 30–40 分钟）',`
   开局每人<b>免费点将</b>一名学员。之后三幕循环：<b>答题波 → 征募 → 命运事件 → 演武</b>。
   每幕开局公布<b>宿敌预告</b>（本幕演武打谁）——答题赚钱、征募补强，都冲着那一场去。
@@ -3976,7 +4079,7 @@ function showHowto(){
   军团从左到右站队：<b>最左是前排，先挨打</b>。单位有<b>作战方式</b>：普通近战打前排；
   <b>嘲讽</b>（增/守望/麒/荣/浩）会把敌方近战全拉到自己身上，替后排挡刀；<b>穿透</b>（梓/诺/斥候/信鸽/璇）
   绕过前排直取<b>最后排 C 位</b>、还无视嘲讽。
-  征募时用 ◀ ▶ 调站位——坦克顶前面吸火，怕穿透就<b>别把宝贝放最后一位</b>（前不挨打、后被穿透，中间最稳）。
+  征募时用 ${uiIcon('action-move-front')}向前排／${uiIcon('action-move-back')}向后排调整站位——坦克顶前面吸火，怕穿透就<b>别把宝贝放最后一位</b>（前不挨打、后被穿透，中间最稳）。
   开战狙击（诺 / 菀）同样点名后排——<b>护盾能挡狙击</b>：琳/涵的全队盾、白鹤/浩的自体盾都是明牌反制。`)
   +sec('星象三相环（属性相克）',`
   三系成环：<b style="color:var(--gold2)">学院 → 海族 → 黑域 → 学院</b>（箭头指向被克方）。
@@ -4023,12 +4126,12 @@ function showHowto(){
 function showMenu(){
   modal(`<h3>菜 单</h3>
   <div class="btnrow" style="flex-direction:column;align-items:center">
-    <button class="btn" onclick="closeModal();showHowto()">${S&&S.solo?'玩法说明':'玩法与课堂说明'}</button>
-    <button class="btn" onclick="closeModal();showUnits()">单位与遗物图鉴</button>
-    <button class="btn" onclick="SFX.toggle();closeModal();showMenu()">${SFX.isMuted()?'音效：关 · 点击开启':'音效：开 · 点击静音'}</button>
-    <button class="btn" onclick="BGM.toggle();closeModal();showMenu()">${BGM.isOn()?'背景音乐：开 · 点击关闭':'背景音乐：关 · 点击开启'}</button>
-    <button class="btn" onclick="closeModal();go('title')">回到标题（进度已存）</button>
-    <button class="btn danger" onclick="if(confirm('确定放弃本局？存档将清空')){clearSave();location.reload()}">放弃本局</button>
+    <button class="btn" onclick="closeModal();showHowto()">${uiIcon('help-book')}${S&&S.solo?'玩法说明':'玩法与课堂说明'}</button>
+    <button class="btn" onclick="closeModal();showUnits()">${uiIcon('rank-star')}单位与遗物图鉴</button>
+    <button class="btn" onclick="SFX.toggle();closeModal();showMenu()">${uiIcon(SFX.isMuted()?'sound-off':'sound-on')}${SFX.isMuted()?'音效：关 · 点击开启':'音效：开 · 点击静音'}</button>
+    <button class="btn" onclick="BGM.toggle();closeModal();showMenu()">${uiIcon(BGM.isOn()?'sound-on':'sound-off')}${BGM.isOn()?'背景音乐：开 · 点击关闭':'背景音乐：关 · 点击开启'}</button>
+    <button class="btn" onclick="closeModal();go('title')">${uiIcon('nav-back')}回到标题（进度已存）</button>
+    <button class="btn danger" onclick="if(confirm('确定放弃本局？存档将清空')){clearSave();location.reload()}">${uiIcon('state-loss')}放弃本局</button>
   </div>`);
 }
 function showUnits(){
