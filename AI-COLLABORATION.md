@@ -251,3 +251,10 @@
 - 另修:plike 读错字段(后端返 `{ok,likes,liked}` 不是 `profile.likes`)、Enter 键绕过 `disabled` 并发上传、「不败之姿」回血就洗白、撤销+刷新商店白嫖重摇词缀、影军池挂 S 被撤销抹掉、旧档续局不补命脉、一条空转的自检断言。
 - **影军池 `_ghostPool` 改模块级 transient** —— 与 `dealReveal` 同理:异步回填的东西挂 S 上会被 `snapDraft`/`draftUndo` 整体回滚,还会写进存档。
 - #selftest 244 → **253**(新增 9 条回归钉子,含"同一关只发一次经济""名册二次结算只补增量""撤销不回滚 meta(真跑 snapDraft/draftUndo,不再空转)")。
+
+### 2026-07-14 · Codex · 20260715a 交接路径收尾
+
+- 基线：`5f829ee4d98684419f0a923e23a4aec45a01cf2d`（Claude 已在美术资产提交之上完成全日验收 19 修，`#selftest 253/253`）。
+- 只修正 `ART-HANDOFF-给Claude-20260715.md` 的离线验证命令：长期资源包中的正确路径是 `scripts/validate-all.mjs`，不是制作工作树内部的 `tools/art-commission-20260715/validate-all.mjs`。
+- 没有改动任何 WebP／SVG／manifest，没有改动 `index.html`、玩法、数值、存档、图标或音效。
+

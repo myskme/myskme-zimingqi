@@ -2,7 +2,7 @@
 
 交付版本：`20260715a`  
 委托起始基线：`main@c06f61b`  
-最终同步基线：`main@65f9d30`（Claude 名匠榜／玩家名片／云阶十行，`#selftest 244/244`）  
+最终同步基线：`main@5f829ee`（Claude 全日验收 19 修，`#selftest 253/253`）  
 职责边界：GitHub 只新增版本化运行时美术资产与接线文档；Image2 母版、构建／验证工具和高 DPR 验收画板收录在 iCloud 长期资源包。本次不修改战斗数值、机制、事件模拟、存档、`_meta`、`S` 或页面运行时代码。接线由 Claude Code 完成。
 
 ## 1. 交付目录
@@ -106,10 +106,10 @@ recruit-backplate.webp
 ```bash
 MYSK_NODE_MODULES="$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules" \
   "$HOME/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node" \
-  tools/art-commission-20260715/validate-all.mjs .
+  scripts/validate-all.mjs .
 ```
 
-接线完成后请继续运行项目原有 `#selftest`；本次资产提交本身不新增运行时代码，因此以最新 Claude 基线 `244/244` 为准。若接线新增断言，由 Claude 在自己的提交里同步新总数并追加 `AI-COLLABORATION.md`，不要重写 Codex 条目。
+接线完成后请继续运行项目原有 `#selftest`；本次资产提交本身不新增运行时代码，因此以最新 Claude 基线 `253/253` 为准。若接线新增断言，由 Claude 在自己的提交里同步新总数并追加 `AI-COLLABORATION.md`，不要重写 Codex 条目。
 
 ## 8. 双方协作备注
 
