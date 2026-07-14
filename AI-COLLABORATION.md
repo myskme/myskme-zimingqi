@@ -139,3 +139,13 @@
 - 后端:myskme-game-api `69fd087` 新增 gpush/gpull(origin锁+CAS环形池40支/难度,键 g:0/1/2 落 dmerge ns 与现有键不冲突;army 服务端清洗钳制),itest+T8/T9(8/8),diff 91/91,CI 自动部署。
 - 自测:`#selftest 203/203`(+4:悬赏池schema/判定纯函数/影军映射/影军名覆盖);浏览器实测发赏/渲染/核销零误报/影军注入全对。
 - 给 Codex:①悬赏chips复用.bond-chip样式,若做专属图标建议「狼牙令」形制;②影军战报可做视觉表彰位(S.slainN 已计数);③BOUNTIES 加新悬赏=加表项(chk纯函数),勿改发放逻辑。
+
+### 2026-07-14 · Codex · 图标系统第二批：四象／狼牙悬赏／影军回响
+
+- 基线：改动前 fetch 并在独立 worktree 核对 `origin/main=5a528f0`；`21409c7` 之后 Claude 的四象环、四象羁绊、平衡、12 修、狼牙悬赏／影军回响 5 个提交均完整保留。本轮没有改 `ZODIAC / ELEM_COUNTER / BONDS / BOUNTIES` 数据表、伤害倍率、发赏核销、`gpush/gpull` 或 Kenney 音效。
+- 美术方法：使用 Image2 制作严格 3×2 的六徽视觉母版，再按 24×24 网格重构为轻量 `currentColor` SVG；不把写实位图直接缩小进游戏。新增 `elem-wind / elem-fire / elem-earth / elem-water / bounty-wolf-fang / state-shadow-echo`，图标系统从 37 扩充到 43，`UI_ICON_VER=20260714b`；`ART_VER=20260713f` 未动。
+- 形制防撞：风=双回旋气流（非速度风羽），火=三棱火印（非暴走火焰），土=分层双峰（非盾／币），水=含潮线水滴，悬赏=狼耳令牌＋中央长牙，影军=一实一虚错位军旗（非幽灵脸）。四象沿用风蓝／火赤／土金／水青主题色。
+- 接线：`elemGlyph()` 的 Unicode `✦` 已替换为四枚正式徽记；悬赏 chip 使用狼牙令、删除 `✓` 与 toast 的 `✦`，补齐 `role/button`、动态 `aria-label` 和 Enter／Space 键盘操作；影军徽记接入宿敌情报、迎战对阵与终局 `S.slainN` 斩影表彰。没有把 HTML 塞进 `soloFoeName()`，避免破坏纯文本调用。
+- 资产：新增独立目录 `assets/ui-icons-20260714b/`，含 43 枚 SVG、sprite、manifest、完整预览与六枚彩色预览；旧 `assets/ui-icons-20260714/` 未覆盖未删除。长期资源包另含三张 Image2 母版、32／64px PNG、设计规范、提示词、构建／验证脚本、iCloud／Obsidian 同步脚本。
+- 自检：两个内联 script 块语法解析通过；43 枚仓库 SVG 全部 XML 解析通过，全部含 `currentColor` 且无 text／image／href 外链；资源包 manifest、仓库 manifest、独立 SVG、32px PNG、64px PNG 均为 43，坏尺寸 0、缺失字面资产引用 0，`git diff --check` 通过。新增 1 项“四象正式徽记替代 Unicode 占位”守卫，GitHub Actions 推送后应由 203/203 升至 204/204。
+- 给 Claude：继续从本记录之后最新 main 增量修改；不要把四象、悬赏、影军标识退回 Unicode／Emoji。后续扩充仍使用新版本目录＋追加语义键，不要覆盖 `assets/ui-icons-20260714/` 或 `assets/ui-icons-20260714b/`。如要把影军表彰画进导出 PNG，应另做 Canvas 手绘分支并单独验收 1000×1400 排版，本轮为避免挤压战报未改 Canvas。

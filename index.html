@@ -111,7 +111,7 @@ h2.sec em{font-style:normal;color:var(--gold);font-weight:500}
 .btn.danger:hover{box-shadow:var(--glow-red)}
 .btn:disabled{opacity:.35;pointer-events:none}
 .btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
-/* MYSKME 通用游戏图标系统 v20260714a：24px 网格、currentColor 双层珐琅、无字体/Emoji 依赖 */
+/* MYSKME 通用游戏图标系统 v20260714b：24px 网格、currentColor 双层珐琅、无字体/Emoji 依赖 */
 .mi{width:1.18em;height:1.18em;display:inline-block;vertical-align:-.19em;overflow:visible;flex:0 0 auto}
 .mi *{vector-effect:non-scaling-stroke}
 .mi-slot{display:inline-flex;align-items:center;justify-content:center;line-height:0}
@@ -378,7 +378,8 @@ body.playing #hud{display:flex}
   background:rgba(0,0,0,.22);font-size:13px;color:var(--ink2)}
 #foe-intel:empty{display:none}
 #foe-intel .fi-lab{color:var(--red2);letter-spacing:.22em;font-size:11.5px}
-#foe-intel .fi-name{color:var(--ink);letter-spacing:.08em}
+#foe-intel .fi-name{color:var(--ink);letter-spacing:.08em;display:inline-flex;align-items:center;gap:4px}
+#foe-intel .fi-name .mi{color:var(--purple);filter:drop-shadow(0 0 5px rgba(157,114,214,.38))}
 #foe-intel .fi-hint{color:var(--gold2);font-size:12px;letter-spacing:.05em}
 #foe-intel .mini-army{display:flex;gap:5px;flex-wrap:wrap}
 /* 赛后伤害复盘条（谁是carry一目了然，反哺下一幕征募决策） */
@@ -396,7 +397,7 @@ body.playing #hud{display:flex}
 .relic-art{width:28px;height:28px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.62))}
 .relic-detail-art{display:block;width:min(180px,54vw);height:min(180px,54vw);object-fit:contain;margin:4px auto 16px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.65))}
 /* 羁绊进度（让"发现协同"可见）：未激活灰 / 2档紫 / 大档金晕 */
-#bond-shelf{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:9px;align-items:center}
+#bond-shelf,#bounty-shelf{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:9px;align-items:center}
 .bond-lab{color:var(--ink3);font-size:11px;letter-spacing:.24em}
 .bond-chip{font-size:11px;padding:2px 9px 2px 6px;border:1px solid var(--line2);letter-spacing:.05em;color:var(--ink3);cursor:help;display:inline-flex;align-items:center;gap:3px}
 .bond-chip .fac-emblem{width:1.15em;height:1.15em;flex:0 0 auto}
@@ -407,6 +408,9 @@ body.playing #hud{display:flex}
 .bond-chip[data-f=pierce] .fac-emblem{color:var(--fac-pierce)} .bond-chip[data-f=vanguard] .fac-emblem{color:var(--fac-vanguard)}
 .bond-chip.bond-t1{border-color:rgba(157,114,214,.55);color:var(--purple)}
 .bond-chip.bond-t2{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 9px rgba(201,166,74,.28)}
+#bounty-shelf .bond-chip .mi{width:1.12em;height:1.12em;color:var(--gold2);margin-right:1px}
+.ghost-echo-mark{display:inline-flex;align-items:center;gap:4px;color:var(--purple)}
+.ghost-echo-mark .mi{filter:drop-shadow(0 0 5px rgba(157,114,214,.38))}
 
 /* ============ 命运事件 ============ */
 #scr-event{text-align:center;padding-top:5vh}
@@ -511,6 +515,7 @@ body.playing #hud{display:flex}
 .pod.first .medal{width:56px;height:56px}
 .pod h3{font-weight:500;letter-spacing:.14em;margin:6px 0 3px;font-size:17px}
 .pod .sc{font-family:var(--mono);color:var(--gold2);font-size:15px}
+.pod .shadow-tally{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;color:var(--purple);font-family:var(--mono);font-size:13px}
 .pod .army-line{margin-top:7px;font-size:16px;letter-spacing:2px}
 #report-wrap{margin:26px auto 0;max-width:520px}
 #report-canvas{width:100%;border:1px solid var(--line);box-shadow:0 12px 44px rgba(0,0,0,.5)}
@@ -875,7 +880,7 @@ function facEmblem(f){const s=FAC_EMBLEM[f];return s?`<span class="fac-emblem fe
 
 // MYSKME 通用游戏图标系统：Image2 负责黑金珐琅视觉母版，最终图形为原创 24px 矢量。
 // 语义键可跨游戏复用；这里内联 SVG，保证 GitHub Pages、课堂断网与 file:// 均不依赖外部字体。
-const UI_ICON_VER='20260714a';
+const UI_ICON_VER='20260714b';
 const UI_ICON_PATHS=Object.freeze({
   'stat-attack':'<path d="M5.1 20.2 16.5 3.1l2.4 1.7L9.2 21.7z" fill="currentColor" opacity=".14"/><g fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M5.1 20.2 16.5 3.1l2.4 1.7L9.2 21.7z"/><path d="m8.5 15.2 4.8 3.3M4 20.6l3-4.1 2.8 2-3.1 3.9M15 5.8l2.4 1.7"/></g>',
   'stat-vitality':'<path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.6-4.6-7.6-10.2c0-3.5 2.3-5.7 5-5.7 1.1 0 2 .4 2.6 1.3.6-.9 1.5-1.3 2.6-1.3 2.7 0 5 2.2 5 5.7C19.6 16.4 12 21 12 21z"/><path d="m7.2 12 2.6-.1 1.3-3 2.1 6.1 1.5-3h2.2"/><path d="m9.4 5.2 2.6 8.9 2.6-9" opacity=".42"/></g>',
@@ -913,6 +918,12 @@ const UI_ICON_PATHS=Object.freeze({
   'state-taunt':'<path d="M12 6 18 8v4.2c0 3.8-2.4 6.5-6 8-3.6-1.5-6-4.2-6-8V8z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6 18 8v4.2c0 3.8-2.4 6.5-6 8-3.6-1.5-6-4.2-6-8V8zM12 1.8v2M4.6 4.2l1.5 1.5M19.4 4.2l-1.5 1.5"/><path d="M9 11h6"/></g>',
   'sound-on':'<path d="M4 9h4l4-4v14l-4-4H4z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l4-4v14l-4-4H4zM15 9a4 4 0 0 1 0 6M17.5 6.5a7.5 7.5 0 0 1 0 11"/></g>',
   'sound-off':'<path d="M4 9h4l4-4v14l-4-4H4z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l4-4v14l-4-4H4zM16 9l5 5M21 9l-5 5"/></g>',
+  'elem-wind':'<path d="M3.8 9.6c3.2-3.4 7.5-4.8 11.2-3.4 2.3.8 3.7 2.4 3.2 4.1-.5 1.8-2.8 2.5-4.7 1.5-1.4-.7-1.7-2.1-.5-3.2" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3.8 9.6c3.2-3.4 7.5-4.8 11.2-3.4 2.3.8 3.7 2.4 3.2 4.1-.5 1.8-2.8 2.5-4.7 1.5-1.4-.7-1.7-2.1-.5-3.2"/><path d="M4.2 14.2c3.7-1.1 7.6-.3 10 2 1.2 1.1.7 2.8-.9 3.3-1.6.5-3.1-.3-3.8-1.5"/><path d="M3.8 18.3h2.8" opacity=".55"/></g>',
+  'elem-fire':'<path d="m12 5.2 7.3 13.1H4.7z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m12 5.2 7.3 13.1H4.7z"/><path d="m12 9.1 3 5.6H9z"/><path d="M12 2.2v2M5.8 4.7l1.5 1.5M18.2 4.7l-1.5 1.5"/></g>',
+  'elem-earth':'<path d="m3.4 18.5 5.7-11 3.1 4.2 2.4-3.6 6 10.4z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m3.4 18.5 5.7-11 3.1 4.2 2.4-3.6 6 10.4z"/><path d="M6.1 16.2h11.8M7.7 13.5h8.6M7.3 21h9.4"/></g>',
+  'elem-water':'<path d="M12 2.8C10 6.8 5.6 10.8 5.6 15.2a6.4 6.4 0 0 0 12.8 0C18.4 10.8 14 6.8 12 2.8z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8C10 6.8 5.6 10.8 5.6 15.2a6.4 6.4 0 0 0 12.8 0C18.4 10.8 14 6.8 12 2.8z"/><path d="M7.8 14c1.3-1.2 2.8-1.2 4.2 0s2.9 1.2 4.2 0M8.4 17.2c1.2-.8 2.4-.8 3.6 0s2.4.8 3.6 0"/></g>',
+  'bounty-wolf-fang':'<path d="M5 6.5 8.3 3l2.1 2.2h3.2L15.7 3 19 6.5v10L16 21H8l-3-4.5z" fill="currentColor" opacity=".12"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 6.5 8.3 3l2.1 2.2h3.2L15.7 3 19 6.5v10L16 21H8l-3-4.5z"/><path d="M5.7 7.2h12.6"/><path d="M9.2 9.2c.5 4 1.6 6.9 2.8 8.7 1.3-1.8 2.4-4.7 2.8-8.7-.9.8-1.9 1.2-2.8 1.2s-1.9-.4-2.8-1.2z"/></g>',
+  'state-shadow-echo':'<path d="M9 4h10l-3 3.5 3 3.5H9z" fill="currentColor" opacity=".13"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v18M9 4h10l-3 3.5 3 3.5H9"/><path d="M4.5 5v14M4.5 6h6L8.6 8.8l1.9 2.8h-6" opacity=".45"/><path d="M6.4 21h4.8" opacity=".55"/></g>',
   'help-book':'<path d="M3.5 5h6.2c1.4 0 2.3.9 2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2H3.5zm17 0h-6.2c-1.4 0-2.3.9-2.3 2.2V20c0-1.3.9-2.2 2.3-2.2h6.2z" fill="currentColor" opacity=".1"/><g fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M3.5 5h6.2c1.4 0 2.3.9 2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2H3.5zM20.5 5h-6.2c-1.4 0-2.3.9-2.3 2.2V20c0-1.3-.9-2.2-2.3-2.2h6.2z"/><path d="M15.4 8.8c.2-1 2.3-1 2.4.4.1 1.1-1.3 1.1-1.3 2.1M16.5 14.2h.01" stroke-linecap="round"/></g>'
 });
 function uiIcon(name,cls){
@@ -1850,7 +1861,7 @@ BONDS.vanguard.ids= UNITS.filter(u=>u.taunt).map(u=>u.id);
 function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1]?2:(c>=th[0]?1:0)}
 function bondName(f){return (BONDS[f]&&BONDS[f].chip)||(FACS[f]&&FACS[f].n)||f}
 const ELEM_COLOR2={wind:'#9cc0e8',fire:'#e08b7a',earth:'#c9a64a',water:'#7fc4d8'};
-function elemGlyph(e){return ELEM_COLOR2[e]?`<span class="fac-emblem" style="color:${ELEM_COLOR2[e]}">✦</span>`:''} // 四象星徽(名字已含象字,徽记用色点缀;正式图标待Codex)
+function elemGlyph(e){return ELEM_COLOR2[e]?`<span class="fac-emblem elem-emblem" style="color:${ELEM_COLOR2[e]}">${uiIcon('elem-'+e)}</span>`:''} // 四象正式徽记：24px currentColor 矢量，名字与形制双重辨识
 /* 征募卡「羁绊推进」徽标（纯函数，#selftest 可测）——把提示放在决策发生的地方，替学生免去心算。
    规则：同名不亮（不推进计数，合星提示归 mergeHint）· 首张不亮（开局张张都是第一张=噪音）· 满档不亮。
    返回买下它之后 { f 轴, to 新计数, den 下一个门槛, hit 是否正好跨档 }；一张卡最多两枚（阵营 + 打法）。
@@ -2139,6 +2150,7 @@ function renderFoeIntel(p){
   const el=$('#foe-intel');if(!el)return;
   if(S.phase==='origin'){el.innerHTML='';return}
   let name='',chips='',army=null,ghostUnits=null;
+  const shadowEcho=!!(S.solo&&S.ghostFoe&&S.ghostFoe.r===S.round);
   if(S.solo){name=soloFoeName(S.round);army=S.soloFoe||[];if(soloIsBoss()){ghostUnits=soloBossUnits();army=null}} // 终战:叶王军走幽灵制式,别显示成"尚无军团"
   else{
     const pr=(S.pairs||[]).find(x=>x.a===p.i||x.b===p.i);
@@ -2157,7 +2169,7 @@ function renderFoeIntel(p){
     const killer=main&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===main); // 四象:克 main 的那个象
     hint=main?`主打${ELEM_CN[main]} —— ${ELEM_CN[killer]}克它 +25%`:'不参与相克';
   }else if(ghostUnits)hint=(S.solo&&soloIsBoss())?'终战 · 蛇蜕两形 —— 幽灵制式不参与相克':'幽灵军 —— 不参与相克';
-  el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${name}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
+  el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${shadowEcho?uiIcon('state-shadow-echo'):''}${name}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
 }
 function renderBench(p){
   const cap=ARMY_CAP[Math.min(S.act,3)];
@@ -2645,12 +2657,14 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
 function runSelftest(){
   const res=[], ok=(name,cond)=>res.push({name,pass:!!cond});
   const lin=(star)=>({uid:0,id:'lin',star,gAtk:0,gHp:0});
-  // —— MYSKME 通用图标系统 20260714a ——
+  // —— MYSKME 通用图标系统 20260714b ——
   {const req=['stat-attack','stat-vitality','stat-speed','stat-shield','currency-coin','score-throne',
-      'action-move-front','action-move-back','action-sell','action-undo','action-refresh','action-lock','play-fast','nav-menu'];
-   ok('图标系统：37 枚语义矢量完整', UI_ICON_VER==='20260714a'&&Object.keys(UI_ICON_PATHS).length===37);
+      'action-move-front','action-move-back','action-sell','action-undo','action-refresh','action-lock','play-fast','nav-menu',
+      'elem-wind','elem-fire','elem-earth','elem-water','bounty-wolf-fang','state-shadow-echo'];
+   ok('图标系统：43 枚语义矢量完整', UI_ICON_VER==='20260714b'&&Object.keys(UI_ICON_PATHS).length===43);
    ok('图标系统：核心属性/站位/控制键齐全', req.every(k=>UI_ICON_PATHS[k]&&UI_ICON_PATHS[k].includes('currentColor')));
    ok('图标系统：内联 SVG 不依赖字体或外部图片', req.every(k=>{const s=uiIcon(k);return /^<svg/.test(s)&&s.includes('aria-hidden="true"')&&!/<text|<image|href=/.test(s)}));
+   ok('图标系统：四象正式徽记替代 Unicode 占位', ['wind','fire','earth','water'].every(e=>elemGlyph(e).includes('<svg')&&!elemGlyph(e).includes('✦')));
    ok('图标系统：纯图标按钮具备读屏状态', $('#btn-menu').getAttribute('aria-label')==='打开游戏菜单'
      &&$('#btn-menu').getAttribute('aria-expanded')==='false'&&$('#btn-speed').hasAttribute('aria-pressed'));
    ok('角色印字：旧系统图形字已改为正典中文字', UMAP.lin.beast==='剑'&&UMAP.yin.beast==='弦'&&UMAP.lu.beast==='歌'&&UMAP.wolf.beast==='月'&&UMAP.carter.beast==='尘');}
@@ -3475,9 +3489,10 @@ function renderBounties(){
   const el=$('#bounty-shelf');if(!el)return;
   if(!S||!S.solo||!Array.isArray(S.bounties)||!S.bounties.length){el.innerHTML='';return}
   el.innerHTML='<span class="bond-lab">悬赏</span>'+S.bounties.map(x=>{const b=BOUNTY_MAP[x.id];if(!b)return '';
-    return `<span class="bond-chip ${x.done?'bond-t2':''}" data-b="${x.id}" title="${b.d} · 赏 ${b.r} 铸币">${x.done?'✓ ':''}${b.n} ${x.done?'已领':'+'+b.r}</span>`}).join('');
+    return `<span class="bond-chip ${x.done?'bond-t2':''}" data-b="${x.id}" role="button" tabindex="0" aria-label="狼牙悬赏 ${b.n}，${x.done?'已领取':'赏金 '+b.r+' 铸币'}" title="${b.d} · 赏 ${b.r} 铸币">${uiIcon('bounty-wolf-fang')}${b.n} ${x.done?'已领':'+'+b.r}</span>`}).join('');
   el.querySelectorAll('.bond-chip[data-b]').forEach(ch=>{ch.style.cursor='pointer';
-    ch.onclick=()=>{const b=BOUNTY_MAP[ch.dataset.b];if(b)modal(`<h3>狼牙悬赏 · ${b.n}</h3><div style="text-align:center;line-height:2">${b.d}<br>赏金 <b style="color:var(--gold2)">${b.r} 铸币</b> · 达成即发</div>`)}});
+    const show=()=>{const b=BOUNTY_MAP[ch.dataset.b];if(b)modal(`<h3>${uiIcon('bounty-wolf-fang')} 狼牙悬赏 · ${b.n}</h3><div style="text-align:center;line-height:2">${b.d}<br>赏金 <b style="color:var(--gold2)">${b.r} 铸币</b> · 达成即发</div>`)};
+    ch.onclick=show;ch.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();show()}}});
 }
 /* ============ 影军回响(单人·第4/7关·借鉴 Super Auto Pets 异步幽灵战) ============ */
 function ghostToFoe(g){ // 纯函数,#selftest 可测:校验+映射影军army→本地实例;非法id丢弃,星级钳1-3,全空null
@@ -3498,7 +3513,7 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
   const ctx={result,A,round:S.round,ghost};
   (S.bounties||[]).forEach(x=>{if(x.done)return;const b=BOUNTY_MAP[x.id];if(!b)return;
     let hit=false;try{hit=!!b.chk(you,ctx)}catch(e){}
-    if(hit){x.done=1;you.coins+=b.r;toast(`✦ 悬赏达成「${b.n}」 +${b.r} 铸币`,3200);SFX.play('coin')}});
+    if(hit){x.done=1;you.coins+=b.r;toast(`悬赏达成「${b.n}」 +${b.r} 铸币`,3200);SFX.play('coin')}});
 }
 /* 单人秘策：第2/5/8关开局三选一，run-identity 决策（多人版坚决不上） */
 const STRATS=[
@@ -3590,7 +3605,9 @@ function soloPreBattle(){
   const ghostMini=us=>us.map(g=>`<span class="mini-u f-dark" title="${g.n}">${g.glyph}</span>`).join('');
   const box=$('#pairings');box.style.display='';
   const foeChips=boss?ghostMini(soloBossUnits()):mini(foe);
-  box.innerHTML=`<div class="pairrow"><span class="who">${you.name}<div class="mini-army">${mini(you.army)}</div></span><span class="vs">VS</span><span class="who right">${soloFoeName(S.round)}<div class="mini-army" style="justify-content:flex-end">${foeChips}</div></span></div>`;
+  const shadowEcho=!!(S.ghostFoe&&S.ghostFoe.r===S.round);
+  const foeName=shadowEcho?`<span class="ghost-echo-mark">${uiIcon('state-shadow-echo')}${soloFoeName(S.round)}</span>`:soloFoeName(S.round);
+  box.innerHTML=`<div class="pairrow"><span class="who">${you.name}<div class="mini-army">${mini(you.army)}</div></span><span class="vs">VS</span><span class="who right">${foeName}<div class="mini-army" style="justify-content:flex-end">${foeChips}</div></span></div>`;
   $('#battle-next-row').style.display='';
   $('#btn-battle-next').innerHTML=uiIcon('play-skip')+'开 战';
   if(boss){flash(true);SFX.play('boss')} // 终战入场压迫感
@@ -3819,6 +3836,7 @@ function soloEnd(victory){
     <div class="medal m1">${victory?'冠':'试'}</div><h3>${you.name} · ${S.daily?'今日试炼':(S.endless?'无尽回廊':'单人试炼')}${victory?' · 通关':''}</h3>
     <div class="sc">${victory?'十关全破':'通过 <b style="color:var(--gold2)">'+cleared+'</b> 关'} · 难度 ${SOLO_DIFF[S.difficulty]||''}</div>
     <div class="sc" style="font-size:13px;color:var(--ink3)">最佳纪录 ${shown} 关${isNew?' · <span style="color:var(--gold2)">新纪录！</span>':''}</div>
+    ${(S.slainN||0)>0?`<div class="shadow-tally">${uiIcon('state-shadow-echo')}斩影 ${S.slainN} 支 · 回响留名</div>`:''}
     <div class="army-line">${you.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div>
     ${victory?'<button class="btn gold" id="btn-endless" style="margin-top:12px">无尽回廊 · 继续深入</button>':''}
     ${(LB_ON&&cleared>0)?'<button class="btn" id="btn-lbup" style="margin-top:10px">登临世界回廊</button>':''}</div>`;
