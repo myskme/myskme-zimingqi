@@ -3639,6 +3639,19 @@ function runSelftest(){
    ok(`探针·单人r3=${(c3*100)|0}%∈[55,95]`, c3>=.55&&c3<=.95); // 四象画像=火对(lin+yin),开局有羁绊在手理应顺风
    ok(`探针·单人r6=${(c6*100)|0}%∈[60,95]`, c6>=.6&&c6<=.95);
    ok(`探针·单人r9=${(c9*100)|0}%≥65`, c9>=.65); // 四象后标准线r9微降(75→70),后期压力略增,先观察
+   // —— 0715 平衡审计探针:毕业队=5张1费N/R全3★(单张只要4张牌)+传世词缀+星芒,是学生实际会走到的位置 ——
+   const mkG=arr=>arr.map(([id,st,af,h],i)=>({uid:'pg'+i+'_'+id,id,star:st,gAtk:h,gHp:h*2,halo:h,af:{id:af,q:3}}));
+   const gradWin=(army,r,d,n)=>{let w=0;S.round=r;S.difficulty=d;S.act=Math.min(3,1+Math.floor((r-1)/2));
+     for(let s=0;s<n;s++){rng=mulberry32(5100+r*97+s*7);
+       const pa={army:mkG(army),relics:[]}, pf={army:soloBuildFoe(r,d),relics:[]};
+       if(simulateBattle(buildFighters(pa,{}),buildFighters(pf,{}),sideFlags(pa),sideFlags(pf),mulberry32(6100+s*13),{}).winner===0)w++}
+     return w/n};
+   const GRAD=[['majun',3,'a_atk',3],['guard',3,'a_hp',2],['carter',3,'a_atk',2],['wei',3,'a_atk',2],['rong',3,'a_hp',2]];
+   const q9=gradWin(GRAD,9,2,16);
+   ok(`探针·毕业队 r9宗师=${(q9*100)|0}%(读数位:经典段上限)`, q9>=0); // 读数位:不设门槛,把数字打在验收单上
+   const GRW=l=>GRAD.map(([id,st,af,h])=>[id,st,af,h+Math.floor((l-10)*0.6)]);
+   const q60=gradWin(GRW(60),60,1,12);
+   ok(`探针·无尽 成长队第60层=${(q60*100)|0}%≤50(无尽必须有天花板)`, q60<=.5); // ⚠ 依赖 soloBuildFoe 的(round-10)²项
    // ③ 终战（蛇蜕两形态基线）
    const bossWin=(army,diff,n)=>{let w=0;S.difficulty=diff;S.round=10;S.act=3;
      for(let s=0;s<n;s++){
@@ -4479,7 +4492,9 @@ function applyPath(k){
   }
   if(k==='peril'){
     S.ghostFoe=null;                 // 险道会顶掉第4/7关的自动影军:不清空 → "假斩影"(白拿+2币、悬赏、名册斩影数与成就)
-    S.soloFoe=soloBuildFoe(S.round,Math.min(2,S.difficulty+1));
+    // 险道代价必须是真的:Math.min(2,S.difficulty+1) 在宗师(difficulty=2)恒等于2 → 宗师险道=常规敌军+6币+免费重铸,零风险。
+    // 顶格难度改用「深度+2」补上那一档(r9宗师 power 38.4→48.7,+27%,与见习→精英/精英→宗师同量级)。见习/精英逐字不变。
+    S.soloFoe=soloBuildFoe(S.round+(S.difficulty>=2?2:0),Math.min(2,S.difficulty+1)); // 2=顶格难度险道补偿深度(手感旋钮 1~3)
     toast('险道 —— 宿敌更强了,但赢下来值',3000);
   }
   if(k==='shadow'){
@@ -4540,7 +4555,9 @@ function soloBuildFoe(round,diff){
   const diffMul=[0.85,1.05,1.32][diff]||1;
   // 目标战力预算。第 7 关起加陡坡：淬炼(每关+1攻+2血)与三星让玩家后期指数走强，
   // 线性敌军会被甩开（实测毕业队 r9 胜率 95%+）。全程提斜率会打崩前期(r3 50%→29%)，故只压后段。
-  const power=(3+round*2.4+Math.max(0,round-6)*1.5)*diffMul;
+  // ⚠ 敌军 power 对 round 线性,而玩家累积铸币 O(round²)(星芒≈3.6币/+1攻+2血且每关不限次) → 无尽数学上永远赢。
+  //   加二次项(0.15)后成长队 30/40/60 层胜率 100%/100%→8%。round≤10 时该项恒为0 —— 经典十关逐帧不变,只封无尽天花板。
+  const power=(3+round*2.4+Math.max(0,round-6)*1.5+0.15*Math.pow(Math.max(0,round-10),2))*diffMul; // 0.15=无尽天花板旋钮(区间 0.10~0.25)
   const unitPow=u=>u.cost*1.3+({N:0,R:.4,SR:1,SSR:1.8,UR:2.6}[u.rar]||0);
   const facs=Object.keys(FACS), mainFac=facs[ri(facs.length)];
   const army=[]; let spent=0, guard=0;
@@ -4602,7 +4619,11 @@ function soloPreBattle(){
 }
 function soloBossUnits(){ // 终战叶王军：按难度缩放
   const mul=[0.85,1.05,1.32][S.difficulty]||1;
-  return BOSS_WAVE(3).units.map(u=>({...u,atk:Math.max(1,Math.round(u.atk*mul)),hp:Math.max(3,Math.round(u.hp*mul))}));
+  // 难度倒挂:r9宗师杂兵5单位/25.4攻/58.3血,叶王军(BOSS_WAVE(3)×1.32)只有3单位/20攻/38血 → 最后一关比倒数第二关还软。
+  // 只补单人终战护卫(不动 BOSS_WAVE 本体:多人「叶王乱入」共用它)。护卫数=难度档:见习0/精英1/宗师2。
+  const esc=[{id:'g3',n:'紫甲兵',glyph:'甲',atk:4,hp:8,spd:5,taunt:true,skill:{k:'none'}},
+             {id:'g1',n:'黑域游兵',glyph:'蛇',atk:3,hp:7,spd:5,skill:{k:'none'}}].slice(0,S.difficulty|0); // 护卫数旋钮:slice 上限=难度
+  return BOSS_WAVE(3).units.concat(esc).map(u=>({...u,atk:Math.max(1,Math.round(u.atk*mul)),hp:Math.max(3,Math.round(u.hp*mul))}));
 }
 function soloRunBattle(){
   const you=S.players[0];
@@ -4646,7 +4667,10 @@ function soloResolve(result,A,B){
   }else{
     // 不屈命脉:输一场不再直接终局——按惨烈程度掉命脉,掉光才结束
     if(!S.lifeMax)lifeInit(); // 旧档兼容:无命脉字段的存档续局时补发
-    const loss=lifeLoss(result,B);
+    // 宗师 lifeMax=2 而 lifeLoss 最高-3 → 满命脉挨一场败退/惨败当场归零,「输一场不再终局」在宗师没兑现。
+    // 钳在调用点、不动 lifeLoss 纯函数(自检「掉命脉按惨烈1/2/3」保持绿)。满命脉时最多掉到剩1颗,保证至少能输两场。
+    const _raw=lifeLoss(result,B);
+    const loss=(S.life>=S.lifeMax)?Math.min(_raw,Math.max(1,S.lifeMax-1)):_raw; // 满命脉保护
     S.life=Math.max(0,S.life-loss);
     if(loss>0)S.lifeHurt=1; // 「不败之姿」失格印:掉过就是掉过,回血也不洗白
     const dead=S.life<=0;
