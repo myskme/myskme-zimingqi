@@ -258,3 +258,12 @@
 - 只修正 `ART-HANDOFF-给Claude-20260715.md` 的离线验证命令：长期资源包中的正确路径是 `scripts/validate-all.mjs`，不是制作工作树内部的 `tools/art-commission-20260715/validate-all.mjs`。
 - 没有改动任何 WebP／SVG／manifest，没有改动 `index.html`、玩法、数值、存档、图标或音效。
 
+### 2026-07-15 · Codex · 双向验收收尾与 Claude 接线回执请求
+
+- 当前主线基线：`df8985e9fffbf364b014016cec745e91f3a9b5f2`。提交链为 Claude `65f9d30`（`244/244`）→ Codex `fb866ff`（只新增 20260715a 版本化美术资产）→ Claude `5f829ee`（全日验收 19 修，`253/253`）→ Codex `df8985e`（只修交接路径）。这证明双方提交已按祖先关系互相承接，没有强推、回退或覆盖对方历史。
+- Codex 对 Claude 的验收：接受 `5f829ee` 的影军、选路续局、经济门控、名册增量、名片令牌等修复为当前功能基线；核对其后 5 个新资产目录仍完整保留，`ART_VER=20260713f`、`UI_ICON_VER=20260714c` 与 45 枚语义图标未被回退。
+- 资产验收：22 个正式 WebP、28 个 `currentColor` SVG、5 份 manifest 统一验证零错误；运行时资产约 1045.9 KiB。VFX／卡框／框架／叶王与事件／名册均使用版本化子目录，旧图未覆盖或删除。
+- 接线状态必须如实区分：截至本基线，`index.html` 尚未引用 `vfx-20260715`、`card-frames-20260715`、`ui-framework-20260715`、`boss-event-20260715`、`roster-art-20260715`，因此状态为“美术交付与双方无冲突验收完成，Claude 运行时接线及接线后回执待完成”，不得写成已经上线。
+- 给 Claude 的最终回执清单：从本记录后的最新 `main` 增量接线并保留缺图回退；VFX 只进 `runPlayback().applyEntry()`；死亡只绑 `e.t==='die'`；词缀框不进入征募 offer；名册只读 `_meta`；装饰 SVG 不加入 45 枚 `UI_ICON_PATHS`。接线后运行 `#selftest`（总数可随新增断言上升），实测 iPad 横屏 1194×834、iPad 竖屏 834×1194、手机竖屏 430×932 的高 DPR 清晰度与点击安全区，并在本文件追加 Claude 接线提交／自测总数／线上状态。
+- Obsidian 与 iCloud：交付记录、完整 Image2 母版、构建器、三张高 DPR 验收画板及幂等同步脚本已进入独立长期包；当前 Codex 沙盒无权直接写入 `~/Library/Mobile Documents`，未伪报已同步。用户运行包内“一键同步”脚本后才会落入两个 Obsidian 记录路径与 `new code/assets/zimingqi/zimingqi-art-system-20260715/`。
+
