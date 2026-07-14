@@ -335,6 +335,9 @@ body.playing #hud{display:flex}
 .bunit:hover{border-color:var(--gold)}
 .bunit .g{position:relative;width:46px;height:46px;margin:0 auto 3px;display:flex;align-items:center;justify-content:center;font-size:21px;border:1px solid var(--line2);border-radius:50%;overflow:hidden;background:radial-gradient(ellipse at 50% 40%,rgba(201,166,74,.12),transparent 70%)}
 .bunit .g .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 12%}
+/* 云阶十行:选路卡的图标与遗物图 */
+.strat-card .mi{width:26px;height:26px;color:var(--gold2);margin-bottom:6px}
+.vault-art{width:44px;height:44px;object-fit:contain;margin-bottom:6px}
 /* 玩家名片(P3) */
 .lbrow.clickable{cursor:pointer;transition:background .2s}
 .lbrow.clickable:hover{background:rgba(201,166,74,.09)}
@@ -1641,7 +1644,8 @@ function hud(){
   if(!S){document.body.classList.remove('playing');return}
   document.body.classList.add('playing');
   $('#hud-act').textContent=S.solo?('第 '+S.round+' 关'):(ACT_CN[S.act]||'终幕');
-  $('#hud-actname').textContent=S.solo?((S.daily?'今日试炼 · ':(S.endless?'无尽回廊 · ':'单人试炼 · '))+(SOLO_DIFF[S.difficulty]||'')):(ACT_NAMES[S.act]||'王座之前');
+  const _pt=(S.solo&&!S.endless&&S.pathTaken&&PATHS[S.pathTaken])?(' · '+PATHS[S.pathTaken].n):'';
+  $('#hud-actname').textContent=S.solo?((S.daily?'今日试炼 · ':(S.endless?'无尽回廊 · ':'云阶十行 · '))+(SOLO_DIFF[S.difficulty]||'')+_pt):(ACT_NAMES[S.act]||'王座之前');
   // 暴走槽(多人)与不屈命脉(单人)共用 HUD 槽位——单人时暴走恒关,正好挂命脉条
   const _solo=S.solo&&S.lifeMax;
   $('#rage-wrap').style.display=(S.rageMax||_solo)?'flex':'none';
@@ -2126,7 +2130,7 @@ function showUnitDetail(id,inst){
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b class="halo-inline">'+uiIcon('state-halo')+inst.halo+'</b>':''}</span></h3>
     <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
     ${affixLine(inst)}
-    ${(inst&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${4+2*(inst.rf||0)} 铸币</span></button></div>`:''}
+    ${(inst&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${(S.freeReforge||0)>0?'免费':(4+2*(inst.rf||0))+' 铸币'}</span></button></div>`:''}
     <div class="stat-set" style="font-size:16px;margin-bottom:6px">
       ${statToken('stat-attack',b.atk,'攻击','atk')}${statToken('stat-vitality',b.hp,'生命','hp')}${statToken('stat-speed',b.spd,'速度','spd')}</div>
     <h4>作战方式</h4>${archTxt}
@@ -3278,6 +3282,18 @@ function runSelftest(){
      return bestUnit(p).id==='lin'&&bestUnit({army:[]})===null})());
    ok('名匠标签: 含名/星/芒/词缀', (()=>{const l=unitHallLabel({id:'lin',star:3,gAtk:0,gHp:0,halo:2,af:{id:'a_crit',q:3}});
      return l.indexOf('琳')>=0&&l.indexOf('3星')>=0&&l.indexOf('2芒')>=0&&l.indexOf('传世')>=0})());
+   // —— 云阶十行(P3选路) ——
+   {const _S=S;
+    S={solo:true,endless:false,round:1,lifeMax:3,life:3,ghostPool:[],ghostUsed:[]};
+    ok('云阶: 第1阶不选路', pathOffers(1).length===0);
+    S.round=10; ok('云阶: 终战不选路', pathOffers(10).length===0);
+    S.round=2; ok('云阶: 常规阶=安稳/险道二选一', JSON.stringify(pathOffers(2))===JSON.stringify(['calm','peril']));
+    S.round=3; ok('云阶: 第3阶加宝库(满命脉不给泉)', pathOffers(3).indexOf('vault')>=0&&pathOffers(3).indexOf('spring')<0);
+    S.round=4; S.life=1; ok('云阶: 掉过命脉才给星尘泉', pathOffers(4).indexOf('spring')>=0);
+    S.round=4; S.life=3; S.ghostPool=[{id:'x',name:'同窗',cleared:9,army:[{id:'lin',star:1}]}];
+    ok('云阶: 池里有影军则给影军道', pathOffers(4).indexOf('shadow')>=0);
+    ok('云阶: 路表齐全·图标键都真实存在', Object.keys(PATHS).length===5&&Object.values(PATHS).every(p=>p.n&&p.d&&UI_ICON_PATHS[p.ic]));
+    S=_S;}
    // —— 玩家名片 & 定名(P3) ——
    ok('名片payload: 走psave·带token·title含Lv·字段钳制', (()=>{const p=myCardPayload();
      return p.action==='psave'&&p.id===lbId()&&/^Lv\d+/.test(p.title)&&p.sig.length<=40&&p.power<=999999&&typeof p.token==='string'})());
@@ -3841,10 +3857,12 @@ function affixLine(inst){ // 详情/军团架共用的一行词缀描述
 function reforgeAffix(uid){ // 重铸:金币无尽出口——费用随该单位重铸次数递增,必得词缀(品质按当前深度roll)
   if(!S||S.phase!=='draft')return;
   const p=curDrafter(); const inst=p&&p.army.find(a=>a.uid===uid); if(!inst)return;
-  const cost=4+2*(inst.rf||0);
-  if(p.coins<cost){toast(`重铸需 ${cost} 铸币`);return}
+  const free=(S.freeReforge||0)>0;
+  const cost=free?0:(4+2*(inst.rf||0));
+  if(!free&&p.coins<cost){toast(`重铸需 ${cost} 铸币`);return}
   snapDraft();
-  p.coins-=cost; inst.rf=(inst.rf||0)+1;
+  if(free){S.freeReforge--;toast('免费重铸(云阶馈赠)',2000)}else p.coins-=cost;
+  inst.rf=(inst.rf||0)+1;
   inst.af=rollAffix(UMAP[inst.id],affixDepth(),true);
   const a=AFFIX_MAP[inst.af.id];
   closeModal();renderDraft();hud();save();
@@ -4024,6 +4042,10 @@ function ghostPush(cleared){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo|
     fetch(LB_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpush',id:lbId(),name:(you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者',difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))})}).catch(()=>{})}catch(e){}}
 function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销(经典/无尽/终战通用)
   const you=S.players[0];let ghost=false;
+  if(S.pathTaken==='peril'){ // 云阶·险道:更强的宿敌,更厚的回报
+    you.coins+=6;S.freeReforge=(S.freeReforge||0)+1;
+    toast('险道已过 —— +6 铸币 · 可免费重铸一次',3000);S.pathTaken=null;
+  }
   if(result&&result.surv&&A&&result.surv[0].length===A.length)S._noDeathWin=true; // 名册成就「一命不折」打点(任一场零阵亡胜利)
   if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;you.coins+=2;S.slainN=(S.slainN||0)+1;
     toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);S.ghostFoe=null;}
@@ -4031,6 +4053,78 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
   (S.bounties||[]).forEach(x=>{if(x.done)return;const b=BOUNTY_MAP[x.id];if(!b)return;
     let hit=false;try{hit=!!b.chk(you,ctx)}catch(e){}
     if(hit){x.done=1;you.coins+=b.r;toast(`悬赏达成「${b.n}」 +${b.r} 铸币`,3200);SFX.play('coin')}});
+}
+/* ============ 云阶十行(经典征程肉鸽选路 · P3 · 2026-07-14) ============ */
+// 每一关开打前自己挑一条路 —— 复用现有系统,零新战斗分支:
+//   险道→soloBuildFoe 提一档难度 + 胜后奖励;宝库→RELICS 三选一;星尘泉→lifeHeal + 免费重铸;
+//   影军道→现成的 ghostToFoe/ghostPool。所有效果都落在"这一关长什么样",不改战斗引擎。
+const PATHS={
+  calm:  {n:'安稳道', d:'常规宿敌 · 稳扎稳打',                    ic:'stat-shield'},
+  peril: {n:'险道',   d:'宿敌强一档 · 胜则 +6 铸币、免费重铸1次',  ic:'state-crit'},
+  vault: {n:'宝库',   d:'不打这一阶 · 白拿一件遗物(三选一)',       ic:'currency-coin'},
+  spring:{n:'星尘泉', d:'不打这一阶 · 回1点命脉 + 免费重铸1次',    ic:'state-heal'},
+  shadow:{n:'影军道', d:'迎战同窗的影军 · 胜则 +2 铸币并记斩影',   ic:'state-shadow-echo'},
+};
+function pathOffers(round){ // 纯函数(#selftest 可测):本阶可选的路。第1阶与终战不选路。
+  if(round<=1||round>=SOLO_FINAL)return [];
+  const out=['calm','peril'];                                   // 常驻二选一
+  const hasGhost=Array.isArray(S&&S.ghostPool)&&S.ghostPool.some(g=>g&&g.cleared>=round&&ghostToFoe(g));
+  if(hasGhost&&!(S.ghostUsed||[]).includes(round))out.push('shadow');
+  else if(round%3===0)out.push('vault');                        // 第3/6/9阶给宝库
+  else if(S&&S.lifeMax&&S.life<S.lifeMax)out.push('spring');    // 掉过命脉才给泉(满命脉时泉是废选项)
+  return out;
+}
+function showPathPick(){
+  const picks=pathOffers(S.round);
+  if(!picks.length){S.pathTaken='calm';startDraft();return}
+  const veil=document.createElement('div');veil.id='strat-veil';
+  veil.innerHTML=`<p class="tag">云 阶 十 行 · 第 ${S.round} 阶</p>
+    <p style="color:var(--ink3);font-size:12.5px;letter-spacing:.14em;margin-bottom:20px">选一条路上去——路不同,这一阶就不同</p>
+    <div class="strat-row">${picks.map(k=>{const p=PATHS[k];
+      return `<button class="strat-card ornate" data-p="${k}">${uiIcon(p.ic)}<b>${p.n}</b><span>${p.d}</span></button>`}).join('')}</div>`;
+  document.body.appendChild(veil);
+  veil.querySelectorAll('.strat-card').forEach(b=>b.onclick=()=>{veil.remove();applyPath(b.dataset.p)});
+}
+function applyPath(k){
+  const you=S.players[0];
+  S.pathTaken=k;(S.pathLog=S.pathLog||[]).push(k);
+  SFX.play('reveal');
+  if(k==='vault'){ // 白拿一件遗物 → 不打这一阶,直接进下一阶
+    S.phase='draft';save();
+    const avail=RELICS.filter(r=>!you.relics.includes(r.id));
+    const three=[];while(three.length<3&&avail.length)three.push(avail.splice(ri(avail.length),1)[0]);
+    if(!three.length){toast('宝库已空——改走安稳道',2600);S.pathTaken='calm';startDraft();return}
+    const veil=document.createElement('div');veil.id='strat-veil';
+    veil.innerHTML=`<p class="tag">宝 库</p><p style="color:var(--ink3);font-size:12.5px;letter-spacing:.14em;margin-bottom:20px">挑一件带走</p>
+      <div class="strat-row">${three.map(r=>`<button class="strat-card ornate" data-r="${r.id}" style="border-color:${TIER_COLOR[relicTier(r.id)]}">
+        ${relicArtTag(r.id,'vault-art')}<b style="color:${TIER_COLOR[relicTier(r.id)]}">${r.n}</b><span>${r.t}</span></button>`).join('')}</div>`;
+    document.body.appendChild(veil);
+    veil.querySelectorAll('.strat-card').forEach(b=>b.onclick=()=>{
+      const rid=b.dataset.r;you.relics.push(rid);
+      const r=RELICS.find(x=>x.id===rid);
+      veil.remove();SFX.play('crown');burst(innerWidth/2,innerHeight/2,[TIER_COLOR[relicTier(rid)],'#fff'],34);
+      toast(`宝库 —— 收下「${r.n}」`,3000);
+      S.round++;soloRound();
+    });
+    return;
+  }
+  if(k==='spring'){
+    lifeHeal(1,'星尘泉');
+    S.freeReforge=(S.freeReforge||0)+1;
+    toast('星尘泉 —— 命脉回复,可免费重铸一次词缀',3200);
+    S.round++;soloRound();return;
+  }
+  if(k==='peril'){
+    S.soloFoe=soloBuildFoe(S.round,Math.min(2,S.difficulty+1));
+    toast('险道 —— 宿敌更强了,但赢下来值',3000);
+  }
+  if(k==='shadow'){
+    const gi=(S.ghostPool||[]).findIndex(g=>g&&g.cleared>=S.round&&ghostToFoe(g));
+    if(gi>=0){const g=S.ghostPool.splice(gi,1)[0],foe=ghostToFoe(g);
+      if(foe){S.soloFoe=foe;S.ghostFoe={r:S.round,name:(g.name||'无名同窗')};(S.ghostUsed=S.ghostUsed||[]).push(S.round);
+        toast(`影军道 —— ${S.ghostFoe.name} 的军团挡在这一阶`,3200)}}
+  }
+  startDraft();
 }
 /* 单人秘策：第2/5/8关开局三选一，run-identity 决策（多人版坚决不上） */
 const STRATS=[
@@ -4071,6 +4165,9 @@ function showStratPick(){
     if(id==='st_tier'){you.tier=Math.min(5,effTier(you)+1)} // 基于有效牌力(含幕数保底)+1——原写法 p.tier+1 在第5/8关对没买过牌力的玩家=空操作(effTier 被保底钳住不变)
     veil.remove();SFX.play('merge');flash(false);
     toast(`秘策入手：${st.n}`,2400);
+    // 云阶十行:秘策阶(2/5/8)同时也是选路阶——秘策选完接着选路,别把选路跳过去
+    if(S.solo&&!S.endless&&S.round>1&&S.round<SOLO_FINAL&&S.pathRound!==S.round){
+      S.pathRound=S.round;S.pathTaken=null;save();showPathPick();return}
     startDraft();
   });
 }
@@ -4111,6 +4208,9 @@ function soloRound(){
         toast(`影军回响——${S.ghostFoe.name} 的军团挡在第 ${S.round} 关`,3200)}}}
   // 秘策节点：第2/5/8关开局三选一（每节点只发一次；先落一次档，断电续局最多丢一次秘策不重复领）
   if([2,5,8].includes(S.round)&&!(S.stratsGiven||[]).includes(S.round)){S.phase='draft';save();showStratPick();return}
+  // 云阶十行:经典征程(非无尽)每阶开打前选路——无尽保持纯爬层不打断节奏
+  if(!S.endless&&S.round>1&&S.round<SOLO_FINAL&&S.pathRound!==S.round){
+    S.pathRound=S.round;S.pathTaken=null;S.phase='draft';save();showPathPick();return}
   startDraft();                                        // 复用征募（内含本关自动收入+利息结算）
 }
 function soloPreBattle(){
