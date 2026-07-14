@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MYSKME自鸣棋 · 课堂肉鸽自走棋</title>
 <style>
 /* ============================================================
@@ -28,6 +28,9 @@
   --sky1:#132230; --sky2:#223d55; --sky3:#2e4f6b;
   --cloudA:rgba(120,160,190,.10); --cloudB:rgba(201,166,74,.07);
   --panel:rgba(12,22,30,.72); --panel2:rgba(10,18,26,.88);
+  /* 安全区（viewport-fit=cover 后必须自己让位刘海/横条）；非刘海设备恒为 0 */
+  --sat:env(safe-area-inset-top,0px); --sab:env(safe-area-inset-bottom,0px);
+  --sal:env(safe-area-inset-left,0px); --sar:env(safe-area-inset-right,0px);
 }
 /* —— 三幕换景 —— */
 body[data-act="1"]{--sky1:#12262a;--sky2:#1e4038;--sky3:#2a5548;
@@ -46,7 +49,7 @@ body{
   font-family:var(--serif);color:var(--ink);
   background:linear-gradient(178deg,var(--sky1) 0%,var(--sky2) 58%,var(--sky3) 100%);
   transition:background 2.4s ease;
-  min-height:100vh;overflow-x:hidden;position:relative;
+  min-height:100vh;min-height:100dvh;overflow-x:hidden;position:relative;
 }
 /* 军规一：噪点层（性能版：无混合模式，提升为合成层） */
 body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;
@@ -83,7 +86,8 @@ body[data-act="3"] #clouds::after{background:radial-gradient(82% 44% at 50% -6%,
 body.shaking{animation:shakeKF .4s cubic-bezier(.36,.07,.19,.97)}
 
 /* ============ 布局与通用 ============ */
-main{position:relative;z-index:5;max-width:1180px;margin:0 auto;padding:18px 20px 60px}
+main{position:relative;z-index:5;max-width:1180px;margin:0 auto;
+  padding:18px max(20px,var(--sal)) calc(60px + var(--sab)) max(20px,var(--sar))}
 section.scr{display:none;animation:scrIn .5s cubic-bezier(.16,1,.3,1) both}
 section.scr.on{display:block}
 @keyframes scrIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -128,7 +132,8 @@ h2.sec em{font-style:normal;color:var(--gold);font-weight:500}
 
 /* ============ HUD ============ */
 #hud{position:sticky;top:0;z-index:40;display:none;align-items:center;gap:14px;
-  max-width:1180px;margin:0 auto;padding:10px 20px;
+  max-width:1180px;margin:0 auto;
+  padding:calc(10px + var(--sat)) max(20px,var(--sar)) 10px max(20px,var(--sal));
   background:linear-gradient(180deg,rgba(8,14,20,.92),rgba(8,14,20,.62) 80%,transparent)}
 body.playing #hud{display:flex}
 #hud .act-chip{border:1px solid var(--gold);padding:4px 12px;letter-spacing:.24em;font-size:13px;color:var(--gold2);white-space:nowrap}
@@ -502,6 +507,18 @@ body.playing #hud{display:flex}
 #battle-title{text-align:center;letter-spacing:.26em;font-size:15px;color:var(--ink2);margin-bottom:16px}
 #battle-title b{color:var(--gold2);font-weight:500;font-size:19px}
 #arena{display:flex;justify-content:space-between;gap:4vw;max-width:1020px;margin:0 auto;position:relative}
+/* 战斗 VFX 层（Codex 20260715a）：绝对定位=不参与 flex 排布；不挡点击；不进无障碍树 */
+#arena .vfx{position:absolute;z-index:6;pointer-events:none;background-repeat:no-repeat;
+  will-change:background-position,translate}
+/* 演武台（源图 1600×420）：垫在单位之下（.u 是 position:relative、DOM 在后 → 自然压住它）。
+   顶部渐隐，免得椭圆上缘把战斗标题圈进去。
+   max-width:820 是两个约束的交点：①台顶不再压住「XX 对阵 XX」战斗标题；
+   ②820 CSS px 取自 1600 源图 = 正好 2.0x，高 DPR(@2x/@3x)下台面纹样不糊。 */
+#arena .dais{position:absolute;left:50%;bottom:-24px;transform:translateX(-50%);
+  width:100%;max-width:820px;height:auto;z-index:0;pointer-events:none;opacity:.8;
+  -webkit-mask-image:linear-gradient(180deg,transparent,#000 46%);
+  mask-image:linear-gradient(180deg,transparent,#000 46%)}
+@media (max-width:760px){#arena .dais{bottom:-14px;opacity:.72}}
 .side{display:flex;gap:9px;flex:1;min-height:170px;align-items:flex-end}
 .side.L{justify-content:flex-end}
 .side.R{justify-content:flex-start}
@@ -557,6 +574,25 @@ body.playing #hud{display:flex}
 #boss-veil p{color:var(--ink2);margin-top:16px;letter-spacing:.16em;font-size:15px;line-height:2}
 #boss-veil .snake{margin-bottom:10px;color:var(--purple);animation:snakeSway 3s ease-in-out infinite}
 #boss-veil .snake svg{width:92px;height:66px;filter:drop-shadow(0 0 14px rgba(157,114,214,.65))}
+/* ============ 叶王入场（Codex 20260715a）============
+   紫雾转场按【屏幕方向】选图——这正是新视觉基准：iPad 横屏取 1600×900，iPad/手机竖屏取 900×1600。
+   两张图中部通透、只在边缘放紫雾与金黑裂纹，所以直接 cover 铺满不会盖住正文。缺图 = 只是没有雾，其余照常。 */
+#boss-veil .boss-tr{position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:center/cover no-repeat;
+  background-image:url(assets/boss-event-20260715/boss-yewang-transition-portrait.webp);
+  animation:scrIn 1.2s both}
+@media (orientation:landscape){
+  #boss-veil .boss-tr{background-image:url(assets/boss-event-20260715/boss-yewang-transition-landscape.webp)}
+}
+#boss-veil>*:not(.boss-tr){position:relative;z-index:1} /* 正文压在雾之上 */
+/* 名牌是透明横幅、中央留了 DOM 标题安全区：叶王名/称号/无障碍文本继续走 HTML，不烘进图 */
+#boss-veil .boss-plate{position:relative;width:min(560px,88vw);aspect-ratio:1024/256;
+  display:flex;align-items:center;justify-content:center;margin:0 auto;
+  background:url(assets/boss-event-20260715/boss-yewang-nameplate.webp) center/100% 100% no-repeat}
+#boss-veil .boss-plate h1{font-size:clamp(26px,4.6vw,50px);margin:0}
+/* 事件卡背 840×600 = 现有 420px 显示位的 2× 图（高 DPR 天生对齐，不糊） */
+#event-inner .ev-back{background-image:url(assets/boss-event-20260715/event-card-back.webp);
+  background-size:cover;background-position:center}
 @keyframes snakeSway{50%{transform:rotate(7deg) translateY(-4px)}}
 .stamp-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:26px;max-width:760px}
 .stamp{border:1px solid var(--line);padding:12px 18px;min-width:120px;opacity:0;transform:scale(1.6);background:var(--panel2)}
@@ -598,17 +634,46 @@ body.playing #hud{display:flex}
 #modal-veil{position:fixed;inset:0;background:rgba(4,8,12,.72);z-index:95;display:none; /* 高于烟花粒子(90)/胜利横幅(70)：弹窗打开时特效不再穿透 */
   align-items:center;justify-content:center;padding:20px}
 #modal-veil.on{display:flex}
-#modal-box{max-width:680px;max-height:82vh;overflow:auto;background:var(--panel2);border:1px solid var(--gold);
+#modal-box{max-width:680px;max-height:82vh;max-height:82dvh;overflow:auto;background:var(--panel2);border:1px solid var(--gold);
   padding:26px 30px;line-height:1.85;font-size:14.5px;color:var(--ink2)}
 #modal-box h3{color:var(--gold2);letter-spacing:.2em;font-weight:500;margin-bottom:12px;text-align:center}
 #modal-box h4{color:var(--ink);letter-spacing:.14em;font-weight:500;margin:16px 0 6px}
-/* 详情弹窗 · 完整原始立绘图鉴（透明底，暗底上聚光展示，不裁剪） */
-.udetail-card{position:relative;width:210px;height:286px;margin:2px auto 14px;
-  background:radial-gradient(ellipse at 50% 42%,rgba(201,166,74,.14),transparent 68%)}
-.udetail-card img{width:100%;height:100%;display:block;object-fit:contain;filter:drop-shadow(0 7px 18px rgba(0,0,0,.6))}
+/* ============ 征募卡框系统（Codex 20260715a）============
+   卡框是原生 3:4（768×1024，画井 x64/y60/w640/h900），契约明写「不做非等比缩放」。
+   征募卡 .offer 是信息卡（技能/典故/羁绊推进，投屏后排要读，见 ≥1100px 大字档），不是 3:4，
+   硬套卡框只能拉变形或砍文字 → 卡框落在全局唯一天生 3:4 的位置：详情弹窗立绘卡。
+   征募卡只取「稀有度角标」（角标本就是为此设计：160×56，字母仍由 DOM 输出）。 */
+.udetail-card{position:relative;width:216px;height:288px;margin:2px auto 14px; /* 精确 3:4 —— 卡框才等比 */
+  background:url(assets/card-frames-20260715/recruit-backplate.webp) center/cover no-repeat,
+             radial-gradient(ellipse at 50% 42%,rgba(201,166,74,.14),transparent 68%)} /* 底板缺图 → 退回原光晕 */
+.udetail-card .ud-art{position:absolute;left:8.33%;top:5.86%;width:83.33%;height:87.89%; /* = 画井 640×900 / 768×1024 */
+  object-fit:contain;object-position:center bottom;filter:drop-shadow(0 7px 18px rgba(0,0,0,.6))}
+.udetail-card.cf-op .ud-art{object-fit:cover;object-position:center top} /* 6 张深蓝不透明底正式立绘：cover 顶对齐，不强抠背景 */
+.cf-frame{position:absolute;inset:0;pointer-events:none;background-size:100% 100%;background-repeat:no-repeat}
+/* 角标/词缀框都是 currentColor SVG：用 <img> 加载会被当独立文档、currentColor 解析成黑色 → 暗底上隐形。
+   必须走 mask + background:currentColor，颜色才会继承 .rt-XX 的全局色阶。 */
+   ⚠ mask 资源 404 时 mask-image 计算为 none → 会露出一整块纯色实心方块。
+   所以所有走 mask 的装饰一律由 body.cfok 门控：cfProbe() 探到资源才点亮，缺图/离线保持原样。 */
+.cf-corner{display:none}
+.rar-badge{position:relative;font-style:normal}
+.rar-badge i{position:relative;font-style:normal}
+body.cfok .cf-corner{position:absolute;right:6px;bottom:10px;width:74px;height:26px;
+  display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.14em}
+body.cfok .cf-corner::before{content:'';position:absolute;inset:0;background:currentColor;opacity:.92;
+  -webkit-mask:var(--cfc) center/100% 100% no-repeat;mask:var(--cfc) center/100% 100% no-repeat}
+body.cfok .cf-corner b{position:relative;font-weight:600;color:#0d1218} /* 角标是实色块，字反白压在上面 */
+body.cfok .rar-badge{display:inline-flex;align-items:center;justify-content:center;
+  min-width:54px;height:19px;padding:0 7px;margin-right:3px;vertical-align:middle}
+body.cfok .rar-badge::before{content:'';position:absolute;inset:0;background:currentColor;opacity:.2;
+  -webkit-mask:var(--cfc) center/100% 100% no-repeat;mask:var(--cfc) center/100% 100% no-repeat}
+/* 词缀品质框（凡/秀/珍/传世）替代原圆点。只在【已拥有单位】上显示——
+   契约：征募候选卡绝不显示，否则泄露购买时 roll 出的词缀品质（开箱惊喜没了）。 */
+body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-radius:0;box-shadow:none;
+  background:currentColor !important;
+  -webkit-mask:var(--cfq) center/100% 100% no-repeat;mask:var(--cfq) center/100% 100% no-repeat}
 .sp-tag{position:absolute;top:2px;right:2px;background:#b4372e;color:#fff;font-size:10px;letter-spacing:.16em;padding:2px 8px;font-weight:700;box-shadow:0 0 9px rgba(180,55,46,.6)}
 #modal-box::-webkit-scrollbar{width:5px}#modal-box::-webkit-scrollbar-thumb{background:var(--gold3)}
-#toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(80px);z-index:96;
+#toast{position:fixed;left:50%;bottom:calc(34px + var(--sab));transform:translateX(-50%) translateY(80px);z-index:96;
   background:var(--panel2);border:1px solid var(--gold);color:var(--ink);padding:10px 26px;
   letter-spacing:.1em;font-size:14px;transition:transform .4s cubic-bezier(.16,1,.3,1);pointer-events:none;max-width:86vw;text-align:center}
 #toast.show{transform:translateX(-50%) translateY(0)}
@@ -649,7 +714,8 @@ body.playing #hud{display:flex}
   .bunit .bmove button .mi{width:20px;height:20px}
 }
 @media (max-width:760px){
-  main{padding:12px 10px 40px}
+  /* 手机竖屏是主基准之一：这里必须继续吃安全区，否则 home indicator 会压住底部按钮 */
+  main{padding:12px max(10px,var(--sal)) calc(40px + var(--sab)) max(10px,var(--sar))}
   #offers{grid-template-columns:1fr;max-width:340px;margin:0 auto}
   .u{width:62px}.u .g{font-size:22px}.u .num{font-size:10px;gap:4px}
   .u .face{height:82px}.u .face .g{font-size:30px}
@@ -675,6 +741,48 @@ body.playing #hud{display:flex}
   .u .num{font-size:13px}
   #pair-preview{font-size:14.5px}
 }
+/* ============================================================
+   视觉基准（2026-07-15 改版）
+   主基准 = iPad 横屏 1194×834 · iPad 竖屏 834×1194 · 手机竖屏 430×932，按高 DPR 物理像素验收。
+   桌面(≥1280)只保兼容、不再是设计依据；但「投屏大字档 ≥1100px」是课堂硬指标，原样保留。
+   ============================================================ */
+/* 全屏大幕统一让位安全区——否则手机竖屏刘海会压住大幕顶部、横条会吃掉底部按钮 */
+#modal-veil,#strat-veil,#boss-veil,#wheel-veil,.result-banner,.affix-veil{
+  padding-top:max(20px,var(--sat));padding-bottom:max(20px,var(--sab));
+  padding-left:max(16px,var(--sal));padding-right:max(16px,var(--sar))}
+/* 触屏是主基准：禁掉双击缩放(连带 300ms 点击延迟)；粗指针下命中区拉到 44px(Apple HIG) */
+button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
+@media (pointer:coarse){
+  button{min-height:44px}
+  .lbrow.clickable{min-height:44px}
+}
+/* —— 主基准 A：iPad 横屏（宽而矮）——
+   834px 高塞不下「KV 540 + 文字 575」：入口按钮会掉到折叠线以下 135px。
+   横屏有竖屏没有的宽度 → 改双栏：KV 居左、标题与入口居右，两栏垂直居中。
+   门槛 max-height:900px 天然放过 1080p 投影(高>900)，投屏大字档不受影响。
+   :has() 不支持时自动退回单栏原布局（只是回到旧观感，不会破版）。 */
+/* 高屏横向（1080p 投屏 / 桌面）：原单栏布局不动，只收顶部留白——
+   9vh 留白让「单人闯关」在 1080p 上恰好掉出折叠线 4px，老师投屏打开还得滚一下。 */
+@media (orientation:landscape) and (min-height:901px){
+  #scr-title{padding-top:5vh}
+  .title-foot{margin-top:4vh}
+}
+@media (orientation:landscape) and (max-height:900px) and (min-width:820px){
+  #scr-title.on:has(#title-kv.show){
+    display:grid;grid-template-columns:minmax(0,1fr) minmax(500px,540px);
+    grid-template-areas:"kv mark" "kv hero" "kv sub" "kv quote" "kv entry" "kv btns" "foot foot";
+    /* 容器要先撑满可视高，align-content:center 才有得居中（否则内容贴顶、底下一片空） */
+    min-height:calc(100dvh - 96px);align-content:center;gap:0 36px;padding-top:max(2vh,var(--sat))}
+  #scr-title.on:has(#title-kv.show) #title-kv{grid-area:kv;align-self:center;max-width:none;width:100%;margin:0}
+  #scr-title.on:has(#title-kv.show) .title-mark{grid-area:mark;width:56px;height:56px;margin-bottom:10px}
+  #scr-title.on:has(#title-kv.show) .title-mark span{font-size:28px}
+  #scr-title.on:has(#title-kv.show) .title-hero{grid-area:hero;font-size:clamp(40px,4.6vw,64px)}
+  #scr-title.on:has(#title-kv.show) .title-sub{grid-area:sub}
+  #scr-title.on:has(#title-kv.show) .title-quote{grid-area:quote;margin-bottom:0}
+  #scr-title.on:has(#title-kv.show) .entry-row{grid-area:entry;margin-top:20px}
+  #scr-title.on:has(#title-kv.show) .btnrow{grid-area:btns}
+  #scr-title.on:has(#title-kv.show) .title-foot{grid-area:foot;margin-top:3vh}
+}
 /* 图鉴立绘网格 */
 .codex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:14px 6px;margin:8px 0 6px}
 .codex-u{text-align:center;cursor:pointer}
@@ -684,6 +792,12 @@ body.playing #hud{display:flex}
 .codex-u .cu-n{font-size:13px;margin-top:6px;letter-spacing:.1em}
 .codex-u .cu-i{font-size:10px}
 .codex-u:hover .badge{border-color:var(--gold)}
+/* 名册去 Unicode 图形字（Codex 20260715 审计发现：★/◆/✔ 属字符冒充图标，此前只清了 HUD）。
+   ★→复用 rank-star · ◆→复用 score-throne · ✔→CSS 边框画的真勾（不新增第 46 枚图标，图标数自检不动） */
+.rmark{position:absolute;z-index:3;display:inline-flex;line-height:0}
+.rmark .mi{width:10px;height:10px}
+.ach-chip.bond-t2::before{content:'';display:inline-block;width:8px;height:4px;margin-right:6px;vertical-align:middle;
+  border-left:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(-45deg) translateY(-2px)}
 .codex-relics{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:10px}
 /* 断云秘策三选一（单人 run-identity） */
 #strat-veil{position:fixed;inset:0;z-index:88;background:rgba(4,8,12,.94);display:flex;flex-direction:column;
@@ -2124,6 +2238,18 @@ function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽
 // 拥有扑克 SP 典藏立绘的高级角色
 const SP_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen']);
 // 单位详情弹窗（点立绘/长按触发，新手友好）。inst 可选(带 star/gAtk/gHp 则显示实际属性)
+/* 卡框（Codex 20260715a）。CF_OPAQUE = 6 张带深蓝不透明底的正式立绘：底板已按两类素材共同设计，
+   接线时不强抠背景，只改 object-fit（透明底 contain 贴底 / 不透明底 cover 顶对齐）。 */
+const CF_DIR='assets/card-frames-20260715/';
+const CF_OPAQUE=new Set(['jin','han','hao','rui','hai','xin']);
+const AFFIX_QFILE=['common','fine','rare','legendary']; // 凡/秀/珍/传世 —— 与 AFFIX_QC 同序
+function cfFrame(rar){return CF_DIR+'recruit-frame-'+String(rar).toLowerCase()+'.webp'}
+function cfCorner(rar){return CF_DIR+'rarity-corner-'+String(rar).toLowerCase()+'.svg'}
+function cfAffix(q){return CF_DIR+'affix-quality-'+(AFFIX_QFILE[q]||'common')+'.svg'}
+/* 资源探针：mask 缺图会露实心块，所以探到一枚代表资源才点亮 body.cfok。file:// 与断网自动退回原表现。 */
+function cfProbe(){const im=new Image();
+  im.onload=()=>{(document.body||document.documentElement).classList.add('cfok')};
+  im.src=cfCorner('N')}
 function showUnitDetail(id,inst){
   const u=UMAP[id]; if(!u)return;
   const star=inst?(inst.star||1):1, b=inst?instBase(inst):{atk:u.atk,hp:u.hp,spd:u.spd};
@@ -2135,7 +2261,11 @@ function showUnitDetail(id,inst){
   const _zo=ZODIAC[id], _el=_zo&&_zo[1], kf=_el&&ELEM_COUNTER[_el], bkf=_el&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===_el);
   const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-20%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
-  modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
+  modal(`<div class="udetail-card cf-${u.rar.toLowerCase()}${CF_OPAQUE.has(id)?' cf-op':''}">
+      <img class="ud-art" src="${cardURL(id)}" alt="" onerror="this.remove()">
+      <i class="cf-frame" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
+      <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
+      ${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b class="halo-inline">'+uiIcon('state-halo')+inst.halo+'</b>':''}</span></h3>
     <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
     ${affixLine(inst)}
@@ -2207,7 +2337,7 @@ function renderDraft(fresh){
       d.innerHTML=`
         <div class="fac f-${u.fac}">${FACS[u.fac].n}</div>
         <div class="badge r-${u.rar}" data-fac="${u.fac}">${facEmblem(u.fac)}<span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
-        <h3>${u.n}</h3><div class="rar-tag rt-${u.rar}">${u.rar}${mergeHint}</div>
+        <h3>${u.n}</h3><div class="rar-tag rt-${u.rar}"><span class="rar-badge" style="--cfc:url(${cfCorner(u.rar)})"><i>${u.rar}</i></span>${mergeHint}</div>
         <div class="bond-advrow">${advHTML}</div>
         <div class="stats">${statToken('stat-attack',u.atk,'攻击','atk')}${statToken('stat-vitality',u.hp,'生命','hp')}${statToken('stat-speed',u.spd,'速度','spd')}</div>
         ${(a=>a?`<div class="arch-tag arch-${a.c}">${a.t}</div>`:'')(archOf(u))}
@@ -2293,7 +2423,7 @@ function renderBench(p){
     if(a.af&&a.af.q>=2)d.style.setProperty('--afc',AFFIX_QC[a.af.q]); // 珍/传世:单位本体发该色光
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
-      <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}${a.halo?`<span class="halo-tag">${uiIcon('state-halo')}${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]}" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
+      <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}${a.halo?`<span class="halo-tag">${uiIcon('state-halo')}${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]};color:${AFFIX_QC[a.af.q]};--cfq:url(${cfAffix(a.af.q)})" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
       <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
       <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
         <button type="button" aria-label="将${u.n}向前排移动一格" title="向前排移动" ${ai===0?'disabled':''}>${uiIcon('action-move-front')}</button>
@@ -2797,6 +2927,39 @@ function runSelftest(){
      hud();const t=($('#rage-num').innerHTML||'');S=_S;
      return t.indexOf('<svg')>=0&&t.indexOf('\u2764')<0&&t.indexOf('\u2661')<0})());
    ok('图标系统：核心属性/站位/控制键齐全', req.every(k=>UI_ICON_PATHS[k]&&UI_ICON_PATHS[k].includes('currentColor')));
+   /* ===== 20260715 美术接线回归钉子（Codex 20260715a 交付物）===== */
+   ok('VFX：8 类特效齐全 · 帧数不超网格 · 斩击是 3 序列', (()=>{
+     const need=['slash','impact','critical','death','shieldHit','pierce','heal','shed'];
+     if(!need.every(k=>VFX[k]))return false;
+     if(!(VFX.slash.seq===3&&VFX.slash.rows===3))return false;      // 3 条序列(每行一条)，按攻击方左右选行
+     return need.every(k=>{const c=VFX[k];const cells=c.cols*c.rows;
+       const used=(c.seq?c.seq:1)*c.fr;                             // 多序列时每行各 fr 帧
+       return c.fr>0&&used<=cells&&c.peak>=0&&c.peak<c.fr})})());
+   ok('VFX：死亡碎散只绑 e.t===die，绝不绑 e.kill（复活/蛇蜕会带 kill:true）', (()=>{
+     const src=runPlayback.toString().replace(/\/\/[^\n]*/g,''); // 先剥行注释：注释里就写着「绝不绑 e.kill」
+     const death=src.indexOf("vfxPlay('death'");
+     if(death<0)return false;
+     if((src.match(/vfxPlay\('death'/g)||[]).length!==1)return false; // 只能有一处
+     const die=src.lastIndexOf("e.t==='die'",death);                  // 往回找最近的 die 守卫
+     if(die<0)return false;                                           // (第一处 e.t==='die' 在 delayFor 里，不能用 indexOf)
+     return src.slice(die,death).indexOf('e.kill')<0})());            // 守卫到调用之间不许出现 e.kill
+   ok('卡框：5 档框/角标文件名与 Codex 交付一致 · 6 张不透明立绘 id 都在册', (()=>{
+     const rars=['N','R','SR','SSR','UR'];
+     if(!rars.every(r=>cfFrame(r)===CF_DIR+'recruit-frame-'+r.toLowerCase()+'.webp'))return false;
+     if(!rars.every(r=>cfCorner(r)===CF_DIR+'rarity-corner-'+r.toLowerCase()+'.svg'))return false;
+     if(AFFIX_QFILE.length!==AFFIX_QC.length)return false;          // 凡/秀/珍/传世 四品同序
+     return [...CF_OPAQUE].every(id=>UMAP[id])})());
+   ok('视觉基准：安全区变量 + 动态视口 + 触屏命中区已进 CSS（不许改回 100vh）', (()=>{
+     const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
+     return css.includes('safe-area-inset-top')&&css.includes('100dvh')
+       &&css.includes('touch-action:manipulation')&&css.includes('pointer:coarse')})());
+   ok('名册无 Unicode 图形字（Codex 20260715 审计：★/◆/✔ 曾漏网，此前只守了 HUD）', (()=>{
+     const src=showRoster.toString();
+     return ['★','◆','✔'].every(ch=>src.indexOf(ch)<0)
+       &&src.indexOf("uiIcon('rank-star')")>0&&src.indexOf("uiIcon('score-throne')")>0})());
+   ok('视觉基准：投屏大字档（≥1100px）未被误伤——课堂后排可读是硬指标', (()=>{
+     const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
+     return /@media \(min-width:1100px\)/.test(css)&&/\.offer \.skill\{font-size:15px\}/.test(css)})());
    ok('图标系统：内联 SVG 不依赖字体或外部图片', req.every(k=>{const s=uiIcon(k);return /^<svg/.test(s)&&s.includes('aria-hidden="true"')&&!/<text|<image|href=/.test(s)}));
    ok('图标系统：四象正式徽记替代 Unicode 占位', ['wind','fire','earth','water'].every(e=>elemGlyph(e).includes('<svg')&&!elemGlyph(e).includes('✦')));
    ok('图标系统：纯图标按钮具备读屏状态', $('#btn-menu').getAttribute('aria-label')==='打开游戏菜单'
@@ -3553,6 +3716,72 @@ function playBattle(pr){
     <br><span style="color:var(--gold2);letter-spacing:.2em">立下你的预测——谁会赢？</span>`;
   runPlayback(A,B,fA,fB,`<b>${pa.name}</b> 对阵 <b>${bn}</b>`,mods,battleRng,result=>finishBattle(pr,result,A,B),faceoff);
 }
+/* ============================================================
+   战斗 VFX（Codex 20260715a 交付：静态 WebP 精灵图集，非 animated webp）
+   只挂回放视觉层，绝不进 simulateBattle。有图则用、缺图回退（原 .u.hit / floatNum / 战斗日志全保留）。
+   帧序 row-major；slash 是 3 条序列(每条 6 帧)，按攻击方左右选行/翻转。
+   ============================================================ */
+const VFX_DIR='assets/vfx-20260715/';
+const VFX={ // cols/rows=图集网格；fr=一次播放的帧数；seq>0 表示多序列(整行为一条)
+  slash:    {f:'vfx-slash.webp',       cols:6,rows:3,fr:6, seq:3,fps:24,blend:'screen',ax:.5,ay:.38,w:128,h:96, peak:2},
+  impact:   {f:'vfx-impact-ring.webp', cols:6,rows:1,fr:6, seq:0,fps:24,blend:'screen',ax:.5,ay:.5, w:112,h:88, peak:2},
+  critical: {f:'vfx-crit-gold.webp',   cols:4,rows:2,fr:8, seq:0,fps:24,blend:'screen',ax:.5,ay:.42,w:148,h:112,peak:3},
+  death:    {f:'vfx-death-shatter.webp',cols:4,rows:2,fr:8,seq:0,fps:24,blend:'normal',ax:.5,ay:.48,w:148,h:112,peak:3},
+  shieldHit:{f:'vfx-shield-crack.webp',cols:6,rows:1,fr:6, seq:0,fps:20,blend:'screen',ax:.5,ay:.44,w:120,h:92, peak:2},
+  pierce:   {f:'vfx-pierce-trail.webp',cols:6,rows:1,fr:6, seq:0,fps:24,blend:'screen',ax:.5,ay:.42,w:128,h:72, peak:3,travel:260},
+  heal:     {f:'vfx-heal-light.webp',  cols:4,rows:2,fr:8, seq:0,fps:24,blend:'screen',ax:.5,ay:.5, w:128,h:100,peak:3},
+  shed:     {f:'vfx-shed-mist.webp',   cols:6,rows:2,fr:12,seq:0,fps:15,blend:'normal',ax:.5,ay:.45,w:186,h:142,peak:6}
+};
+const VFX_MAX=10;            // 并发上限（manifest 建议 8-10）：超了就不建节点，宁可少一层光也不掉帧
+let _vfxNodes=[],_vfxRAF=0,_vfxSlashSeq=0;
+function vfxReduced(){return matchMedia('(prefers-reduced-motion: reduce)').matches}
+function vfxCell(c,i,row){const cell=(c.seq?row*c.cols:0)+i;
+  return `${-(cell%c.cols)*c.w}px ${-Math.floor(cell/c.cols)*c.h}px`}
+function vfxTick(ts){
+  for(let i=_vfxNodes.length-1;i>=0;i--){const n=_vfxNodes[i];
+    const fi=Math.floor((ts-n.t0)/n.spf);
+    if(fi>=n.fr||ts-n.t0>n.life){n.el.remove();_vfxNodes.splice(i,1);continue}
+    if(fi!==n.cur){n.cur=fi;n.el.style.backgroundPosition=vfxCell(n.c,n.reduced?n.c.peak:fi,n.row)}
+  }
+  _vfxRAF=_vfxNodes.length?requestAnimationFrame(vfxTick):0;
+}
+/* 演武台：#arena 的绝对装饰层，垫在单位之下、不挡点击。缺图自删。 */
+function vfxDais(){const host=$('#arena');if(!host||host.querySelector('.dais'))return;
+  const im=document.createElement('img');im.className='dais';im.alt='';im.setAttribute('aria-hidden','true');
+  im.srcset=`${VFX_DIR}arena-dais-800.webp 800w, ${VFX_DIR}arena-dais-1600.webp 1600w`;
+  im.sizes='(max-width:760px) 112vw, 1120px';im.src=`${VFX_DIR}arena-dais-1600.webp`;
+  im.onerror=()=>im.remove();host.prepend(im);
+}
+/* opts: {flip 左右翻转 · scale · op · from 源单位(穿透飞行起点)} */
+function vfxPlay(kind,el,opts){
+  const c=VFX[kind];const host=$('#arena');
+  if(!c||!el||!host||PB.skip||_vfxNodes.length>=VFX_MAX)return;
+  const hr=host.getBoundingClientRect(),r=el.getBoundingClientRect();
+  const cx=r.left-hr.left+r.width*c.ax, cy=r.top-hr.top+r.height*c.ay;
+  const o=opts||{},sp=PB.speed===2?2:1,reduced=vfxReduced();
+  const row=c.seq?(_vfxSlashSeq++%c.seq):0;
+  const d=document.createElement('i');d.className='vfx';d.setAttribute('aria-hidden','true');
+  const tf=[];if(o.flip)tf.push('scaleX(-1)');if(o.scale)tf.push(`scale(${o.scale})`);
+  d.style.cssText=`left:${cx-c.w/2}px;top:${cy-c.h/2}px;width:${c.w}px;height:${c.h}px;`+
+    `background-image:url(${VFX_DIR}${c.f});background-size:${c.cols*c.w}px ${c.rows*c.h}px;`+
+    `mix-blend-mode:${c.blend};`+(o.op?`opacity:${o.op};`:'')+(tf.length?`transform:${tf.join(' ')};`:'');
+  const life=reduced?150:Math.max(c.fr*(1000/c.fps)/sp, c.travel?c.travel/sp:0);
+  // 穿透：从攻击者飞向目标（travelMs），其余特效原地播
+  if(c.travel&&o.from){const fr2=o.from.getBoundingClientRect();
+    const fx=fr2.left-hr.left+fr2.width*.5, fy=fr2.top-hr.top+fr2.height*.45;
+    const dx=cx-fx,dy=cy-fy,ang=Math.atan2(dy,dx)*180/Math.PI;
+    d.style.left=(fx-c.w/2)+'px';d.style.top=(fy-c.h/2)+'px';
+    d.style.transform=`rotate(${ang}deg)`;
+    if(!reduced){d.style.transition=`translate ${c.travel/sp}ms linear`;
+      requestAnimationFrame(()=>{d.style.translate=`${dx}px ${dy}px`})}
+  }
+  host.appendChild(d);
+  _vfxNodes.push({el:d,c,row,reduced,fr:reduced?1:c.fr,cur:-1,
+    spf:reduced?150:(1000/c.fps)/sp,t0:performance.now(),life});
+  if(!_vfxRAF)_vfxRAF=requestAnimationFrame(vfxTick);
+}
+function vfxClear(){_vfxNodes.forEach(n=>n.el.remove());_vfxNodes=[];
+  if(_vfxRAF){cancelAnimationFrame(_vfxRAF);_vfxRAF=0}}
 /* 战斗渲染+演算+回放核心（多人与单人共用）；结算逻辑由 onEnd 注入；
    faceoffHTML 非空 = 赛前对峙屏（渲染双方后暂停，老师点「开战」放行） */
 function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
@@ -3565,8 +3794,10 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
   A.forEach(f=>L.prepend(unitEl(f)));
   B.forEach(f=>R.appendChild(unitEl(f)));
   $('#blog').textContent='战斗开始——';
-  const nameOf={};
-  [...A,...B].forEach(f=>{nameOf[f.uid]=f.n});
+  vfxClear();vfxDais(); // 上一场的残留特效必须清（skip/快进后可能还挂着节点）
+  const nameOf={},tgOf={},sideOf={}; // tg 用于穿透箭迹路由；side 用于斩击朝向（左军 L / 右军 R）
+  A.forEach(f=>{nameOf[f.uid]=f.n;tgOf[f.uid]=f.tg||'melee';sideOf[f.uid]='L'});
+  B.forEach(f=>{nameOf[f.uid]=f.n;tgOf[f.uid]=f.tg||'melee';sideOf[f.uid]='R'});
   const hpNow={},hpMax={};
   [...A,...B].forEach(f=>{hpNow[f.uid]=f.maxhp;hpMax[f.uid]=f.maxhp});
   let result=null,i=0;
@@ -3598,6 +3829,12 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
           const eff=e.eff||1; // 相克：克染青标「克」、被克淡化，不刷屏(金色专属暴击)
           floatNum(tgt,'-'+e.amt+(e.crit?'!':'')+(eff>1?' 克':''),e.crit?'#ffd075':(eff>1?'var(--teal)':(eff<1?'#9a9686':'var(--red2)')),e.crit); // 暴击金/相克青/被克灰/普通红 四态分色
           if(e.s){const src=el(e.s);if(src){src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
+          // —— VFX：普攻叠斩击/箭迹，技能伤害只给冲击环（不叠斩击，免得误导成普攻）——
+          const atk=e.tag==='攻击';
+          if(atk&&tgOf[e.s]==='pierce')vfxPlay('pierce',tgt,{from:el(e.s)});
+          else if(atk)vfxPlay('slash',tgt,{flip:sideOf[e.s]==='R'});
+          if((e.hpDmg??e.amt)>0)vfxPlay('impact',tgt,{scale:eff>1?1.12:(eff<1?.85:1),op:eff<1?.6:1}); // 相克放大/被克缩淡
+          if(e.crit)vfxPlay('critical',tgt);
           blog.innerHTML=`<b>${nameOf[e.s]||e.tag||'——'}</b> ${e.tag||'攻击'} <b>${nameOf[e.d]}</b>，造成 ${e.amt}${e.crit?' 暴击!':''}`;
           SFX.play(e.crit?'crit':'hit');
           if(e.kill){SFX.play('kill')} // 阵亡不再全屏震（一场战斗震6-10次太吵）；全屏 shake 只留给叶王/三星觉醒/加冕
@@ -3606,7 +3843,8 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
       }
     }
     if(e.t==='die'){const tgt=el(e.d);if(tgt)tgt.classList.add('dead');
-      if(animate)blog.innerHTML=`<b>${nameOf[e.d]}</b> 倒下了`;}
+      // 碎散只绑 die，绝不绑 e.kill——复读复活与叶王蛇蜕也会在伤害事件上带 kill:true，绑错=复活前先碎尸
+      if(animate){vfxPlay('death',tgt);blog.innerHTML=`<b>${nameOf[e.d]}</b> 倒下了`}}
     if(e.t==='revive'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead');
       hpNow[e.d]=Math.ceil(hpMax[e.d]/2);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
@@ -3617,17 +3855,18 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
       tgt.querySelector('.hpb i').style.width=Math.max(0,hpNow[e.d]/hpMax[e.d]*100)+'%';
       const sh=tgt.querySelector('.num .h');sh.querySelector('.stat-v').textContent=e.hp;sh.setAttribute('aria-label','当前生命 '+e.hp+'，最大生命 '+hpMax[e.d]);
       const sa=tgt.querySelector('.num .a');sa.querySelector('.stat-v').textContent=e.atk;sa.setAttribute('aria-label','攻击 '+e.atk); // 蜕后攻击对账
-      if(animate){floatNum(tgt,'蛇蜕!','var(--purple)',true);blog.innerHTML=`<b>${nameOf[e.d]}</b> 蜕下旧皮——第二形态，更凶了！`;
+      if(animate){vfxPlay('shed',tgt);floatNum(tgt,'蛇蜕!','var(--purple)',true);blog.innerHTML=`<b>${nameOf[e.d]}</b> 蜕下旧皮——第二形态，更凶了！`;
         shake();flash(true);SFX.play('boss')}}} // 全屏 shake 白名单：叶王专属
     if(e.t==='heal'){const tgt=el(e.d);if(tgt){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+e.amt);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
       const hh=tgt.querySelector('.num .h');hh.querySelector('.stat-v').textContent=hpNow[e.d];hh.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
-      if(animate){floatNum(tgt,'+'+e.amt,'#9fd49f');SFX.play('heal')}}}
+      if(animate){vfxPlay('heal',tgt);floatNum(tgt,'+'+e.amt,'#9fd49f');SFX.play('heal')}}}
     if((e.t==='buff'||e.t==='debuff')&&animate){const tgt=el(e.d);
       if(tgt)floatNum(tgt,e.txt,e.t==='buff'?'var(--gold2)':'var(--purple)')}
     if(e.t==='shield'&&animate){const tgt=el(e.d);if(tgt){tgt.querySelector('.sh').style.display='';
       floatNum(tgt,e.txt,'var(--shield)');SFX.play('shield')}}
-    if(e.t==='shieldHit'&&animate){const tgt=el(e.d);if(tgt)floatNum(tgt,'盾-'+e.amt,'var(--shield)')}
+    // shieldHit 只表示「护盾受击」，不承诺破盾（事件里没有护盾剩余量）——裂纹每次都播
+    if(e.t==='shieldHit'&&animate){const tgt=el(e.d);if(tgt){vfxPlay('shieldHit',tgt);floatNum(tgt,'盾-'+e.amt,'var(--shield)')}}
     if(e.t==='coin'&&animate){blog.innerHTML='车翻了，货还在：+1 铸币'}
   }
   function step(){
@@ -4645,7 +4884,9 @@ function startBossSequence(){
   const veil=$('#boss-veil');
   const bossArt=artURL('yewang')?`<div id="boss-art"><img src="${artURL('yewang')}" alt=""
     onload="this.parentNode.classList.add('show')" onerror="this.parentNode.remove()"></div>`:'';
-  veil.innerHTML=`${bossArt}<div class="snake"><svg viewBox="0 0 96 70"><path d="M8 42 C 22 18, 36 58, 48 38 C 57 23, 68 34, 76 25" fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M76 25 l9 -6 -1 10 z" fill="currentColor"/><path d="M86 20 l7 -3 M86 22 l7 3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div><h1>叶 王 乱 入</h1>
+  // 视觉层换成 Codex 20260715a 的紫雾转场 + 透明名牌（廉价蛇形折线退役）；
+  // 下面的 bossResolved / 续局幂等 / 发奖 / 抓人逻辑一行不动。
+  veil.innerHTML=`<i class="boss-tr" aria-hidden="true"></i>${bossArt}<div class="boss-plate"><h1>叶 王 乱 入</h1></div>
     <p>石墙上的影子终于动了。答错的声音太多，把她引来了。<br>
     她有两条命——<b style="color:var(--purple)">蛇蜕其皮，第一剑杀不死她</b>。<br>
     本幕演武取消——<b style="color:var(--gold2)">全员各自迎击黑域侵攻</b>，守住的人获得王座分。</p>
@@ -5051,18 +5292,18 @@ function showRoster(){
       收集 <b style="color:var(--gold2)">${seenN}/${tot}</b> 学员 · 三星 <b style="color:var(--gold2)">${s3N}</b> · MVP <b style="color:var(--gold2)">${mvpN}</b> · 成就 <b style="color:var(--gold2)">${achGot}/${ACHIEVEMENTS.length}</b>
     </div></div>`;
   const grid=`<h4 style="text-align:center;margin:18px 0 4px">学员收集</h4>
-    <p style="text-align:center;color:var(--ink3);font-size:11.5px;margin-bottom:6px">用过点亮 · <span style="color:var(--gold2)">★</span>=三星过 · <span style="color:var(--purple)">◆</span>=当过 MVP</p>
+    <p style="text-align:center;color:var(--ink3);font-size:11.5px;margin-bottom:6px">用过点亮 · <span style="color:var(--gold2)">${uiIcon('rank-star')}</span>=三星过 · <span style="color:var(--purple)">${uiIcon('score-throne')}</span>=当过 MVP</p>
     <div class="codex-grid">`+UNITS.map(u=>{
       const seen=!!(_meta.seen||{})[u.id], s3=!!(_meta.star3||{})[u.id], mv=!!(_meta.mvp||{})[u.id];
       return `<div class="codex-u" data-uid="${u.id}" style="${seen?'':'opacity:.3;filter:grayscale(1)'}">
         <div class="badge r-${u.rar}" data-fac="${u.fac}">${facEmblem(u.fac)}<span class="glyph">${u.n[0]}</span>${artTag(u.id)}
-          ${s3?'<span style="position:absolute;top:1px;right:2px;font-size:10px;color:var(--gold2);z-index:3">★</span>':''}
-          ${mv?'<span style="position:absolute;bottom:1px;right:2px;font-size:10px;color:var(--purple);z-index:3">◆</span>':''}</div>
+          ${s3?'<span class="rmark" style="top:1px;right:2px;color:var(--gold2)">'+uiIcon('rank-star')+'</span>':''}
+          ${mv?'<span class="rmark" style="bottom:1px;right:2px;color:var(--purple)">'+uiIcon('score-throne')+'</span>':''}</div>
         <div class="cu-n">${u.n}</div></div>`}).join('')+`</div>`;
   const ach=`<h4 style="text-align:center;margin:18px 0 6px">名册功勋</h4>
     <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">`+ACHIEVEMENTS.map(a=>{
       const got=!!(_meta.ach||{})[a.id];
-      return `<span class="bond-chip ${got?'bond-t2':''}" title="${a.d}" style="${got?'':'opacity:.42'}">${got?'✔ ':''}${a.n}</span>`}).join('')+`</div>`;
+      return `<span class="bond-chip ach-chip ${got?'bond-t2':''}" title="${a.d}" style="${got?'':'opacity:.42'}">${a.n}</span>`}).join('')+`</div>`;
   modal(`<h3>狼先生的名册</h3>${head}${grid}${ach}`);
 }
 function showUnits(){
@@ -5094,6 +5335,7 @@ $('#btn-menu').onclick=showMenu;
   _meta=loadMeta(); // 狼先生的名册:启动读一次(独立键,与局内存档隔离)
   if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
   {const br=$('#btn-roster');if(br)br.onclick=showRoster}
+  cfProbe(); // 卡框/角标/词缀框：探到资源才点亮 body.cfok（selftest 早退，不受影响）
   if(loadSave())$('#btn-continue').style.display='';
   if(LB_ON){const bh=$('#btn-lbhall');if(bh){bh.style.display='';bh.onclick=showLbHall}}
   renderSetup();
