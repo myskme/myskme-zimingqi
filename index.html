@@ -692,6 +692,7 @@ body.playing #hud{display:flex}
     </div>
     <div class="btnrow">
       <button class="btn big" id="btn-continue" style="display:none"><span class="mi-slot" data-ui-icon="nav-next"></span>续 局</button>
+      <button class="btn" id="btn-roster"><span class="mi-slot" data-ui-icon="score-throne"></span>狼先生的名册</button>
       <button class="btn" id="btn-howto"><span class="mi-slot" data-ui-icon="help-book"></span>玩法与课堂说明</button>
       <button class="btn" id="btn-lbhall" style="display:none"><span class="mi-slot" data-ui-icon="score-throne"></span>世界回廊 · 排行</button>
     </div>
@@ -2471,6 +2472,8 @@ function buildFighters(p, evFlags){
   if(st.includes('st_wall'))  fs.forEach(f=>f.shield+=2);
   if(st.includes('st_taunt')) fs.forEach(f=>{if(f.taunt){f.hp+=3;f.maxhp+=3;f.shield+=1}});
   if(st.includes('st_van')&&fs[0]) fs[0].atk+=2;
+  if(st.includes('st_tide'))  fs.forEach(f=>{if(unitElem(f.id)==='water'){f.hp+=2;f.maxhp+=2;f.shield+=1}}); // 名册Lv5
+  if(st.includes('st_ember')) fs.forEach(f=>{if(unitElem(f.id)==='fire'){f.atk+=1;f.emberCrit=true}});     // 名册Lv5:余烬亲和(emberCrit 在首击判定处与 skill.firstCrit 同权,见 simulateBattle)
   // 狼先生光环（UR 5币的牌面：+2攻+1速，光环净值才配得上价格）
   if(fs.some(f=>f.id==='wolf')) fs.forEach(f=>{if(f.id!=='wolf'){f.atk+=2;f.spd+=1}});
   // 事件：紫光低语
@@ -2620,7 +2623,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       let amt=f.atk,crit=false;
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
-        if(f.skill.k==='firstCrit'){amt*=2;crit=true}
+        if(f.skill.k==='firstCrit'||f.emberCrit){amt*=2;crit=true} // 秘策「余烬亲和」(名册Lv5)给火象同款首击暴击
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
@@ -3111,6 +3114,38 @@ function runSelftest(){
    ok('设置页模式行已隐藏(入口即模式)', !!_rm&&getComputedStyle(_rm).display==='none');
    S={act:1};
    ok('秘策池: 牌力满级过滤星尘牵引·未满保留', stratPool({tier:5}).every(x=>x.id!=='st_tier')&&stratPool({tier:1}).some(x=>x.id==='st_tier'));
+   // —— 狼先生的名册(2026-07-14 账号级成长) ——
+   {const _bakMeta=_meta;
+    // 曲线:单调递增 + 前期甜 + 后期陡 + 满级封顶
+    ok('名册曲线: lvlXp 单调递增(前期甜/后期陡)', (()=>{for(let n=3;n<=20;n++)if(lvlXp(n)<lvlXp(n-1))return false;
+      return lvlXp(2)===30&&lvlXp(5)===75&&lvlXp(12)===360&&lvlXp(20)===960})());
+    ok('名册曲线: 第1局即Lv2 · 满级封顶Lv20不越界', levelOf(30).lv===2&&levelOf(999999).lv===META_LVMAX&&levelOf(999999).need===0);
+    ok('名册曲线: 满级≈241局(前期甜中后期陡·防几天满级)', (()=>{let t=0;for(let n=2;n<=20;n++)t+=lvlXp(n);
+      return t===7225&&Math.round(t/30)===241})());
+    ok('名册XP: metaGain 各来源加总正确', metaGain({cleared:5,win:1,slain:2,bounty:3,newStar3:1,mvp:1})===10+10+16+15+6+4);
+    // 存档隔离三地雷
+    _meta=metaDefault();_meta.xp=100;saveMeta();
+    ok('名册存档: 独立键 zmq_meta(不在 dyyw1 里)', !!localStorage.getItem(META_KEY)&&(localStorage.getItem('dyyw1')||'').indexOf('"xp"')<0);
+    ok('名册存档: loadMeta 防御式(坏JSON→默认)', (()=>{const bak=localStorage.getItem(META_KEY);
+      localStorage.setItem(META_KEY,'{{{坏');const m=loadMeta();localStorage.setItem(META_KEY,bak||'');
+      return m.xp===0&&m.runs===0&&typeof m.seen==='object'})());
+    ok('名册存档: meta 不进 S(newState 后 S 无 meta 字段)', (()=>{const _s=newState(['x'],3,0,false);
+      return JSON.stringify(_s).indexOf('"xp"')<0&&_s.meta===undefined})());
+    ok('名册存档: 撤销不回滚 meta(模块级变量,不随 S 快照)', (()=>{_meta.xp=555;const snap=JSON.stringify({army:[],xp:_meta.xp});
+      const parsed=JSON.parse(snap); /* 模拟 draftUndo 整体还原 S */ return _meta.xp===555&&parsed.xp===555})());
+    ok('名册存档: 旧 v1 存档仍可续局(未 bump 版本)', !!validSave({v:1,players:[{name:'a',army:[]}]}));
+    // 解锁:只加内容不加强 + 未解锁不进池
+    _meta=metaDefault(); // Lv1
+    ok('名册解锁: Lv1 新秘策/新悬赏不进池', stratPool({tier:1,strats:[]}).every(x=>x.id!=='st_tide'&&x.id!=='st_ember')
+      &&BOUNTIES.filter(b=>b.lock).length===3);
+    _meta.xp=99999; // 满级
+    ok('名册解锁: 满级后新秘策进池(仅单人·同强度)', stratPool({tier:1,strats:[]}).some(x=>x.id==='st_tide')&&metaUnlocked('strats')&&metaUnlocked('bounties'));
+    // 成就幂等
+    _meta=metaDefault();_meta.wins=1;
+    ok('名册成就: chk 幂等(已达成不重发)', (()=>{const g1=metaCheckAch({});const g2=metaCheckAch({});
+      return g1.some(a=>a.id==='a_first')&&g2.every(a=>a.id!=='a_first')})());
+    ok('名册称号: 不进 lbPayload(后端schema固定)', JSON.stringify(lbPayload(1,5,'n','i')).indexOf('title')<0);
+    _meta=_bakMeta;try{localStorage.removeItem(META_KEY)}catch(e){}}
    // —— 狼牙悬赏 & 影军回响(2026-07-14 新机制) ——
    ok('悬赏池: id唯一·chk全函数·赏金为正', new Set(BOUNTIES.map(b=>b.id)).size===BOUNTIES.length&&BOUNTIES.every(b=>typeof b.chk==='function'&&b.r>0));
    ok('悬赏判定: 烈焰3火/三星/轻装(第4关起)', (()=>{const p={army:[{id:'lin',star:1},{id:'yin',star:3},{id:'qi',star:1}],coins:0};
@@ -3467,6 +3502,97 @@ function soloFoeName(round){
   const tiers=['谷地游兵','断云宿敌','黑域斥候','蛇纹战团','鹦鹉亲卫','紫光军阵','叶王余党'];
   return tiers[Math.min(tiers.length-1,Math.floor((round-1)/2))];
 }
+/* ============================================================
+   狼先生的名册 · 账号级持久成长(2026-07-14)
+   ⚠ 三条铁律(违反=事故):
+   ① meta 绝不进 S / dyyw1 —— clearSave() 每局结束删 dyyw1,而通关正是发奖时刻 → 独立键 zmq_meta
+   ② meta 绝不挂 S 做缓存 —— snapDraft/draftUndo 会整体回滚 S,挂上去的成就会"领了又没" → 模块级变量
+   ③ 绝不 bump dyyw1 存档版本(validSave 硬门 v===1,无迁移分支)
+   课堂公平:多人局也给 XP/记录/成就,但【解锁的增益内容一律不进多人局】。
+   平衡:解锁只加内容不加强(同强度的新秘策/新悬赏/风味礼遇),新手老手基本盘一致。
+   ============================================================ */
+const META_KEY='zmq_meta', META_LVMAX=20;
+function metaDefault(){return {v:1,xp:0,runs:0,wins:0,seen:{},star3:{},mvp:{},slain:0,bountyDone:0,ach:{},titles:[]}}
+function loadMeta(){ // 防御式:坏 JSON/缺字段一律回默认(照 soloBest 范式)
+  let m=null;try{m=JSON.parse(localStorage.getItem(META_KEY)||'null')}catch(e){m=null}
+  const d=metaDefault(); if(!m||typeof m!=='object')return d;
+  Object.keys(d).forEach(k=>{if(m[k]===undefined||typeof m[k]!==typeof d[k])m[k]=d[k]});
+  return m;
+}
+let _meta=metaDefault(); // 模块级——绝不进 S
+function saveMeta(){try{localStorage.setItem(META_KEY,JSON.stringify(_meta))}catch(e){}}
+// —— 等级曲线(纯函数):前期甜(第1局即Lv2) · 中后期陡拉长(满级≈241局,每周5局近一年) ——
+function lvlXp(n){ // 升到第 n 级所需 XP
+  if(n<=1)return 0;
+  if(n<=5) return 30+(n-2)*15;      // 30/45/60/75
+  if(n<=12)return 90+(n-6)*45;      // 90/135/…/360
+  return 400+(n-13)*80;             // 400/480/…/960
+}
+function levelOf(xp){ // xp→{lv,cur,need,pct};封顶 META_LVMAX
+  let lv=1,rest=Math.max(0,xp|0);
+  while(lv<META_LVMAX&&rest>=lvlXp(lv+1)){rest-=lvlXp(lv+1);lv++}
+  const need=lv>=META_LVMAX?0:lvlXp(lv+1);
+  return {lv,cur:rest,need,pct:need?Math.min(100,Math.round(rest/need*100)):100};
+}
+function metaGain(ev){ // 结算事件→XP增量(纯函数)。ev={cleared,win,slain,bounty,newStar3,mvp}
+  return (ev.cleared|0)*2 + (ev.win?10:0) + (ev.slain|0)*8 + (ev.bounty|0)*5 + (ev.newStar3|0)*6 + (ev.mvp?4:0);
+}
+function metaTitle(){ // 称号=等级里程碑(本地展示;不上榜——lbPayload schema 固定,硬塞会破坏后端)
+  const lv=levelOf(_meta.xp).lv;
+  return lv>=20?'断云弟子':lv>=15?'首徒':lv>=10?'高徒':lv>=5?'学徒':'见习生';
+}
+// —— 解锁(严守:仅单人 · 只加内容不加强) ——
+function metaUnlocked(k){const lv=levelOf(_meta.xp).lv;
+  return k==='strats'?lv>=5:k==='bounties'?lv>=10:k==='boon'?lv>=15:k==='skin'?lv>=20:false}
+// —— 成就(复用 BOUNTY 的 chk 谓词范式;chk(meta,ctx) 数据源必须终局作用域可拿) ——
+const ACHIEVEMENTS=[
+ {id:'a_first',  n:'初登断云', d:'赢下第一场对局',            chk:m=>m.wins>=1},
+ {id:'a_clear',  n:'十关全破', d:'经典征程通关(击败叶王)',     chk:(m,c)=>!!c.victory&&!c.endless},
+ {id:'a_deep20', n:'深渊回响', d:'无尽回廊深入 20 层以上',     chk:(m,c)=>!!c.endless&&c.cleared>=20},
+ {id:'a_slay1',  n:'初斩影军', d:'战胜一支同窗影军',           chk:m=>m.slain>=1},
+ {id:'a_slay10', n:'斩影十连', d:'累计斩影 10 支',            chk:m=>m.slain>=10},
+ {id:'a_bounty10',n:'赏金猎手',d:'累计达成悬赏 10 次',         chk:m=>m.bountyDone>=10},
+ {id:'a_star3',  n:'三星初绽', d:'首次将一名学员练到三星',      chk:m=>Object.keys(m.star3||{}).length>=1},
+ {id:'a_star10', n:'三星宗师', d:'累计三星过 10 名不同学员',    chk:m=>Object.keys(m.star3||{}).length>=10},
+ {id:'a_elem4',  n:'四象轮转', d:'单局内四象羁绊各成阵过',      chk:(m,c)=>!!c.elem4},
+ {id:'a_nodeath',n:'一命不折', d:'一场胜利中我方无人阵亡',      chk:(m,c)=>!!c.noDeath},
+ {id:'a_bridge', n:'一牌两算', d:'单局触发桥牌单位(双轴同计)',  chk:(m,c)=>!!c.bridge},
+ {id:'a_rich',   n:'富甲断云', d:'终局持币 ≥ 20',             chk:(m,c)=>(c.coins|0)>=20},
+ {id:'a_runs10', n:'勤学不辍', d:'累计对局 10 场',            chk:m=>m.runs>=10},
+ {id:'a_runs50', n:'断云常客', d:'累计对局 50 场',            chk:m=>m.runs>=50},
+ {id:'a_seen20', n:'广结善缘', d:'用过 20 名不同学员',         chk:m=>Object.keys(m.seen||{}).length>=20},
+ {id:'a_seenAll',n:'全勤学员', d:'35 名学员全部用过',          chk:m=>Object.keys(m.seen||{}).length>=35},
+ {id:'a_mvp5',   n:'伯乐',    d:'带出 5 名不同 MVP 学员',      chk:m=>Object.keys(m.mvp||{}).length>=5},
+ {id:'a_lv10',   n:'高徒入册', d:'名册等级达到 Lv.10',         chk:m=>levelOf(m.xp).lv>=10},
+];
+const ACH_MAP=ACHIEVEMENTS.reduce((o,a)=>(o[a.id]=a,o),{});
+function metaCheckAch(ctx){ // 幂等:已达成不重发。返回本次新达成的
+    const got=[];
+    ACHIEVEMENTS.forEach(a=>{ if(_meta.ach[a.id])return;
+      let hit=false;try{hit=!!a.chk(_meta,ctx||{})}catch(e){}
+      if(hit){_meta.ach[a.id]=Date.now();got.push(a)}});
+    return got;
+}
+/* 终局提交(soloEnd/finale 都调,必须在 clearSave 之前——那时 S 还在)。
+   ctx 由调用方从 S 快照构造;本函数只碰 _meta,绝不写 S。 */
+function metaCommit(ctx){
+  ctx=ctx||{};
+  const before=levelOf(_meta.xp).lv;
+  _meta.runs++; if(ctx.win)_meta.wins++;
+  _meta.slain+=(ctx.slain|0); _meta.bountyDone+=(ctx.bounty|0);
+  let newStar3=0;
+  (ctx.army||[]).forEach(a=>{ if(!a||!a.id)return;
+    _meta.seen[a.id]=(_meta.seen[a.id]||0)+1;
+    if((a.star||1)>=3&&!_meta.star3[a.id]){_meta.star3[a.id]=1;newStar3++}
+    else if((a.star||1)>=3)_meta.star3[a.id]++;});
+  if(ctx.mvpId)_meta.mvp[ctx.mvpId]=(_meta.mvp[ctx.mvpId]||0)+1;
+  const gain=metaGain({cleared:ctx.cleared,win:ctx.win,slain:ctx.slain,bounty:ctx.bounty,newStar3:newStar3,mvp:!!ctx.mvpId});
+  _meta.xp+=gain;
+  const got=metaCheckAch(Object.assign({},ctx,{newStar3:newStar3}));
+  const after=levelOf(_meta.xp).lv;
+  saveMeta();
+  return {gain,lvUp:after>before,lv:after,ach:got};
+}
 /* ============ 狼牙悬赏(单人·每局3张·借鉴云顶任务/酒馆任务) ============ */
 const BOUNTIES=[
  {id:'b_fire3', n:'烈焰行军', d:'军团含 ≥3 名火象单位取胜', r:4, chk:(p,c)=>p.army.filter(a=>unitElem(a.id)==='fire').length>=3},
@@ -3481,10 +3607,17 @@ const BOUNTIES=[
  {id:'b_forge2',n:'星尘炼体', d:'本局淬炼 ≥2 次后取胜',     r:3, chk:()=>(S._forgeRun||0)>=2},
  {id:'b_lean',  n:'轻装深入', d:'第 4 关起以 ≤4 名成员取胜', r:4, chk:(p,c)=>c.round>=4&&p.army.length<=4},
  {id:'b_slay',  n:'斩影为荣', d:'战胜一支影军',             r:4, chk:(p,c)=>!!c.ghost, net:true},
+ // —— 名册 Lv.10 解锁(赏金与现有同量级) ——
+ {id:'b_elem2', n:'双象并立', d:'两条四象羁绊同时成阵时取胜', r:4, lock:'bounties',
+   chk:p=>['earth','wind','fire','water'].filter(e=>bondTier(p,e)>=1).length>=2},
+ {id:'b_full',  n:'满编出征', d:'以满编军团(达军团上限)取胜',  r:3, lock:'bounties',
+   chk:(p,c)=>p.army.length>=(ARMY_CAP[Math.min(S.act,3)]||5)},
+ {id:'b_bridge',n:'一牌两算', d:'军团中有桥牌单位(双轴同计)时取胜', r:4, lock:'bounties',
+   chk:p=>(typeof bridgeUnits==='function')&&bridgeUnits(p).length>0},
 ];
 const BOUNTY_MAP=BOUNTIES.reduce((m,b)=>(m[b.id]=b,m),{});
-function assignBounties(){ // 开局按局种子发3张(离线时不发需联网的斩影)
-  const pool=BOUNTIES.filter(b=>!b.net||(typeof LB_ON!=='undefined'&&LB_ON)).slice();
+function assignBounties(){ // 开局按局种子发3张(离线不发需联网的斩影;名册未解锁的不进池)
+  const pool=BOUNTIES.filter(b=>(!b.net||(typeof LB_ON!=='undefined'&&LB_ON))&&(!b.lock||metaUnlocked(b.lock))).slice();
   const picks=[];while(picks.length<3&&pool.length)picks.push(pool.splice(ri(pool.length),1)[0]);
   S.bounties=picks.map(b=>({id:b.id,done:0}));
 }
@@ -3511,6 +3644,7 @@ function ghostPush(cleared){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo|
     fetch(LB_API,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpush',id:lbId(),name:(you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者',difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))})}).catch(()=>{})}catch(e){}}
 function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销(经典/无尽/终战通用)
   const you=S.players[0];let ghost=false;
+  if(result&&result.surv&&A&&result.surv[0].length===A.length)S._noDeathWin=true; // 名册成就「一命不折」打点(任一场零阵亡胜利)
   if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;you.coins+=2;S.slainN=(S.slainN||0)+1;
     toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);S.ghostFoe=null;}
   const ctx={result,A,round:S.round,ghost};
@@ -3529,10 +3663,14 @@ const STRATS=[
  {id:'st_gold',    n:'金脉',     d:'每关收入 +2 铸币'},
  {id:'st_tier',    n:'星尘牵引', d:'牌力立即 +1 级'},
  {id:'st_reroll',  n:'商队特许', d:'每关免费刷新 +1 次'},
+ // —— 名册 Lv.5 解锁(仅单人;强度对齐现有,只是多两条构筑路线) ——
+ {id:'st_tide',    n:'潮汐亲和', d:'水象单位 +2 生命 · 开战 +1 盾', lock:'strats'},
+ {id:'st_ember',   n:'余烬亲和', d:'火象单位 +1 攻 · 首击必暴',      lock:'strats'},
 ];
-function stratPool(you){ // 纯函数便于自检:排除已拥有 + 牌力已满时的星尘牵引(选了=纯空操作的死项)
+function stratPool(you){ // 纯函数便于自检:排除已拥有 + 牌力满时的死项 + 未解锁的名册内容
   const owned=new Set(you.strats||[]);
-  return STRATS.filter(s=>!owned.has(s.id)&&!(s.id==='st_tier'&&effTier(you)>=5));
+  return STRATS.filter(s=>!owned.has(s.id)&&!(s.id==='st_tier'&&effTier(you)>=5)
+    &&(!s.lock||metaUnlocked(s.lock))); // 名册未解锁的不进池(多人局本就不发秘策,天然公平)
 }
 function showStratPick(){
   const you=S.players[0];
@@ -3831,6 +3969,17 @@ function soloEnd(victory){
   S.phase='final';setPhase(victory?'加冕':'试炼结算');
   showFinalArt();
   const you=S.players[0], cleared=victory?S.round:Math.max(0,S.round-1);
+  // —— 狼先生的名册:终局提交(必须在 clearSave 之前——那时 S 还在) ——
+  const _mv=(typeof mvpInfo==='function')?mvpInfo():null;
+  const _mr=metaCommit({win:!!victory||cleared>0, victory:!!victory, endless:!!S.endless, cleared:cleared,
+    slain:S.slainN||0, bounty:(S.bounties||[]).filter(b=>b.done).length,
+    army:(you.army||[]).map(a=>({id:a.id,star:a.star})), mvpId:_mv&&_mv.id, coins:you.coins||0,
+    elem4:['earth','wind','fire','water'].every(e=>bondTier(you,e)>=1),
+    noDeath:!!S._noDeathWin, bridge:(typeof bridgeUnits==='function')&&bridgeUnits(you).length>0});
+  if(_mr){ // 名册反馈:先报升级,再逐条报成就(错开,别刷屏)
+    if(_mr.lvUp)setTimeout(()=>{toast(`名册晋升 · Lv.${_mr.lv} 「${metaTitle()}」`,3400);SFX.play('crown')},600);
+    (_mr.ach||[]).forEach((a,i)=>setTimeout(()=>{toast(`功勋「${a.n}」—— ${a.d}`,3200);SFX.play('reveal')},1400+i*900));
+  }
   const best=soloBest(), key='d'+S.difficulty, prev=best[key]||0, isNew=cleared>prev;
   if(isNew){best[key]=cleared;try{localStorage.setItem('zmq_solobest',JSON.stringify(best))}catch(e){}}
   const shown=Math.max(cleared,prev);
@@ -3943,6 +4092,14 @@ function resolveBoss(){
 function finalSort(){return [...S.players].sort((a,b)=>b.crowns-a.crowns||b.coins-a.coins||b.wins-a.wins)}
 function finale(){
   S.phase='final';setPhase('加冕');save();
+  // —— 狼先生的名册:多人课堂局也给 XP/记录/成就(增益内容不进多人局,课堂公平) ——
+  {const _mv=(typeof mvpInfo==='function')?mvpInfo():null;
+   const _champ=finalSort()[0]||S.players[0]||{};
+   metaCommit({win:true, victory:false, endless:false, cleared:S.actsTotal||3,
+     slain:0, bounty:0, army:(_champ.army||[]).map(a=>({id:a.id,star:a.star})),
+     mvpId:_mv&&_mv.id, coins:_champ.coins||0, multi:true,
+     elem4:['earth','wind','fire','water'].every(e=>bondTier(_champ,e)>=1),
+     noDeath:false, bridge:false});}
   showFinalArt();
   const sorted=finalSort();
   const pod=$('#podium');pod.innerHTML='';
@@ -4241,12 +4398,44 @@ function showMenu(){
   modal(`<h3>菜 单</h3>
   <div class="btnrow" style="flex-direction:column;align-items:center">
     <button class="btn" onclick="closeModal();showHowto()">${uiIcon('help-book')}${S&&S.solo?'玩法说明':'玩法与课堂说明'}</button>
+    <button class="btn" onclick="closeModal();showRoster()">狼先生的名册</button>
     <button class="btn" onclick="closeModal();showUnits()">${uiIcon('rank-star')}单位与遗物图鉴</button>
     <button class="btn" onclick="SFX.toggle();closeModal();showMenu()">${uiIcon(SFX.isMuted()?'sound-off':'sound-on')}${SFX.isMuted()?'音效：关 · 点击开启':'音效：开 · 点击静音'}</button>
     <button class="btn" onclick="BGM.toggle();closeModal();showMenu()">${uiIcon(BGM.isOn()?'sound-on':'sound-off')}${BGM.isOn()?'背景音乐：开 · 点击关闭':'背景音乐：关 · 点击开启'}</button>
     <button class="btn" onclick="closeModal();go('title')">${uiIcon('nav-back')}回到标题（进度已存）</button>
     <button class="btn danger" onclick="if(confirm('确定放弃本局？存档将清空')){clearSave();location.reload()}">${uiIcon('state-loss')}放弃本局</button>
   </div>`);
+}
+/* 狼先生的名册 · 主界面(复用 modal/.bond-chip/codex-grid,零新美术) */
+function showRoster(){
+  const L=levelOf(_meta.xp), tot=UNITS.length;
+  const seenN=Object.keys(_meta.seen||{}).length, s3N=Object.keys(_meta.star3||{}).length, mvpN=Object.keys(_meta.mvp||{}).length;
+  const achGot=Object.keys(_meta.ach||{}).length;
+  const bar=`<div style="max-width:420px;margin:0 auto 6px;height:8px;background:rgba(0,0,0,.35);border:1px solid var(--line2)">
+    <i style="display:block;height:100%;width:${L.pct}%;background:linear-gradient(90deg,var(--gold3),var(--gold2))"></i></div>`;
+  const head=`<div style="text-align:center">
+    <div style="font-size:13px;color:var(--ink3);letter-spacing:.2em">${metaTitle()}</div>
+    <div style="font-family:var(--serif);font-size:30px;color:var(--gold2);margin:2px 0 8px">名册 Lv.${L.lv}${L.lv>=META_LVMAX?' · 满':''}</div>
+    ${bar}
+    <div style="font-size:11.5px;color:var(--ink3);letter-spacing:.06em">${L.need?`${L.cur} / ${L.need} XP → Lv.${L.lv+1}`:'已至名册之巅'}</div>
+    <div style="font-size:12px;color:var(--ink2);margin-top:10px;line-height:1.9">
+      对局 <b style="color:var(--gold2)">${_meta.runs}</b> · 胜 <b style="color:var(--gold2)">${_meta.wins}</b> · 斩影 <b style="color:var(--purple)">${_meta.slain}</b> · 悬赏 <b style="color:var(--gold2)">${_meta.bountyDone}</b><br>
+      收集 <b style="color:var(--gold2)">${seenN}/${tot}</b> 学员 · 三星 <b style="color:var(--gold2)">${s3N}</b> · MVP <b style="color:var(--gold2)">${mvpN}</b> · 成就 <b style="color:var(--gold2)">${achGot}/${ACHIEVEMENTS.length}</b>
+    </div></div>`;
+  const grid=`<h4 style="text-align:center;margin:18px 0 4px">学员收集</h4>
+    <p style="text-align:center;color:var(--ink3);font-size:11.5px;margin-bottom:6px">用过点亮 · <span style="color:var(--gold2)">★</span>=三星过 · <span style="color:var(--purple)">◆</span>=当过 MVP</p>
+    <div class="codex-grid">`+UNITS.map(u=>{
+      const seen=!!(_meta.seen||{})[u.id], s3=!!(_meta.star3||{})[u.id], mv=!!(_meta.mvp||{})[u.id];
+      return `<div class="codex-u" data-uid="${u.id}" style="${seen?'':'opacity:.3;filter:grayscale(1)'}">
+        <div class="badge r-${u.rar}" data-fac="${u.fac}">${facEmblem(u.fac)}<span class="glyph">${u.n[0]}</span>${artTag(u.id)}
+          ${s3?'<span style="position:absolute;top:1px;right:2px;font-size:10px;color:var(--gold2);z-index:3">★</span>':''}
+          ${mv?'<span style="position:absolute;bottom:1px;right:2px;font-size:10px;color:var(--purple);z-index:3">◆</span>':''}</div>
+        <div class="cu-n">${u.n}</div></div>`}).join('')+`</div>`;
+  const ach=`<h4 style="text-align:center;margin:18px 0 6px">名册功勋</h4>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">`+ACHIEVEMENTS.map(a=>{
+      const got=!!(_meta.ach||{})[a.id];
+      return `<span class="bond-chip ${got?'bond-t2':''}" title="${a.d}" style="${got?'':'opacity:.42'}">${got?'✔ ':''}${a.n}</span>`}).join('')+`</div>`;
+  modal(`<h3>狼先生的名册</h3>${head}${grid}${ach}`);
 }
 function showUnits(){
   // 单位立绘网格就是最好的目录（文字墙时代结束）；点立绘进完整档案
@@ -4274,7 +4463,9 @@ $('#btn-howto').onclick=showHowto;
 $('#btn-menu').onclick=showMenu;
 
 (function boot(){
+  _meta=loadMeta(); // 狼先生的名册:启动读一次(独立键,与局内存档隔离)
   if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
+  {const br=$('#btn-roster');if(br)br.onclick=showRoster}
   if(loadSave())$('#btn-continue').style.display='';
   if(LB_ON){const bh=$('#btn-lbhall');if(bh){bh.style.display='';bh.onclick=showLbHall}}
   renderSetup();

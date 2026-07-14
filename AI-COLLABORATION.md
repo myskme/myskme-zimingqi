@@ -157,3 +157,15 @@
 - **B4 清死重**:删 4 个零引用孤儿(`assets/{title-kv,boss-yewang,boss-professor,boss-echo}.webp`——ART 里 title/yewang/g5/g6 全部指向 `image2-system-20260713/` 版)+ 旧图标目录 `assets/ui-icons-20260714/`(37 文件,已被 b 版取代且运行时不读,路径内联在 UI_ICON_PATHS);遗物详情去掉图旁冗余汉字 `r.icon`。assets 22M→21M。
 - 验证:静态引用完整性扫描零缺失;`#selftest 204/204`;浏览器实测军团架 4 单位全 46px 圆头像、图真加载(naturalWidth 512)、object-fit cover。
 - 给 Codex:①`.mua` 是新的头像 class(mini-u/bunit 内),做视觉时注意;②征募卡 `.badge` 仍是 84px 硬裁小方块——**卡框美术到位后我会把它换成 cardURL 全幅卡面**(Part B2),你的 5 套稀有度卡框正是为此;③根目录 4 孤儿 webp 与旧 ui-icons 目录已删,勿再引用。
+
+### 2026-07-14 · Claude · Part A:「狼先生的名册」账号级持久成长(王老师定名/定曲线)
+
+- 基线:`ae6f29f`。**动机**:勘察确认自鸣棋**零账号级成长**——打完一局除"最佳纪录N关"一个数字外什么都不留下,这是"百玩不厌"的核心缺口(对标 StS/SAP/Balatro 的持久解锁)。
+- **三条铁律(勘察挖出的存档地雷,全部绕开)**:①meta 独立键 `zmq_meta`,**绝不进 S/dyyw1**(clearSave 每局删 dyyw1,而通关正是发奖时刻);②`_meta` 模块级变量,**绝不挂 S**(snapDraft/draftUndo 整体回滚 S → 成就会"领了又没");③**未 bump 存档版本**(validSave 硬门 v===1 无迁移)。
+- **XP 曲线(王老师要求:前期甜·中后期陡,严防几天满级)**:分段 `lvlXp(n)`=Lv2-5 `30+(n-2)*15` / Lv6-12 `90+(n-6)*45` / Lv13-20 `400+(n-13)*80`。实测(30XP/局):**第1局即Lv2 · Lv5≈7局 · Lv10≈37局 · Lv20满级≈241局**(每周5局≈近一年)。20级封顶,selftest 锁死曲线单调递增+总和 7225+封顶不越界。
+- **内容**:18 条成就(复用 BOUNTY 的 chk 谓词范式,幂等)/ 收集图鉴(用过/三星过/MVP过 三维度,showRoster 复用 codex-grid,灰=未点亮)/ 称号 5 档(见习生→学徒→高徒→首徒→断云弟子,**本地展示不上榜**——lbPayload schema 固定)。
+- **解锁(严守课堂公平+不加强)**:Lv5 → 2 条新秘策(潮汐/余烬亲和,**与现有同强度**);Lv10 → 3 条新悬赏;**全部 `lock` 字段门控,stratPool/assignBounties 读池时过滤**;多人课堂局也给 XP/记录/成就,但**增益内容一律不进多人局**(finale 的 metaCommit 走 multi:true)。
+- 接线:`boot` 初始化 _meta;`soloEnd` **在 clearSave 前** metaCommit(拿 S 快照);`finale` 多人版;`soloWinPerks` 打 _noDeathWin 点;标题页+菜单双入口 showRoster。
+- ⚠ 自己踩坑记录:`st_ember` 初版写 `f.firstCrit=true` 是**死字段**(战斗里读的是 `f.skill.k==='firstCrit'`)——与前两天抓的同类 bug 一模一样,已改为 `f.emberCrit` 并在首击判定处与 skill.firstCrit 同权。
+- 自测:`#selftest 217/217`(+13:曲线单调/满级封顶/241局节奏/XP加总/**meta不进S**/**撤销不回滚meta**/坏JSON防御/旧v1可续局/Lv1新内容不进池/满级进池/成就幂等/称号不进lbPayload)。浏览器实测完整闭环:第1局→Lv2+3成就+收集点亮3人、存档隔离(dyyw1无xp)、Lv1不解锁/Lv5解锁、名册界面 35 立绘全加载。
+- 给 Codex:①名册界面复用 modal/codex-grid/.bond-chip,**零新美术**——若要做视觉,建议"名册封面/等级纹章/成就徽记";②`_meta` 是模块级变量,做 UI 时读它即可,**别往 S 里塞**;③新增 st_tide/st_ember 秘策与 3 条新悬赏带 `lock` 字段,勿删。
