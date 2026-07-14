@@ -1500,13 +1500,55 @@ const SKILL_SV={shieldAll:1, shieldSelf:1, healLow:1, snipeBack:2, splashDeath:1
 // atone 不随星（条件类：有黑域就 +1 攻，星级不该让"归正"的觉悟更深）
 function skillFor(u,star){const s=u.skill, sv=(SKILL_SV[s.k]||0)*((star||1)-1);
   return sv? {...s, v:(s.v||0)+sv} : s;}
-// 星象三相环（单环相克）：学院→海族→黑域→学院。克 ×1.15 / 被克 ×0.85，只作用基本攻击、只染色不破盾
-const FAC_COUNTER={academy:'sea', sea:'dark', dark:'academy'};
-function factionMult(srcFac,tgtFac){
-  if(!srcFac||!tgtFac)return 1;                    // 空值守卫：undefined 会让下面 ===undefined 误判为克
-  if(FAC_COUNTER[srcFac]===tgtFac)return 1.15;   // 我克敌
-  if(FAC_COUNTER[tgtFac]===srcFac)return 0.85;   // 我被敌克
-  return 1;                                       // 天之国/摇摆/挑战者/幽灵 一律 1（不参与相克）
+// 星象四象环（单环相克·2026-07-14 替换旧阵营三相环）：土掩水 → 水灭火 → 火灼风 → 风蚀土（箭头=克向）。
+// 克 ×1.15 / 被克 ×0.85 数值沿用旧环零重调，只作用基本攻击、只染色不破盾。
+// 动机(王老师)：阵营相克受人数/化身局限；星座四象是正典自带资料，35人全员参与、分布可用无原型NPC补写调平。
+const ZODIAC={ // id:[星座,象] · 星座=正典characters.json(马将军/鹦鹉教授/小黑猫 0714入典);谷地守望/星尘车夫/白鹤侍从/断云斥候/信鸽/海雾行者6通用单位=自鸣棋本地设定(经王老师0714批准)
+  zi:['处女','earth'],
+  zeng:['水瓶','wind'],
+  lin:['狮子','fire'],
+  yin:['狮子','fire'],
+  lu:['处女','earth'],
+  wolf:['天秤','wind'],
+  guard:['金牛','earth'],
+  carter:['摩羯','earth'],
+  jin:['水瓶','wind'],
+  han:['处女','earth'],
+  hao:['水瓶','wind'],
+  xin:['射手','fire'],
+  nuo:['天蝎','water'],
+  crane:['双鱼','water'],
+  scout:['天蝎','water'],
+  pigeon:['巨蟹','water'],
+  jia:['水瓶','wind'],
+  rui:['水瓶','wind'],
+  yu:['白羊','fire'],
+  qi:['白羊','fire'],
+  mist:['巨蟹','water'],
+  hai:['射手','fire'],
+  wei:['天蝎','water'],
+  rong:['双子','wind'],
+  yang:['射手','fire'],
+  majun:['摩羯','earth'],
+  wan:['金牛','earth'],
+  xuan:['摩羯','earth'],
+  hui:['天秤','wind'],
+  hang:['水瓶','wind'],
+  yue:['天秤','wind'],
+  duo:['双子','wind'],
+  wen:['狮子','fire'],
+  xiao:['处女','earth'],
+  xi:['双鱼','water']
+};
+const ELEM_CN={wind:'风象',fire:'火象',earth:'土象',water:'水象'};
+const ELEM_COUNTER={earth:'water', water:'fire', fire:'wind', wind:'earth'}; // 土掩水/水灭火/火灼风/风蚀土
+function unitElem(id){const z=ZODIAC[id];return z?z[1]:null}
+function elemMult(srcId,tgtId){
+  const a=unitElem(srcId), d=unitElem(tgtId);
+  if(!a||!d)return 1;                             // 幽灵/未知守卫(叶王军等无档单位不参与)
+  if(ELEM_COUNTER[a]===d)return 1.15;             // 我克敌
+  if(ELEM_COUNTER[d]===a)return 0.85;             // 我被敌克
+  return 1;
 }
 
 /* 屏幕切换 */
@@ -1976,8 +2018,8 @@ function showUnitDetail(id,inst){
       ?'<b style="color:#9cc0e8">穿透</b> —— 绕过前排，直取敌方<b>最后排</b>，无视嘲讽'
       :'<b style="color:#d9964a">嘲讽</b> —— 敌方近战优先打它，替后排<b>挡刀</b>')
     :'<b>近战</b> —— 攻击敌方最前排';
-  const kf=FAC_COUNTER[u.fac], bkf=Object.keys(FAC_COUNTER).find(k=>FAC_COUNTER[k]===u.fac);
-  const clashTxt=kf?`克制 <b style="color:var(--teal)">${FACS[kf].n}</b>（基本攻击 +15%）· 被 <b style="color:#9a9686">${FACS[bkf].n}</b> 克制（-15%）`:'不参与星象相克';
+  const _zo=ZODIAC[id], _el=_zo&&_zo[1], kf=_el&&ELEM_COUNTER[_el], bkf=_el&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===_el);
+  const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +15%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-15%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
   modal(`<div class="udetail-card"><img src="${cardURL(id)}" alt="" onerror="this.parentNode.style.display='none'">${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}</span></h3>
@@ -2114,10 +2156,10 @@ function renderFoeIntel(p){
     ||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>';
   let hint='';
   if(army&&army.length){
-    const counts={};army.forEach(a=>{const f=UMAP[a.id].fac;counts[f]=(counts[f]||0)+1});
+    const counts={};army.forEach(a=>{const e=unitElem(a.id);if(e)counts[e]=(counts[e]||0)+1});
     const main=Object.keys(counts).sort((a,b)=>counts[b]-counts[a])[0];
-    const killer=Object.keys(FAC_COUNTER).find(k=>FAC_COUNTER[k]===main);
-    hint=killer?`主打${FACS[main].n} —— ${FACS[killer].n}克它 +15%`:`主打${FACS[main].n} —— 不参与相克`;
+    const killer=main&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===main); // 四象:克 main 的那个象
+    hint=main?`主打${ELEM_CN[main]} —— ${ELEM_CN[killer]}克它 +15%`:'不参与相克';
   }else if(ghostUnits)hint='幽灵军 —— 不参与相克';
   el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${name}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
 }
@@ -2469,7 +2511,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   function dealDmg(srcSide,src,tgt,amt,tag,crit,isBasic){
     if(!tgt||!tgt.alive)return;
     let eff=1;
-    if(isBasic&&src){eff=factionMult(src.fac,tgt.fac); if(eff!==1)amt=Math.max(1,Math.round(amt*eff))} // 相克只调基本攻击、不破盾
+    if(isBasic&&src){eff=elemMult(src.id,tgt.id); if(eff!==1)amt=Math.max(1,Math.round(amt*eff))} // 四象相克只调基本攻击、不破盾(幽灵无id→1)
     let rest=amt;
     if(tgt.shield>0){const ab=Math.min(tgt.shield,rest);tgt.shield-=ab;rest-=ab;
       if(ab>0)log.push({t:'shieldHit',d:tgt.uid,amt:ab})}
@@ -2654,12 +2696,13 @@ function runSelftest(){
   ok('scout 穿透 / guard 嘲讽（数据挂载）', UMAP['scout'].tg==='pierce'&&UMAP['guard'].taunt===true);
   ok('技能寻址不受影响：诺 snipeBack 仍在（tg 与技能正交）', UMAP['nuo'].skill.k==='snipeBack');
   // —— 星象三相环相克 ——
-  ok('学院克海族 ×1.15', factionMult('academy','sea')===1.15);
-  ok('海族被学院克 ×0.85', factionMult('sea','academy')===0.85);
-  ok('三相成环 学院→海族→黑域→学院', factionMult('sea','dark')===1.15&&factionMult('dark','academy')===1.15);
-  ok('学院被黑域克 ×0.85', factionMult('academy','dark')===0.85);
-  ok('环外系不参与（天之国vs摇摆=1）', factionMult('sky','swing')===1);
-  ok('幽灵/未知一律1、不 NaN', factionMult('ghost','academy')===1&&factionMult(undefined,undefined)===1);
+  ok('四象成环 土掩水/水灭火/火灼风/风蚀土', ELEM_COUNTER.earth==='water'&&ELEM_COUNTER.water==='fire'&&ELEM_COUNTER.fire==='wind'&&ELEM_COUNTER.wind==='earth');
+  ok('土克水单位 ×1.15(梓处女土 vs 诺天蝎水)', elemMult('zi','nuo')===1.15);
+  ok('被克反向 ×0.85(诺 vs 梓)', elemMult('nuo','zi')===0.85);
+  ok('同象=1(瑾风 vs 增风)、隔位=1(梓土 vs 琳火)', elemMult('jin','zeng')===1&&elemMult('zi','lin')===1);
+  ok('幽灵/未知一律1、不 NaN', elemMult('ghost','zi')===1&&elemMult(undefined,undefined)===1);
+  ok('全35单位有星座归象', UNITS.every(u=>ZODIAC[u.id]&&ELEM_CN[ZODIAC[u.id][1]]));
+  ok('四象各≥3人(无死象)', (()=>{const c={};UNITS.forEach(u=>{c[ZODIAC[u.id][1]]=(c[ZODIAC[u.id][1]]||0)+1});return ['wind','fire','earth','water'].every(e=>c[e]>=3)})());
   // —— 羁绊双阈值 ——
   const parmy=(...ids)=>({army:ids.map(id=>({uid:uidSeq++,id,star:1,gAtk:0,gHp:0})),relics:[]});
   ok('学院 2名→档1', bondTier(parmy('lin','yin'),'academy')===1);
@@ -3103,9 +3146,10 @@ function runSelftest(){
    for(let i=0;i<fk.length;i++)for(let j=0;j<fk.length;j++){if(i===j)continue;
      fw[fk[i]][0]+=duel(TEAMS[fk[i]],TEAMS[fk[j]],12,2000+i*100+j*10)*12;fw[fk[i]][1]+=12}
    const fr=k=>fw[k][0]/fw[k][1];
-   // 带宽=2026-07-10 批⑪实测 ± 宽容带（探针口径含 sideFlags 后重锚）。
-   // 学院不再顶格（86%）：并非削了学院，是修好了探针——海雾溅射/反震过去从未进入对局。
-   const BAND={academy:[.70,.96],sea:[.72,.99],sky:[.35,.85],dark:[.1,.55],novice:[.1,.55],swing:[0,.3]};
+   // 带宽=2026-07-14 四象环重锚（相克从阵营环换星座四象环，实测:academy80/sea100/sky60/dark22/novice37/swing3）。
+   // ⚠ 海族顶格100%：旧环「学院克海族」的设计压制随四象解耦消失(+~10pp)，叠加已知反震白点(+26pp)。
+   //   本体此前核查健康 → 先重锚观察课堂实测；若海族泛滥，候选微调=麒或屿 -1 攻 / 成本 +1（勿动相克数值）。
+   const BAND={academy:[.66,.94],sea:[.80,1.0],sky:[.40,.82],dark:[.08,.45],novice:[.18,.58],swing:[0,.22]};
    fk.forEach(k=>{const r=fr(k),[lo,hi]=BAND[k];
      ok(`探针·阵营带宽 ${k}=${(r*100)|0}%∈[${lo*100},${hi*100}]`, r>=lo&&r<=hi)});
    // ② 单人标准线曲线（正常收卡不深度经营 vs 精英敌军）
@@ -4081,10 +4125,10 @@ function showHowto(){
   绕过前排直取<b>最后排 C 位</b>、还无视嘲讽。
   征募时用 ${uiIcon('action-move-front')}向前排／${uiIcon('action-move-back')}向后排调整站位——坦克顶前面吸火，怕穿透就<b>别把宝贝放最后一位</b>（前不挨打、后被穿透，中间最稳）。
   开战狙击（诺 / 菀）同样点名后排——<b>护盾能挡狙击</b>：琳/涵的全队盾、白鹤/浩的自体盾都是明牌反制。`)
-  +sec('星象三相环（属性相克）',`
-  三系成环：<b style="color:var(--gold2)">学院 → 海族 → 黑域 → 学院</b>（箭头指向被克方）。
+  +sec('星象四象环（星座相克）',`
+  每位学员都有真实星座，十二星座归四象成环：<b style="color:var(--gold2)">土掩水 → 水灭火 → 火灼风 → 风蚀土</b>（箭头指向被克方）。
   基本攻击打到<b>被自己克</b>的敌人时<b style="color:var(--gold2)">伤害 +15%（金字·克）</b>、打到<b>克自己</b>的敌人时 -15%（淡字）。
-  天之国 / 摇摆 / 挑战者不参与相克。构筑时可针对宿敌的主系选克制它的阵容。`)
+  <b>全员参与</b>——点立绘看每人的星座与象。相克与阵营脱钩：阵营管羁绊凑人，四象管对位克制，两条线各算各的。`)
   +sec('演武（自动对战）',`
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
   胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
