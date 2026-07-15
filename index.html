@@ -714,6 +714,52 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 .offer.rec-card.rare-UR .rec-frame{box-shadow:0 0 0 1px rgba(232,199,104,.7),0 12px 40px rgba(201,166,74,.3)}
 .rec-card.sold .rec-frame{filter:grayscale(.85)}
 @media(max-width:760px){.rec-frame{max-width:320px;margin:0 auto}.rec-plate .skill{font-size:12.5px}}
+/* ============ 名册视觉（roster-art-20260715）+ 界面框架件（ui-framework-20260715）接线 20260715d ============
+   全部 mask + currentColor，由 body.rok/body.uok 门控；缺图/离线时这些装饰整体不显，名册退回纯文字版。 */
+.roster-banner{position:relative;max-width:520px;margin:0 auto 4px;aspect-ratio:1200/420;
+  border:1px solid var(--gold3);border-radius:2px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.5)}
+.roster-cover{width:100%;height:100%;object-fit:cover;display:block}
+.roster-banner .roster-cover{position:absolute;inset:0;max-width:none;margin:0;border:0}
+.roster-banner .rb-info{position:absolute;top:0;right:0;bottom:0;width:62%;z-index:1;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:0 16px;text-align:center}
+.roster-banner .rb-info::before{content:'';position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(90deg,transparent,rgba(6,10,14,.5) 34%)}
+.rb-title{font-size:12px;color:var(--ink2);letter-spacing:.22em}
+.rb-lv{font-family:var(--serif);font-size:25px;color:var(--gold2);margin:1px 0 6px}
+.rb-need{font-size:11px;color:var(--ink3);letter-spacing:.05em;margin-top:4px}
+.roster-banner.no-cover{aspect-ratio:auto;border:0;box-shadow:none;overflow:visible;margin-bottom:8px} /* 缺封面→无横幅堆叠 */
+.roster-banner.no-cover .rb-info{position:static;width:auto;padding:0}
+.roster-banner.no-cover .rb-info::before{display:none}
+@media(max-width:760px){.roster-banner .rb-info{width:66%;padding:0 10px}.rb-lv{font-size:21px}}
+.roster-rank{display:none}
+body.rok .roster-banner .roster-rank{width:46px;height:46px;margin-bottom:2px}
+body.rok .roster-rank{display:inline-block;width:56px;height:56px;vertical-align:middle;margin-bottom:4px;
+  background:currentColor;color:var(--gold2);
+  -webkit-mask:var(--rr) center/contain no-repeat;mask:var(--rr) center/contain no-repeat}
+.ach-badge{display:none}
+body.rok .ach-badge{display:inline-block;width:15px;height:15px;margin-right:5px;vertical-align:-2px;
+  background:currentColor;
+  -webkit-mask:var(--ab) center/contain no-repeat;mask:var(--ab) center/contain no-repeat}
+/* 界面框架件：四角饰 / 断云分隔纹 / MYSKME 印章 / 云丝底纹 —— 克制用于名册页 */
+.roster-wrap{position:relative}
+body.uok .roster-wrap>.uf-corner{position:absolute;width:34px;height:34px;pointer-events:none;z-index:2;
+  background:currentColor;color:var(--gold3);opacity:.55}
+body.uok .roster-wrap>.uf-tl{top:-6px;left:-6px;-webkit-mask:url(assets/ui-framework-20260715/ornament-corner-tl.svg) center/contain no-repeat;mask:url(assets/ui-framework-20260715/ornament-corner-tl.svg) center/contain no-repeat}
+body.uok .roster-wrap>.uf-tr{top:-6px;right:-6px;-webkit-mask:url(assets/ui-framework-20260715/ornament-corner-tr.svg) center/contain no-repeat;mask:url(assets/ui-framework-20260715/ornament-corner-tr.svg) center/contain no-repeat}
+body.uok .roster-wrap>.uf-bl{bottom:-6px;left:-6px;-webkit-mask:url(assets/ui-framework-20260715/ornament-corner-bl.svg) center/contain no-repeat;mask:url(assets/ui-framework-20260715/ornament-corner-bl.svg) center/contain no-repeat}
+body.uok .roster-wrap>.uf-br{bottom:-6px;right:-6px;-webkit-mask:url(assets/ui-framework-20260715/ornament-corner-br.svg) center/contain no-repeat;mask:url(assets/ui-framework-20260715/ornament-corner-br.svg) center/contain no-repeat}
+body.uok .roster-wrap::before{content:'';position:absolute;inset:0;pointer-events:none;z-index:0;opacity:.04;
+  background:currentColor;color:var(--gold2);
+  -webkit-mask:url(assets/ui-framework-20260715/pattern-cloudsilk-mask.svg) 0 0/210px 210px;mask:url(assets/ui-framework-20260715/pattern-cloudsilk-mask.svg) 0 0/210px 210px}
+.roster-wrap>*{position:relative;z-index:1}
+.uf-div{display:none}
+body.uok .uf-div{display:block;height:13px;max-width:240px;margin:16px auto;opacity:.5;
+  background:currentColor;color:var(--gold3);
+  -webkit-mask:url(assets/ui-framework-20260715/divider-broken-cloud.svg) center/contain no-repeat;mask:url(assets/ui-framework-20260715/divider-broken-cloud.svg) center/contain no-repeat}
+.uf-seal{display:none}
+body.uok .uf-seal{display:block;width:54px;height:54px;margin:14px auto 2px;opacity:.34;
+  background:currentColor;color:var(--gold3);
+  -webkit-mask:url(assets/ui-framework-20260715/brand-myskme-seal.svg) center/contain no-repeat;mask:url(assets/ui-framework-20260715/brand-myskme-seal.svg) center/contain no-repeat}
 #modal-box::-webkit-scrollbar{width:5px}#modal-box::-webkit-scrollbar-thumb{background:var(--gold3)}
 #toast{position:fixed;left:50%;bottom:calc(34px + var(--sab));transform:translateX(-50%) translateY(80px);z-index:96;
   background:var(--panel2);border:1px solid var(--gold);color:var(--ink);padding:10px 26px;
@@ -2292,6 +2338,25 @@ function cfAffix(q){return CF_DIR+'affix-quality-'+(AFFIX_QFILE[q]||'common')+'.
 function cfProbe(){const im=new Image();
   im.onload=()=>{(document.body||document.documentElement).classList.add('cfok')};
   im.src=cfCorner('N')}
+/* 名册美术（Codex roster-art-20260715）+ 界面框架件（ui-framework-20260715）接线。
+   称号/成就/装饰都是 currentColor SVG：<img> 加载会渲成黑（暗底隐形），故一律走 mask + background:currentColor，
+   由 body.rok / body.uok 门控（探到资源才点亮，缺图/离线自动退回文字），与 cf-corner 同一套安全模式。 */
+const ROSTER_DIR='assets/roster-art-20260715/', UIF_DIR='assets/ui-framework-20260715/';
+const ROSTER_RANKS=['novice','apprentice','adept','first-disciple','duanyun-disciple']; // 见习/学徒/高徒/首徒/断云弟子——与 metaTitle 同序
+function rosterRankIdx(){const lv=levelOf(_meta.xp).lv; return lv>=20?4:lv>=15?3:lv>=10?2:lv>=5?1:0}
+function rosterRankArt(){return ROSTER_DIR+'roster-rank-'+ROSTER_RANKS[rosterRankIdx()]+'.svg'}
+const ACH_BADGE={ // 17 成就 → 7 类纹章（与 manifest achievementMap 同源，改这里必同步 manifest）
+  a_first:'victory',a_clear:'victory',a_nodeath:'victory',
+  a_deep20:'shadow',a_slay1:'shadow',a_slay10:'shadow',
+  a_bounty10:'bounty',a_rich:'bounty',
+  a_star3:'growth',a_star10:'growth',a_lv10:'growth',
+  a_elem4:'tactics',a_bridge:'tactics',
+  a_runs10:'devotion',a_runs50:'devotion',
+  a_seen20:'collection',a_seenAll:'collection',a_mvp5:'collection'};
+function achBadgeArt(id){return ROSTER_DIR+'achievement-'+(ACH_BADGE[id]||'victory')+'.svg'}
+function rProbe(){ // 名册资产探针 → body.rok
+  const a=new Image();a.onload=()=>{(document.body||document.documentElement).classList.add('rok')};a.src=rosterRankArt();
+  const b=new Image();b.onload=()=>{(document.body||document.documentElement).classList.add('uok')};b.src=UIF_DIR+'ornament-corner-tl.svg'}
 function showUnitDetail(id,inst){
   const u=UMAP[id]; if(!u)return;
   const star=inst?(inst.star||1):1, b=inst?instBase(inst):{atk:u.atk,hp:u.hp,spd:u.spd};
@@ -3016,6 +3081,15 @@ function runSelftest(){
      const src=showRoster.toString();
      return ['★','◆','✔'].every(ch=>src.indexOf(ch)<0)
        &&src.indexOf("uiIcon('rank-star')")>0&&src.indexOf("uiIcon('score-throne')")>0})());
+   ok('名册美术接线：全部成就都有类别纹章(7类) · 5 档称号按等级各异 · 与 manifest achievementMap 同源', (()=>{
+     if(!ACHIEVEMENTS.every(a=>ACH_BADGE[a.id]))return false;        // 每个成就都能查到纹章类别（新增成就漏映射→此处红）
+     if(new Set(Object.values(ACH_BADGE)).size!==7)return false;     // 恰好 7 类纹章
+     if(ROSTER_RANKS.length!==5)return false;                        // 5 档称号
+     const _m=_meta;
+     try{ _meta={xp:0}; const lo=rosterRankArt();                    // Lv1 → 见习生
+          _meta={xp:9999999}; const hi=rosterRankArt();              // 封顶 → 断云弟子
+          return lo.indexOf('roster-rank-novice')>=0 && hi.indexOf('roster-rank-duanyun-disciple')>=0; }
+     finally{ _meta=_m }})());
    ok('视觉基准：投屏大字档（≥1100px）未被误伤——课堂后排可读是硬指标', (()=>{
      const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
      return /@media \(min-width:1100px\)/.test(css)&&/\.offer \.skill\{font-size:15px\}/.test(css)})());
@@ -5365,12 +5439,19 @@ function showRoster(){
   const achGot=Object.keys(_meta.ach||{}).length;
   const bar=`<div style="max-width:420px;margin:0 auto 6px;height:8px;background:rgba(0,0,0,.35);border:1px solid var(--line2)">
     <i style="display:block;height:100%;width:${L.pct}%;background:linear-gradient(90deg,var(--gold3),var(--gold2))"></i></div>`;
+  // 封面横幅：Codex 设计=左徽记+右侧标题安全区，故把称号/等级/进度压在封面右侧（缺图 onerror 退回无横幅堆叠版）
+  const banner=`<div class="roster-banner">
+    <img class="roster-cover" src="${ROSTER_DIR}roster-cover-1200.webp" srcset="${ROSTER_DIR}roster-cover-600.webp 600w, ${ROSTER_DIR}roster-cover-1200.webp 1200w" sizes="(max-width:760px) 94vw, 520px" alt="" decoding="async" onerror="this.closest('.roster-banner').classList.add('no-cover')">
+    <div class="rb-info">
+      <div class="roster-rank" style="--rr:url(${rosterRankArt()})" aria-hidden="true"></div>
+      <div class="rb-title">${metaTitle()}</div>
+      <div class="rb-lv">名册 Lv.${L.lv}${L.lv>=META_LVMAX?' · 满':''}</div>
+      ${bar}
+      <div class="rb-need">${L.need?`${L.cur} / ${L.need} XP → Lv.${L.lv+1}`:'已至名册之巅'}</div>
+    </div></div>`;
   const head=`<div style="text-align:center">
-    <div style="font-size:13px;color:var(--ink3);letter-spacing:.2em">${metaTitle()}</div>
-    <div style="font-family:var(--serif);font-size:30px;color:var(--gold2);margin:2px 0 8px">名册 Lv.${L.lv}${L.lv>=META_LVMAX?' · 满':''}</div>
-    ${bar}
-    <div style="font-size:11.5px;color:var(--ink3);letter-spacing:.06em">${L.need?`${L.cur} / ${L.need} XP → Lv.${L.lv+1}`:'已至名册之巅'}</div>
-    <div style="font-size:12px;color:var(--ink2);margin-top:10px;line-height:1.9">
+    ${banner}
+    <div style="font-size:12px;color:var(--ink2);margin-top:12px;line-height:1.9">
       对局 <b style="color:var(--gold2)">${_meta.runs}</b> · 胜 <b style="color:var(--gold2)">${_meta.wins}</b> · 斩影 <b style="color:var(--purple)">${_meta.slain}</b> · 悬赏 <b style="color:var(--gold2)">${_meta.bountyDone}</b><br>
       收集 <b style="color:var(--gold2)">${seenN}/${tot}</b> 学员 · 三星 <b style="color:var(--gold2)">${s3N}</b> · MVP <b style="color:var(--gold2)">${mvpN}</b> · 成就 <b style="color:var(--gold2)">${achGot}/${ACHIEVEMENTS.length}</b>
     </div></div>`;
@@ -5386,8 +5467,9 @@ function showRoster(){
   const ach=`<h4 style="text-align:center;margin:18px 0 6px">名册功勋</h4>
     <div style="display:flex;flex-wrap:wrap;gap:6px;justify-content:center">`+ACHIEVEMENTS.map(a=>{
       const got=!!(_meta.ach||{})[a.id];
-      return `<span class="bond-chip ach-chip ${got?'bond-t2':''}" title="${a.d}" style="${got?'':'opacity:.42'}">${a.n}</span>`}).join('')+`</div>`;
-  modal(`<h3>狼先生的名册</h3>${head}${grid}${ach}`);
+      return `<span class="bond-chip ach-chip ${got?'bond-t2':''}" title="${a.d}" style="${got?'':'opacity:.42'}"><span class="ach-badge" style="--ab:url(${achBadgeArt(a.id)})" aria-hidden="true"></span>${a.n}</span>`}).join('')+`</div>`;
+  modal(`<div class="roster-wrap"><span class="uf-corner uf-tl" aria-hidden="true"></span><span class="uf-corner uf-tr" aria-hidden="true"></span><span class="uf-corner uf-bl" aria-hidden="true"></span><span class="uf-corner uf-br" aria-hidden="true"></span>`
+    +`<h3>狼先生的名册</h3>${head}<div class="uf-div" aria-hidden="true"></div>${grid}<div class="uf-div" aria-hidden="true"></div>${ach}<div class="uf-seal" aria-hidden="true"></div></div>`);
 }
 function showUnits(){
   // 单位立绘网格就是最好的目录（文字墙时代结束）；点立绘进完整档案
@@ -5419,6 +5501,7 @@ $('#btn-menu').onclick=showMenu;
   if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
   {const br=$('#btn-roster');if(br)br.onclick=showRoster}
   cfProbe(); // 卡框/角标/词缀框：探到资源才点亮 body.cfok（selftest 早退，不受影响）
+  rProbe();  // 名册称号/成就纹章 → body.rok；界面四角饰/分隔/印章/云丝 → body.uok（同上，缺图退回文字）
   if(loadSave())$('#btn-continue').style.display='';
   if(LB_ON){const bh=$('#btn-lbhall');if(bh){bh.style.display='';bh.onclick=showLbHall}}
   renderSetup();
