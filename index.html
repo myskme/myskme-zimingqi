@@ -3193,7 +3193,8 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       // 边级：海雾同悲 / 爆炸残片 / 菀的旧日记
       if(flags[s].seaTier){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,flags[s].seaTier>=2?2:1,'潮汐')}
       if(flags[s].shards){foesOf(s).forEach(e=>dealDmg(s,null,e,1,'残片'))}
-      // 向死而生（亡语流）：同袍阵亡→2档随机友军 / 3档全队 +1 攻。前赴后继越战越强,不制造新死亡(安全)
+      // 向死而生（亡语流）：同袍阵亡→2档随机友军 / 3档全队 +1 攻。前赴后继越战越强,不制造新死亡(安全)。
+      // ⚠sim实测 tier2 边际+30pp(≈穿透2倍),但这是补偿弱死亡单位(死队整体探针0-17%,靠羁绊才viable),非霸权→保持王老师设计,课堂观察(若死队泛滥再收)。
       if(flags[s].deathTier){const survs=alive(s);if(survs.length){
         if(flags[s].deathTier>=2){survs.forEach(x=>x.atk+=1);log.push({t:'buff',d:survs[0].uid,txt:'全队 +1 攻 · 向死而生'})}
         else{const x=pickR(survs);x.atk+=1;log.push({t:'buff',d:x.uid,txt:'+1 攻 · 薪火'})}}}
