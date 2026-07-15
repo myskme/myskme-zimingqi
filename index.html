@@ -2352,12 +2352,19 @@ const BONDS={
   pierce:  {n:'破云之矢', chip:'穿透', th:[2,4], d:['穿透单位 开战 +2 护盾','穿透单位 开战 +2 护盾 · 首击必暴击 ×2']}, // 4档从纯数值+1攻升级为机制质变(20260717·王老师:要机制不要+2)
   vanguard:{n:'不退之誓', chip:'嘲讽', th:[2,3], d:['嘲讽单位被普攻命中：反震 1 伤','嘲讽单位被普攻命中：反震 2 伤']},
   death:   {n:'向死而生', chip:'亡语', th:[2,3], d:['同袍阵亡时 · 随机友军 +1 攻','同袍阵亡时 · 全队 +1 攻（前赴后继）']}, // 新增第三打法轴:机制型流派
+  // —— 批㉘ 激活新流派种子(20260717·王老师:控速/复活/暴击)。由技能k广义分组派生,机制型质变 ——
+  control:{n:'制敌之势', chip:'制御', th:[2,4], d:['开战 · 敌全体 -1 速','开战 · 敌全体 -2 速 · 敌最高攻 -2 攻']}, // 控速流:开战压制敌方(side flag·同凝滞通道)
+  persist:{n:'不倒之志', chip:'坚韧', th:[3,5], d:['坚韧单位 +4 最大生命','坚韧单位 +4 命 · 首次阵亡以半数生命复起']}, // 复活/坚韧流:存活质变(复用复起判定·50%)。th[3,5]:群体复活留给5单位硬构筑,防4-growth新徒队白嫖满档(sim实测th[2,4]→novice60/swing7失衡,[3,5]→novice50/swing25健康)
+  edge:   {n:'锋锐首击', chip:'锋锐', th:[2,3], d:['锋锐单位 首击额外 +3 伤','锋锐单位 首击必暴击 ×2']}, // 暴击/先手流:首击质变(复用afFirst/暴击判定)
 };
 // 两轴成员均由单一事实源派生：四象←ZODIAC,打法←UNITS 的 tg/taunt——绝不手抄名单
 ['wind','fire','earth','water'].forEach(e=>BONDS[e].ids=UNITS.filter(u=>unitElem(u.id)===e).map(u=>u.id));
 BONDS.pierce.ids  = UNITS.filter(u=>u.tg==='pierce').map(u=>u.id);
 BONDS.vanguard.ids= UNITS.filter(u=>u.taunt).map(u=>u.id);
 BONDS.death.ids   = UNITS.filter(u=>['splashDeath','boostLin','buffAdj','coinDeath'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 亡语=有阵亡时技能(屿/音/慧/车夫),由技能k派生不手抄名单
+BONDS.control.ids = UNITS.filter(u=>['slowFast','snipeBack','probeCore'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 制御=开战干扰敌方(减速/狙击/探问)
+BONDS.persist.ids = UNITS.filter(u=>['revive1','growth','soak'].includes(u.skill&&u.skill.k)).map(u=>u.id);          // 坚韧=复起/成长/软抵抗(越战越不倒)
+BONDS.edge.ids    = UNITS.filter(u=>['firstCrit','firstPlus'].includes(u.skill&&u.skill.k)).map(u=>u.id);            // 锋锐=首击强化(必暴/首击+伤)
 function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1]?2:(c>=th[0]?1:0)}
 function bondName(f){return (BONDS[f]&&BONDS[f].chip)||(FACS[f]&&FACS[f].n)||f}
 const ELEM_COLOR2={wind:'#9cc0e8',fire:'#e08b7a',earth:'#c9a64a',water:'#7fc4d8'};
@@ -2377,8 +2384,13 @@ function bondAdvance(p,u,key){
   const to=from+1, den=to<=b.th[0]?b.th[0]:b.th[1];
   return {f:key,to,den,hit:(to===b.th[0]||to===b.th[1])};
 }
-function bondAdvList(p,u){ // 一张卡的两条轴(四象+打法)
-  return [unitElem(u.id),'pierce','vanguard','death'].map(k=>bondAdvance(p,u,k)).filter(Boolean);
+function bondAdvList(p,u){ // 一张卡最多 2 枚:四象 + 一条最值得展示的打法轴(≤2 课堂限时铁律)。
+  // 打法轴现有 6 条(穿透/嘲讽/亡语/制御/坚韧/锋锐),桥牌单位可能命中多条→只显「成套优先·其次进度最高」那一条。
+  const el=bondAdvance(p,u,unitElem(u.id));
+  const plays=['pierce','vanguard','death','control','persist','edge'].map(k=>bondAdvance(p,u,k)).filter(Boolean)
+    .sort((a,b)=>(b.hit?1:0)-(a.hit?1:0)||(b.to/b.den)-(a.to/a.den));
+  const out=[]; if(el)out.push(el); if(plays.length)out.push(plays[0]);
+  return out;
 }
 /* 战报卡「本局羁绊」（纯函数，#selftest 可测）：把学生攒了一整局的成果画出来。
    满档在前、按档位降序；同档保持 BONDS 键序稳定（投屏观众的追踪锚点）。 */
@@ -2390,7 +2402,7 @@ function bondBadges(p){
 function bridgeUnits(p){
   const on=new Set(bondBadges(p).map(x=>x.f));
   return p.army.filter(a=>{const u=UMAP[a.id];
-    const axes=[...new Set([unitElem(a.id),'pierce','vanguard','death'])].filter(k=>k&&BONDS[k]&&on.has(k)
+    const axes=[...new Set([unitElem(a.id),'pierce','vanguard','death','control','persist','edge'])].filter(k=>k&&BONDS[k]&&on.has(k)
       &&(BONDS[k].ids?BONDS[k].ids.includes(a.id):inFac(a.id,k)));
     return axes.length>=2})
     .filter((a,i,arr)=>arr.findIndex(x=>x.id===a.id)===i); // 同名只表彰一次
@@ -3061,6 +3073,12 @@ function buildFighters(p, evFlags){
   // —— 第二轴 · 破云之矢（穿透）：补纸血短板，攻击加成锁在满档 ——
   if(bt.pierce>=1)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.shield+=2});
   if(bt.pierce>=2)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.pierceCrit=true}); // 质变:穿透单位首击必暴击(替原+1攻·机制流派)
+  // —— 批㉘ 新流派质变(锋锐/坚韧走 buildFighters;制御走 sideFlags.ctrlTier→simulateBattle 开场) ——
+  const inEdge=id=>BONDS.edge.ids.includes(id), inPer=id=>BONDS.persist.ids.includes(id);
+  if(bt.edge>=1)    fs.forEach(f=>{if(inEdge(f.id))f.afFirst=(f.afFirst||0)+3});    // 锋锐档1:首击 +3 伤(复用 afFirst 通道)
+  if(bt.edge>=2)    fs.forEach(f=>{if(inEdge(f.id))f.edgeCrit=true});               // 锋锐档2:首击必暴(新旗·接 simulateBattle 暴击判定)
+  if(bt.persist>=1) fs.forEach(f=>{if(inPer(f.id)){f.hp+=4;f.maxhp+=4}});           // 坚韧档1:+4 最大生命
+  if(bt.persist>=2) fs.forEach(f=>{if(inPer(f.id))f.spellRevive=true});             // 坚韧档2:首次阵亡半血复起(复用复起判定·欣自带 revive1 由 usedRevive 防重复)
   // 遗物
   if(hasRelic(p,'tassel')&&fs[0]){fs[0].hp+=4;fs[0].maxhp+=4}
   if(hasRelic(p,'letter')) fs.forEach(f=>f.spd+=1);
@@ -3114,9 +3132,9 @@ function resolveTarget(f, foes){
   return tk||foes[0];
 }
 function sideFlags(p){ // 边级效果
-  if(!p) return {seaTier:0,vanTier:0,deathTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false,urn:false};
+  if(!p) return {seaTier:0,vanTier:0,deathTier:0,ctrlTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false,urn:false};
   // seaTier 字段名保留(sim内部锚点),语义=水象·潮汐同悲;deathTier=向死而生(亡语流)
-  return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), deathTier:bondTier(p,'death'), shards:hasRelic(p,'shards'),
+  return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), deathTier:bondTier(p,'death'), ctrlTier:bondTier(p,'control'), shards:hasRelic(p,'shards'),
     ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf'),
     thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary'), urn:hasRelic(p,'urn')};
 }
@@ -3212,11 +3230,15 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     if(fo.length){const e=fo.reduce((m,x)=>x.atk>m.atk?x:m,fo[0]);
       e.atk=Math.max(0,e.atk-2);log.push({t:'debuff',d:e.uid,txt:'攻击 -2 · 羽笔'})}}});
 
-  // —— 灵光·对敌开场(P3 · 凝滞减速 / 星陨AOE):己方 spellSlow/spellMeteor side flag 施放于敌方(1-s),与羽笔同段 ——
+  // —— 开场对敌 side 效果(灵光 P3 凝滞/星陨 + 制御流 bond):己方 side flag 施放于敌方(1-s),与羽笔同段 ——
   [0,1].forEach(s=>{
     if(flags[s].spellSlow){foesOf(s).forEach(e=>{e.spd=Math.max(1,e.spd-flags[s].spellSlow)});
       const e0=foesOf(s)[0];if(e0)log.push({t:'debuff',d:e0.uid,txt:'速度 -'+flags[s].spellSlow+' · 凝滞'})}
     if(flags[s].spellMeteor){foesOf(s).forEach(e=>dealDmg(s,null,e,flags[s].spellMeteor,'星陨'));processDeaths()}
+    // 制御流:开战减速敌全体(档位=速),满档再削敌最高攻 -2
+    if(flags[s].ctrlTier){foesOf(s).forEach(e=>{e.spd=Math.max(1,e.spd-flags[s].ctrlTier)});
+      if(flags[s].ctrlTier>=2){const fo=foesOf(s);if(fo.length){const t=fo.reduce((m,x)=>x.atk>m.atk?x:m,fo[0]);t.atk=Math.max(0,t.atk-2);log.push({t:'debuff',d:t.uid,txt:'攻击 -2 · 制御'})}}
+      const e0=foesOf(s)[0];if(e0)log.push({t:'debuff',d:e0.uid,txt:'速度 -'+flags[s].ctrlTier+' · 制御'})}
   });
   // —— 回合循环 ——
   let winner=-1;
@@ -3249,7 +3271,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
         if(f.afFirst)amt+=f.afFirst; // 词缀「先声」与 firstPlus 同权叠加
-        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit||f.pierceCrit||f.spellCrit){amt*=2;crit=true} // 秘策余烬/词缀狼视/穿透流破云满档/灵光「破釜」 同款首击暴击
+        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit||f.pierceCrit||f.spellCrit||f.edgeCrit){amt*=2;crit=true} // 秘策余烬/词缀狼视/穿透流破云满档/灵光破釜/锋锐流满档 同款首击暴击
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
@@ -3377,6 +3399,22 @@ function runSelftest(){
      if(sideFlags({army:[{id:'yu'}],relics:[]}).deathTier!==0)return false;                       // 1个=不成阵
      return simulateBattle.toString().indexOf('flags[s].deathTier')>0
        && bondAdvance({army:[{id:'yu'}]},UMAP['guard'],'death')===null})());  // 非亡语单位查亡语轴=null不误报
+   ok('批㉘ 新流派激活：制御(ctrlTier开场压制敌·side级) / 坚韧(+命+半血复起·buildFighters) / 锋锐(afFirst+edgeCrit·首击质变) 由技能k派生+接线 · bondAdvList≤2', (()=>{
+     if(BONDS.control.ids.length<4||BONDS.persist.ids.length<4||BONDS.edge.ids.length<3)return false;       // 派生成员足量
+     if(!BONDS.persist.ids.includes('xin')||!BONDS.persist.ids.includes('xi')||!BONDS.control.ids.includes('mist')||!BONDS.edge.ids.includes('jin'))return false;
+     if(sideFlags({army:[{id:'mist'},{id:'hai'}],relics:[]}).ctrlTier!==1)return false;                     // 2制御=档1(th[2,4])
+     if(sideFlags({army:[{id:'mist'}],relics:[]}).ctrlTier!==0)return false;                                // 1个=不成阵
+     const bf=buildFighters.toString(), sim=simulateBattle.toString();
+     if(bf.indexOf('inEdge')<0||bf.indexOf('inPer')<0)return false;                                         // 锋锐/坚韧接 buildFighters
+     if(sim.indexOf('f.edgeCrit')<0||sim.indexOf('flags[s].ctrlTier')<0)return false;                       // edgeCrit/ctrlTier 接 sim
+     const p={army:[{id:'jin',uid:1,star:1,gAtk:0,gHp:0,af:null},{id:'xuan',uid:2,star:1,gAtk:0,gHp:0,af:null},{id:'scout',uid:3,star:1,gAtk:0,gHp:0,af:null}],relics:[],strats:[]};
+     const fs=buildFighters(p,{}); if(!fs.find(f=>f.id==='scout').edgeCrit)return false;                     // 3锋锐满档→scout(firstPlus)靠羁绊拿必暴
+     // 坚韧满档复起:xin+yue+duo+wen+xiao(5坚韧=th[3,5]满档)→ growth 单位 spellRevive(th[3,5]:防4-growth新徒队白嫖群体复活)
+     const p2={army:['xin','yue','duo','wen','xiao'].map((id,i)=>({id,uid:i+1,star:1,gAtk:0,gHp:0,af:null})),relics:[],strats:[]};
+     const f2=buildFighters(p2,{}); if(!f2.find(f=>f.id==='yue').spellRevive)return false;
+     const p1={army:['xin','yue','duo'].map((id,i)=>({id,uid:i+1,star:1,gAtk:0,gHp:0,af:null})),relics:[],strats:[]};
+     if(buildFighters(p1,{}).find(f=>f.id==='yue').spellRevive)return false;                              // 3坚韧=tier1(只+命·不复活)
+     const adv=bondAdvList({army:[{id:'scout'},{id:'mist'}]},UMAP['nuo']); return adv.length<=2;})());       // 桥牌单位 nuo(pierce+control) 也只 ≤2 枚徽标
    ok('灵光法术牌 P2+P3：14 张四品(秀3/珍7/传世4)· applySpells 各效果正确 · sim 接 spellCrit/spellRevive/复起加攻', (()=>{
      if(SPELLS.length!==14)return false;
      const byQ={};SPELLS.forEach(s=>byQ[s.q]=(byQ[s.q]||0)+1);
@@ -4136,7 +4174,9 @@ function runSelftest(){
    // 2026-07-14 四象羁绊重锚:实测 academy88/sea86/sky46/dark35/swing25/novice0(火t1已收+1)。
    // ⚠ novice≈0:新徒疯长羁绊随阵营轴退役——单场探针本就测不到成长价值,真实局内个人成长技能仍在;课堂观察项。
    // ⚠ swing 25:失去骑墙经济后纯战力读数,健康。
-   const BAND={academy:[.66,.94],sea:[.80,1.0],sky:[.40,.82],dark:[.08,.45],novice:[0,.15],swing:[0,.35]};
+   // 2026-07-17 批㉘ 重锚:激活新流派(制御/坚韧/锋锐)后 novice(全growth=坚韧流)从0复活到viable,场内"免费食物"消失→sky/dark相对下滑(非绝对变弱)。
+   //   坚韧 th[3,5](群体复活留5单位硬构筑)后实测 academy85/sea95/sky20/dark22/swing25/novice50。sky/novice 两条重锚,余四条仍在原范围。
+   const BAND={academy:[.66,.94],sea:[.80,1.0],sky:[.05,.55],dark:[.08,.45],novice:[.30,.70],swing:[0,.40]};
    fk.forEach(k=>{const r=fr(k),[lo,hi]=BAND[k];
      ok(`探针·阵营带宽 ${k}=${(r*100)|0}%∈[${lo*100},${hi*100}]`, r>=lo&&r<=hi)});
    // ② 单人标准线曲线（正常收卡不深度经营 vs 精英敌军）
