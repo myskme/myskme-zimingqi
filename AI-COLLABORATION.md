@@ -480,3 +480,22 @@
 - ⚠**纪律重申**:🚫断云禁令(任何新命名绝不出现"断云",覆盖旧"地名保留"规则);定名勿改(不屈命脉/绝品实录/云阶十行/鸣鼓开演/点名星盘/自鸣/群英擂台);`art(self):` 前缀+CI 绿+日志追加照旧。
 - 基线:HEAD `125f0ea`,`#selftest 284/284`。施工地图=《自鸣棋总账-人物剧情系统资产全录.md》+委托单 v3 第三节清单(传世大幕/玩家名片/名匠榜/点名星盘/选路卡图标/命脉条/灵光12牌面)。
 - Claude 同期继续逻辑侧(流派数值/灵光 P3/内容扩充),互不阻塞;你每批 art(self) 我做回归走查,不动你的视觉意图。
+
+### 2026-07-17 · Claude · 夜班逻辑侧大扩展(批㉗-㉙+对抗查虫修复)——Codex 表现层缺口在文末
+
+**王老师授权 Claude 自主跑到底(逻辑侧·不碰美术),数值一律 playwright sim harness 实测定档。全部已上线·CI绿·selftest 288。**
+- **批㉗ 灵光P3对敌类(93db263)**:凝滞 sp_slow(珍·开战敌全体-3速)/星陨 sp_meteor(传世·开战敌全体-4血)。新机制=applySpellFlags 往己方 sideFlags 挂 spellSlow/spellMeteor,simulateBattle 开场对 foesOf(s) 施放(与 applySpells 改己方正交)。SPELLS 12→14。
+- **批㉗ 流派配套(bd37b1a)**:遗物 云梭(穿透+2速)/薪火陶罐(阵亡→随机友军+1攻·sideFlags.urn+processDeaths);事件 云隙天光(穿透+2速+1攻)/挽歌余响(阵亡技单位+3命+1攻)。RELICS/EVENTS 20→22。
+- **批㉘ 激活新流派(59c6d5b)**:制御 control(slowFast/snipeBack/probeCore→ctrlTier开场压制敌·side级)/坚韧 persist(revive1/growth/soak→+命+半血复起·th[3,5])/锋锐 edge(firstCrit/firstPlus→afFirst+edgeCrit)。由技能k广义分组派生(零新单位·避免造正典)。bondAdvList 卡2枚守≤2铁律,bridgeUnits 加轴。平衡:坚韧 th[2,4]→[3,5](防4-growth新徒白嫖群体复活),探针带宽 sky/novice 重锚。
+- **批㉘ 通用新单位(80c6da5)**:更漏人(sky·slowFast·深化制御)/燧石(swing·firstCrit·深化锋锐)。UNITS 35→37。⚠**正典发现:大宝典33人已全入棋池,剩叶王/鹦鹉/小黑猫/一皆BOSS或特殊=无可招募的未入正典角色**→新单位用通用本地设定(同谷地守望等6通用单位)。**新增正典角色须王老师先定 characters.json(红线),Codex/Claude 都不得凭空造正典。**
+- **批㉙ 数值结论(e9b9061)**:sim实测穿透tier2 +15.5pp健康/亡语tier2 +30.5pp但补偿弱死亡单位(死队探针0-17%)非霸权/破军天工顶档不破→保留数值全健康无需改。
+- **对抗查虫修复(51c9cf9)**:5-agent对抗查虫(sim/存档/数据3维度空=核心逻辑干净),抓出1 MED:buyUnit 成阵教学toast硬编码轴列表漏新流派→抽纯函数 bondJustLit 修+补自检(287→288)。
+
+**🎨 给 Codex 的表现层缺口(我按委托单不碰美术,全交你规划):**
+1. **新流派缺纹章+色**:control/persist/edge 在军团面板羁绊 chip 现只显名字(制御/坚韧/锋锐)——facEmblem 无这三键→退成纯文字(同 death 现状)。建议补 FAC_EMBLEM 程序化纹章(制御=沙漏/网?坚韧=盾环?锋锐=箭簇?) + chip 色,与四象/穿透/嘲讽视觉一致。
+2. **新单位立绘**:更漏人(toll·sky·守钟楼滴漏的守望者)、燧石(flint·swing·擦火先锋)——现字形占位(更/燧),走 unit-toll.webp/unit-flint.webp + card-*。⚠通用单位非正典,风格参考谷地守望等6通用单位。
+3. **新遗物/事件图标**:遗物 云梭(shuttle·梭)/薪火陶罐(urn·陶);事件 云隙天光(ev_rift·隙)/挽歌余响(ev_mourn·挽)——现字形/artTag回退。
+4. **对敌灵光/制御的开场VFX**:凝滞(敌全体减速)、星陨(敌方AOE陨石坠落)、制御流开场压制——现无专属特效,是给你四象/戏眼之外的新VFX机会。
+5. **灵光新牌面**:凝滞/星陨(sp_slow/sp_meteor)现走通用灵光卡吃色阶,可出专属牌面。
+
+基线:HEAD `51c9cf9`,`#selftest 288/288`。sim harness 在 Claude scratchpad(非仓库)。Claude 继续待命逻辑侧回归走查。
