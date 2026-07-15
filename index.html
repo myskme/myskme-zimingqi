@@ -2832,6 +2832,14 @@ function renderBench(p){
     $('#relic-shelf').appendChild(chip);
   }
 }
+// 买入 u 后哪条羁绊正好跨上新档（纯函数·#selftest 可测）——首次教学 toast 用。
+// ⚠轴列表必须与 bondAdvList/bridgeUnits 同源(四象+六打法),漏一条=该流派成阵播报静默失效(批㉘对抗查虫抓出:此前硬编码漏了新增 control/persist/edge)。
+function bondJustLit(p,u){
+  const axes=[unitElem(u.id),'pierce','vanguard','death','control','persist','edge'];
+  const before={};axes.forEach(k=>{if(BONDS[k])before[k]=bondTier(p,k)});
+  const np={...p,army:[...p.army,{id:u.id}]}; // 假想买入,不改真 army
+  return axes.find(k=>BONDS[k]&&bondTier(np,k)>before[k])||null;
+}
 function buyUnit(idx,u,price){
   const p=curDrafter();
   // 开局点将：免费领一名，选完自动轮到下一位
@@ -2873,9 +2881,8 @@ function buyUnit(idx,u,price){
     burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#fff'],30);
   }else{
     // 新单位入队：若这一张正好把某条羁绊推上新档，就在奖励的那一刻把效果念出来（首次教学=零阅读前置）
-    const before={};[unitElem(u.id),'pierce','vanguard','death'].forEach(k=>{if(BONDS[k])before[k]=bondTier(p,k)});
+    const lit=bondJustLit(p,u);  // 纯函数·六打法+四象全轴(含批㉘新流派 control/persist/edge)
     p.army.push(mkInst(u.id));
-    const lit=Object.keys(before).find(k=>bondTier(p,k)>before[k]);
     if(lit){const t=bondTier(p,lit);
       toast(`${u.n} 入队 —— ${BONDS[lit].n}${t>=2?'满档':'成阵'}：${BONDS[lit].d[t-1]}`,3200);SFX.play('reveal');
       if(ELEM_RING_KEYS.has(lit))elemRingShow(lit,t); // 四象成阵环:只认四象键,pierce/vanguard 升档不播(接线单§2.3)
@@ -3424,6 +3431,13 @@ function runSelftest(){
      const p1={army:['xin','yue','duo'].map((id,i)=>({id,uid:i+1,star:1,gAtk:0,gHp:0,af:null})),relics:[],strats:[]};
      if(buildFighters(p1,{}).find(f=>f.id==='yue').spellRevive)return false;                              // 3坚韧=tier1(只+命·不复活)
      const adv=bondAdvList({army:[{id:'scout'},{id:'mist'}]},UMAP['nuo']); return adv.length<=2;})());       // 桥牌单位 nuo(pierce+control) 也只 ≤2 枚徽标
+   ok('批㉘ 成阵播报接线:bondJustLit 六打法+四象全轴(修对抗查虫抓出的 buyUnit 教学toast漏新流派·部分更新遗漏)·跨档命中/同名null/首张null·buyUnit 真调用', (()=>{
+     if(typeof bondJustLit!=='function')return false;
+     if(bondJustLit({army:[{id:'wan'}]},UMAP['jia'])!=='control')return false;   // wan(snipeBack)+jia(probeCore)=2制御→跨档,朗读「制敌之势」
+     if(bondJustLit({army:[{id:'jin'}]},UMAP['xuan'])!=='edge')return false;      // jin+xuan=2锋锐→edge th[2,3]跨档
+     if(bondJustLit({army:[{id:'wan'}]},UMAP['wan'])!==null)return false;         // 同名不推进(synCount去重)→null
+     if(bondJustLit({army:[]},UMAP['jia'])!==null)return false;                   // 首张不成档→null
+     return buyUnit.toString().indexOf('bondJustLit(p,u)')>0;})());               // buyUnit 真用它(非留旧硬编码列表)
    ok('灵光法术牌 P2+P3：14 张四品(秀3/珍7/传世4)· applySpells 各效果正确 · sim 接 spellCrit/spellRevive/复起加攻', (()=>{
      if(SPELLS.length!==14)return false;
      const byQ={};SPELLS.forEach(s=>byQ[s.q]=(byQ[s.q]||0)+1);
