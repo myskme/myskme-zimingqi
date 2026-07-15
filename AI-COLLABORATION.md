@@ -384,3 +384,13 @@
 - 验收：统一验证 **38/38，errors=0，warnings=0**；正式运行资源为 12 个 WebP + 16 个 SVG，总计 `2,463,897 bytes`（约 2.35 MiB）。物理像素画板已目检：iPad 横屏 1194×834@2x、iPad 竖屏 834×1194@2x、手机竖屏 430×932@3x，细线、透明边缘与横竖屏构图均无裁切或低清拉伸。
 - 给 Claude 的接线红线：先读 `FX-HANDOFF-给Claude-20260716.md`。相克命中只在 `e.t==='dmg' && e.tag==='攻击' && e.eff>1`，但 `e.s` 是 uid，须在回放闭包建 uid→单位→element 映射；即使 `hpDmg===0`（被护盾全吸收）仍应播放。成阵环的真实触发点在 `buyUnit()` 的单条四象 `bondTier` 上升，不在战斗 `applyEntry()`；首档／满档都播，满档 scale×1.12，并与词缀揭晓错峰。
 - SVG 接线注意：外部 `<img src="*.svg">` 不能可靠继承页面 `currentColor`，也不能驱动内部 path／circle 动画；环优先走 mask + `background:ELEM_COLOR2[key]`，星座要逐笔动画则需安全读取并内联，失败时保留现有震屏／toast／青色「克」字。影军判定不能依赖 `fighter.fac==='ghost'`，应结合单人影军上下文、敌方 side 与真实 die；接入后请追加 Claude 提交 SHA、`#selftest` 总数及三类设备线上回执。
+
+### 2026-07-16 · Claude · 特效三套接线完成回执(按 FX-HANDOFF §8 格式)
+
+- **基线/提交**:接线基线=Codex 交付 `1a8012d`;接线提交=本条随附(仅改 index.html + 本日志)。
+- **三套资产实际引用**:①四象命中=VFX 表新增 elem_fire/water/wind/earth(dir+f2 双档,dPR>1.5 自动选 @2x,background-size 锁 CSS px),路由 `e.t==='dmg'&&e.tag==='攻击'&&e.eff>1`,uid→象映射建在 runPlayback 闭包(elemOfUid,不从 fac/名字猜),**满盾也播**;②成阵环=buyUnit 羁绊对比处 `ELEM_RING_KEYS.has(lit)` 门控(pierce/vanguard 不播),mask+ELEM_COLOR2 上色,探针 `_ringOk` 防 404 实色块,`_fxQ` 错峰队列避让 .affix-veil,满档同图 ×1.12;③星座绽放=三星觉醒真分支(星芒转化不播),ZODIAC_FILE 白名单=manifest.zodiacByChinese 快照(处女=chunv/天秤=tiancheng),fetch 内联+内容自检(`<svg`/zodiac-line/无 script-href-image),data-step 排序逐线描+星点亮,火/土/水/风色随象;④斩影=die 分支 `ghostBattle(开场快照 S.ghostFoe)&&sideOf[e.d]==='R'` 时**替换** death(if/else 不叠播,`vfxPlay('death'` 字面量仍恰 1 处);⑤定格光=step() isFinal 邻接,orientation 现查选横竖档,PB.skip 不建节点,自清 400ms。
+- **#selftest 268→274**(+6:相克路由与满盾/四象键过滤/斩影真die不叠播/skip与reduced不阻断/星座白名单12全/新VFX条目帧数合网格)。
+- **三档设备实测**:iPad 横屏 1194×834@2x=真战斗中 water 象克制命中真实触发且选 @2x 图集、土象满档环峰值目检;iPad 竖屏 834×1194=环 467px、finisher portrait✓;手机竖屏 430×932=射手座星图冻结目检(点线清晰)、环 330px、finisher portrait✓。三档控制台均零未捕获异常。
+- **降级**:环有探针门(缺图=只剩原 toast/声音);星座 fetch 失败缓存 null 静默缺席(file://同);命中/斩影/定格光是 background-image,404=透明无感;全部不阻断回放与 onEnd。
+- **偏离本单之处(2 点,均表现层)**:①.zbloom 加了柔暗径向底衬 + `.zodiac-line{stroke-width:2.2px}`——120 视图的细线压在繁忙卡面上读不清,暗底后点线在手机上锐利可辨;②顺手改 3 处「投屏」文案(入口副标「投屏上课→围桌同乐」/meta「投屏即用→扫码即玩」)——王老师 0715 已明确无投屏、多人=围桌传 iPad,非本单内容但属已确认决定。
+- 王老师待办:双击 Codex 的 `同步到iCloud并记录Obsidian.command`(长期资源包进 iCloud,沙盒写不了)。
