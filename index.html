@@ -2512,7 +2512,7 @@ function cfProbe(){const im=new Image();
    称号/成就/装饰都是 currentColor SVG：<img> 加载会渲成黑（暗底隐形），故一律走 mask + background:currentColor，
    由 body.rok / body.uok 门控（探到资源才点亮，缺图/离线自动退回文字），与 cf-corner 同一套安全模式。 */
 const ROSTER_DIR='assets/roster-art-20260715/', UIF_DIR='assets/ui-framework-20260715/';
-const ROSTER_RANKS=['novice','apprentice','adept','first-disciple','duanyun-disciple']; // 见习/学徒/高徒/首徒/断云弟子——与 metaTitle 同序
+const ROSTER_RANKS=['novice','apprentice','adept','first-disciple','duanyun-disciple']; // 纹章文件名(Codex交付·残留不改);称号文字见 metaTitle=静默/初鸣/清鸣/长鸣/自鸣
 function rosterRankIdx(){const lv=levelOf(_meta.xp).lv; return lv>=20?4:lv>=15?3:lv>=10?2:lv>=5?1:0}
 function rosterRankArt(){return ROSTER_DIR+'roster-rank-'+ROSTER_RANKS[rosterRankIdx()]+'.svg'}
 const ACH_BADGE={ // 17 成就 → 7 类纹章（与 manifest achievementMap 同源，改这里必同步 manifest）
@@ -4554,7 +4554,7 @@ function metaGain(ev){ // 结算事件→XP增量(纯函数)。ev={cleared,win,s
 }
 function metaTitle(){ // 称号=等级里程碑(本地展示;不上榜——lbPayload schema 固定,硬塞会破坏后端)
   const lv=levelOf(_meta.xp).lv;
-  return lv>=20?'衣钵传人':lv>=15?'首徒':lv>=10?'高徒':lv>=5?'学徒':'见习生'; // 0716去断云:「断云弟子」→「衣钵传人」(延续师承·纹章文件名 duanyun-disciple 属Codex交付残留不强改)
+  return lv>=20?'自鸣':lv>=15?'长鸣':lv>=10?'清鸣':lv>=5?'初鸣':'静默'; // 0716「自鸣」称号体系(王老师定·呼应游戏名+make yourself):静默→初鸣→清鸣→长鸣→自鸣,跳出师承框架。纹章文件名(novice/apprentice/...)属Codex交付残留不改
 }
 // —— 解锁(严守:仅单人 · 只加内容不加强) ——
 function metaUnlocked(k){const lv=levelOf(_meta.xp).lv;
@@ -4578,7 +4578,7 @@ const ACHIEVEMENTS=[
  {id:'a_seen20', n:'广结善缘', d:'用过 20 名不同学员',         chk:m=>Object.keys(m.seen||{}).length>=20},
  {id:'a_seenAll',n:'全勤学员', d:'35 名学员全部用过',          chk:m=>Object.keys(m.seen||{}).length>=35},
  {id:'a_mvp5',   n:'伯乐',    d:'带出 5 名不同 MVP 学员',      chk:m=>Object.keys(m.mvp||{}).length>=5},
- {id:'a_lv10',   n:'高徒入册', d:'名册等级达到 Lv.10',         chk:m=>levelOf(m.xp).lv>=10},
+ {id:'a_lv10',   n:'清鸣入册', d:'名册等级达到 Lv.10',         chk:m=>levelOf(m.xp).lv>=10},
 ];
 const ACH_MAP=ACHIEVEMENTS.reduce((o,a)=>(o[a.id]=a,o),{});
 function metaCheckAch(ctx){ // 幂等:已达成不重发。返回本次新达成的
