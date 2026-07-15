@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-setpiece-20260716",
+  "assetVersion": "20260716a",
+  "artDirection": "Image2 母版：斩影为紫色魂散而非碎尸；收尾斩为黑白定格＋古金裂闪。",
+  "sourcesInLongTermPack": {
+    "image2Master": "art-source/effects-20260716/image2-setpiece-master.png",
+    "prompt": "art-source/effects-20260716/PROMPTS.md",
+    "buildScript": "tools/effects-20260716/build-effects.mjs"
+  },
+  "effects": {
+    "ghostShatter": {
+      "file": "ghost-shatter.webp",
+      "file2x": "ghost-shatter@2x.webp",
+      "grid": [
+        4,
+        2
+      ],
+      "cell": [
+        128,
+        128
+      ],
+      "cell2x": [
+        256,
+        256
+      ],
+      "frames": 8,
+      "fps": 20,
+      "blend": "screen",
+      "targetAnchor": [
+        0.5,
+        0.46
+      ],
+      "renderSize": [
+        166,
+        132
+      ],
+      "peakFrame": 4,
+      "semantic": "只在影军敌方真实 e.t==='die' 时替换普通 death；不能与普通死亡碎散叠加，也不能靠 fighter.fac==='ghost' 判断。"
+    },
+    "finisherFlash": {
+      "files": {
+        "landscape": "finisher-flash-landscape.webp",
+        "portrait": "finisher-flash-portrait.webp"
+      },
+      "size": {
+        "landscape": [
+          1600,
+          900
+        ],
+        "portrait": [
+          900,
+          1600
+        ]
+      },
+      "blend": "screen",
+      "peakMs": 110,
+      "totalMs": 360,
+      "semantic": "在 runPlayback.step() 已有 isFinal && !PB.skip 分支邻接触发；只换表现，不写回事件。"
+    }
+  },
+  "reducedMotion": "ghost 只显示 peakFrame 约150ms；finisher 只显示峰值约110ms，不做缩放、位移或反复闪烁。",
+  "missingAssetFallback": "保留普通 death、现有 final-blow 慢镜、局部微震与音效。",
+  "metrics": {
+    "runtimeBytesExcludingPreview": 1075712
+  },
+  "files": {
+    "finisher-flash-landscape.webp": {
+      "bytes": 352574,
+      "sha256": "b2aa058d72753aa998bf3abcc9e62a1a23ff84a8b6e96a3ea3e11db25d716628",
+      "width": 1600,
+      "height": 900,
+      "alpha": true
+    },
+    "finisher-flash-portrait.webp": {
+      "bytes": 385190,
+      "sha256": "579c65ec2ecf230e1160e1f07e02926c212cad876523f83726721499da4ac528",
+      "width": 900,
+      "height": 1600,
+      "alpha": true
+    },
+    "ghost-shatter.webp": {
+      "bytes": 61988,
+      "sha256": "bdd64f63a3b9f84fa30677702947e009614a8f9b5d6dbb1cad508782b5dce822",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "ghost-shatter@2x.webp": {
+      "bytes": 275960,
+      "sha256": "a9b235a8c3c652ed97acf74c7704c75ac48302e754bca611effcc522f18b4073",
+      "width": 1024,
+      "height": 512,
+      "alpha": true
+    },
+    "preview.webp": {
+      "bytes": 24856,
+      "sha256": "7ed402791e955c4595c69432244f184167b097fc39674e0264961de6cd0c8d25",
+      "width": 1200,
+      "height": 520,
+      "alpha": false
+    }
+  }
+}

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" aria-hidden="true" focusable="false" data-zodiac="摩羯" data-element="earth">
+  <g class="zodiac-lines" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".72">
+    <path class="zodiac-line" data-step="1" pathLength="100" d="M17 40L40 27L68 32L97 45L78 67L89 87L63 96L40 76L27 60L17 40"/>
+    <path class="zodiac-line" data-step="2" pathLength="100" d="M40 76L78 67"/>
+  </g>
+  <g class="zodiac-stars" fill="currentColor">
+    <circle class="zodiac-star" data-step="1" cx="17" cy="40" r="2.2" opacity=".8"/>
+    <circle class="zodiac-star" data-step="2" cx="40" cy="27" r="2.7" opacity=".92"/>
+    <circle class="zodiac-star" data-step="3" cx="68" cy="32" r="2.3" opacity=".84"/>
+    <circle class="zodiac-star" data-step="4" cx="97" cy="45" r="2.8" opacity=".94"/>
+    <circle class="zodiac-star" data-step="5" cx="78" cy="67" r="3.2" opacity="1"/>
+    <circle class="zodiac-star" data-step="6" cx="89" cy="87" r="2.1" opacity=".76"/>
+    <circle class="zodiac-star" data-step="7" cx="63" cy="96" r="2.5" opacity=".88"/>
+    <circle class="zodiac-star" data-step="8" cx="40" cy="76" r="2.4" opacity=".86"/>
+    <circle class="zodiac-star" data-step="9" cx="27" cy="60" r="2" opacity=".74"/>
+  </g>
+</svg>

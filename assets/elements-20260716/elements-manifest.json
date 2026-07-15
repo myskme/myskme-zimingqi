@@ -1,0 +1,319 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-elements-20260716",
+  "assetVersion": "20260716a",
+  "artDirection": "Image2 母版：MYSKME 黑金珐琅；四象颜色严格复用 ELEM_COLOR2；命中局部图集与高 DPR 全屏成阵环分离。",
+  "sourcesInLongTermPack": {
+    "image2Master": "art-source/effects-20260716/image2-elements-master.png",
+    "prompt": "art-source/effects-20260716/PROMPTS.md",
+    "buildScript": "tools/effects-20260716/build-effects.mjs"
+  },
+  "sheetContract": {
+    "cellWidth": 128,
+    "cellHeight": 128,
+    "safePaddingPx": 4,
+    "order": "row-major（先左到右，再上到下）",
+    "maxConcurrentRecommended": 10,
+    "reducedMotion": "hit 只显示 peakFrame 约 120–150ms；ring 静态显示约 300ms 后淡出。",
+    "missingAssetFallback": "保留现有伤害飘字、青色克字、羁绊 toast 与原 CSS 打击感。"
+  },
+  "elements": {
+    "fire": {
+      "label": "火象",
+      "color": "#e08b7a",
+      "motion": "upward-lick",
+      "hit": {
+        "file": "element-fire-hit.webp",
+        "file2x": "element-fire-hit@2x.webp",
+        "grid": [
+          4,
+          2
+        ],
+        "cell": [
+          128,
+          128
+        ],
+        "cell2x": [
+          256,
+          256
+        ],
+        "frames": 8,
+        "fps": 24,
+        "blend": "screen",
+        "targetAnchor": [
+          0.5,
+          0.45
+        ],
+        "renderSize": [
+          148,
+          112
+        ],
+        "peakFrame": 4
+      },
+      "ring": {
+        "file": "element-fire-ring.svg",
+        "viewBox": "0 0 512 512",
+        "color": "currentColor",
+        "recommendedUse": "优先作为 CSS mask + background:ELEM_COLOR2[key]；需要描边动画时安全内联。",
+        "renderSize": {
+          "ipad": [
+            520,
+            520
+          ],
+          "phone": [
+            330,
+            330
+          ]
+        },
+        "fullTierScale": 1.12
+      }
+    },
+    "water": {
+      "label": "水象",
+      "color": "#7fc4d8",
+      "motion": "flowing-spiral",
+      "hit": {
+        "file": "element-water-hit.webp",
+        "file2x": "element-water-hit@2x.webp",
+        "grid": [
+          4,
+          2
+        ],
+        "cell": [
+          128,
+          128
+        ],
+        "cell2x": [
+          256,
+          256
+        ],
+        "frames": 8,
+        "fps": 24,
+        "blend": "screen",
+        "targetAnchor": [
+          0.5,
+          0.45
+        ],
+        "renderSize": [
+          148,
+          112
+        ],
+        "peakFrame": 4
+      },
+      "ring": {
+        "file": "element-water-ring.svg",
+        "viewBox": "0 0 512 512",
+        "color": "currentColor",
+        "recommendedUse": "优先作为 CSS mask + background:ELEM_COLOR2[key]；需要描边动画时安全内联。",
+        "renderSize": {
+          "ipad": [
+            520,
+            520
+          ],
+          "phone": [
+            330,
+            330
+          ]
+        },
+        "fullTierScale": 1.12
+      }
+    },
+    "wind": {
+      "label": "风象",
+      "color": "#9cc0e8",
+      "motion": "curved-air-cut",
+      "hit": {
+        "file": "element-wind-hit.webp",
+        "file2x": "element-wind-hit@2x.webp",
+        "grid": [
+          4,
+          2
+        ],
+        "cell": [
+          128,
+          128
+        ],
+        "cell2x": [
+          256,
+          256
+        ],
+        "frames": 8,
+        "fps": 24,
+        "blend": "screen",
+        "targetAnchor": [
+          0.5,
+          0.45
+        ],
+        "renderSize": [
+          148,
+          112
+        ],
+        "peakFrame": 4
+      },
+      "ring": {
+        "file": "element-wind-ring.svg",
+        "viewBox": "0 0 512 512",
+        "color": "currentColor",
+        "recommendedUse": "优先作为 CSS mask + background:ELEM_COLOR2[key]；需要描边动画时安全内联。",
+        "renderSize": {
+          "ipad": [
+            520,
+            520
+          ],
+          "phone": [
+            330,
+            330
+          ]
+        },
+        "fullTierScale": 1.12
+      }
+    },
+    "earth": {
+      "label": "土象",
+      "color": "#c9a64a",
+      "motion": "radial-fracture",
+      "hit": {
+        "file": "element-earth-hit.webp",
+        "file2x": "element-earth-hit@2x.webp",
+        "grid": [
+          4,
+          2
+        ],
+        "cell": [
+          128,
+          128
+        ],
+        "cell2x": [
+          256,
+          256
+        ],
+        "frames": 8,
+        "fps": 24,
+        "blend": "screen",
+        "targetAnchor": [
+          0.5,
+          0.45
+        ],
+        "renderSize": [
+          148,
+          112
+        ],
+        "peakFrame": 4
+      },
+      "ring": {
+        "file": "element-earth-ring.svg",
+        "viewBox": "0 0 512 512",
+        "color": "currentColor",
+        "recommendedUse": "优先作为 CSS mask + background:ELEM_COLOR2[key]；需要描边动画时安全内联。",
+        "renderSize": {
+          "ipad": [
+            520,
+            520
+          ],
+          "phone": [
+            330,
+            330
+          ]
+        },
+        "fullTierScale": 1.12
+      }
+    }
+  },
+  "routing": {
+    "counterHit": "e.t==='dmg' && e.tag==='攻击' && e.eff>1；从 e.s(uid) 反查攻击者 element；即使 hpDmg===0 仍可播。",
+    "bondTierUp": "buyUnit 中单条四象 bondTier 上升时播放对应 ring；首档与满档均播，满档 scale×1.12；与词缀揭晓错峰。",
+    "runtimeBoundary": "只接表现层；不改 simulateBattle、伤害、羁绊、数值、存档、S 或 _meta。"
+  },
+  "metrics": {
+    "runtimeBytesExcludingPreview": 1370786
+  },
+  "files": {
+    "element-earth-hit.webp": {
+      "bytes": 70314,
+      "sha256": "364c76b030b7795f113435215ebc0079304f073988f6d1fa86f73ec51117d0b4",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "element-earth-hit@2x.webp": {
+      "bytes": 287788,
+      "sha256": "5e2272e61d6620e80db1ecdfbba7f3b5be629c0813516297c479214d490f4e31",
+      "width": 1024,
+      "height": 512,
+      "alpha": true
+    },
+    "element-earth-ring.svg": {
+      "bytes": 914,
+      "sha256": "fa2232a99a6f6c5ae3c0f5488f66e0198efc53b5bc4197fcd0f0a3ed9b054994",
+      "viewBox": "0 0 512 512",
+      "currentColor": true
+    },
+    "element-fire-hit.webp": {
+      "bytes": 57120,
+      "sha256": "84e640555b59fa66321e786e21cc5037f8906ead5633a90324a0ad3685fea51e",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "element-fire-hit@2x.webp": {
+      "bytes": 231596,
+      "sha256": "0bc2ff547ec41117f4f8b8ed56f025401621a4ee30a6b71f687c706c36725aab",
+      "width": 1024,
+      "height": 512,
+      "alpha": true
+    },
+    "element-fire-ring.svg": {
+      "bytes": 835,
+      "sha256": "9f10f15a6c64685ebc0f0a10343e258d25eafa5d5e11a9a52804adbbf75bad76",
+      "viewBox": "0 0 512 512",
+      "currentColor": true
+    },
+    "element-water-hit.webp": {
+      "bytes": 70380,
+      "sha256": "70d6227429092f0fe774de95672983d175736185b8eaf8b2c71cff6159b91555",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "element-water-hit@2x.webp": {
+      "bytes": 307770,
+      "sha256": "0ad1f252a712047ce66afcb386375508069847549cb284b7a85208e12f8c6ab6",
+      "width": 1024,
+      "height": 512,
+      "alpha": true
+    },
+    "element-water-ring.svg": {
+      "bytes": 825,
+      "sha256": "e22d0ef6fe606f7f558a23368561421d54d76d1d89149a5cc16abef1e9ca3c75",
+      "viewBox": "0 0 512 512",
+      "currentColor": true
+    },
+    "element-wind-hit.webp": {
+      "bytes": 68996,
+      "sha256": "1f24a8ef4547f9599d9c9b4b880b49cddb81501ccf26f19cfc044c868df7a3c6",
+      "width": 512,
+      "height": 256,
+      "alpha": true
+    },
+    "element-wind-hit@2x.webp": {
+      "bytes": 273404,
+      "sha256": "ef5a8c9c0c294fad60b907ef79a11e89674e3c37de70cf6b9b2011264e797c91",
+      "width": 1024,
+      "height": 512,
+      "alpha": true
+    },
+    "element-wind-ring.svg": {
+      "bytes": 844,
+      "sha256": "c1b09475099d6b2454be2be0996b6959becc96b0de738358669c81c8eafee937",
+      "viewBox": "0 0 512 512",
+      "currentColor": true
+    },
+    "preview.webp": {
+      "bytes": 22984,
+      "sha256": "8f443327a1bef4b63c00012b7f3f9ceba8ac1d4e4173281fcdff3f56c0d518d8",
+      "width": 800,
+      "height": 800,
+      "alpha": false
+    }
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "packId": "zimingqi-zodiac-20260716",
+  "assetVersion": "20260716a",
+  "purpose": "三星觉醒时在单位头顶绘出本命星座；只提供视觉层，不改变升星、ZODIAC、羁绊或战斗逻辑。",
+  "canonicalSource": {
+    "commission": "委托单-给Codex-特效系统-20260716.md",
+    "runtime": "index.html::ZODIAC",
+    "verifiedUnitCount": 35,
+    "verifiedZodiacCount": 12
+  },
+  "contract": {
+    "viewBox": "0 0 120 120",
+    "color": "currentColor",
+    "lineSelector": ".zodiac-line",
+    "starSelector": ".zodiac-star",
+    "linePathLength": 100,
+    "animationOrderAttribute": "data-step",
+    "lineAnimation": "对 .zodiac-line 使用 stroke-dasharray:100 与 stroke-dashoffset:100→0。",
+    "starAnimation": "对 .zodiac-star 按 data-step 依次 opacity:0→1。",
+    "accessibility": "SVG 本身 aria-hidden；由觉醒容器保留单位名、星座名与升星结果的 DOM 文本。",
+    "missingAssetFallback": "缺图或加载失败时保留现有震屏、toast 与升星结果，不阻断流程。",
+    "forbiddenFeatures": [
+      "text",
+      "font",
+      "image",
+      "href",
+      "filter",
+      "external-url"
+    ]
+  },
+  "elements": {
+    "earth": {
+      "label": "土象",
+      "color": "#c9a64a",
+      "zodiacs": ["处女", "金牛", "摩羯"]
+    },
+    "water": {
+      "label": "水象",
+      "color": "#7fc4d8",
+      "zodiacs": ["天蝎", "双鱼", "巨蟹"]
+    },
+    "fire": {
+      "label": "火象",
+      "color": "#e08b7a",
+      "zodiacs": ["狮子", "射手", "白羊"]
+    },
+    "wind": {
+      "label": "风象",
+      "color": "#9cc0e8",
+      "zodiacs": ["水瓶", "天秤", "双子"]
+    }
+  },
+  "zodiacByChinese": {
+    "白羊": {
+      "file": "zodiac-baiyang.svg",
+      "pinyin": "baiyang",
+      "element": "fire",
+      "starCount": 6,
+      "linePathCount": 1
+    },
+    "金牛": {
+      "file": "zodiac-jinniu.svg",
+      "pinyin": "jinniu",
+      "element": "earth",
+      "starCount": 8,
+      "linePathCount": 3
+    },
+    "双子": {
+      "file": "zodiac-shuangzi.svg",
+      "pinyin": "shuangzi",
+      "element": "wind",
+      "starCount": 10,
+      "linePathCount": 3
+    },
+    "巨蟹": {
+      "file": "zodiac-juxie.svg",
+      "pinyin": "juxie",
+      "element": "water",
+      "starCount": 7,
+      "linePathCount": 3
+    },
+    "狮子": {
+      "file": "zodiac-shizi.svg",
+      "pinyin": "shizi",
+      "element": "fire",
+      "starCount": 9,
+      "linePathCount": 2
+    },
+    "处女": {
+      "file": "zodiac-chunv.svg",
+      "pinyin": "chunv",
+      "element": "earth",
+      "starCount": 10,
+      "linePathCount": 4
+    },
+    "天秤": {
+      "file": "zodiac-tiancheng.svg",
+      "pinyin": "tiancheng",
+      "element": "wind",
+      "starCount": 8,
+      "linePathCount": 4
+    },
+    "天蝎": {
+      "file": "zodiac-tianxie.svg",
+      "pinyin": "tianxie",
+      "element": "water",
+      "starCount": 10,
+      "linePathCount": 2
+    },
+    "射手": {
+      "file": "zodiac-sheshou.svg",
+      "pinyin": "sheshou",
+      "element": "fire",
+      "starCount": 10,
+      "linePathCount": 4
+    },
+    "摩羯": {
+      "file": "zodiac-mojie.svg",
+      "pinyin": "mojie",
+      "element": "earth",
+      "starCount": 9,
+      "linePathCount": 2
+    },
+    "水瓶": {
+      "file": "zodiac-shuiping.svg",
+      "pinyin": "shuiping",
+      "element": "wind",
+      "starCount": 14,
+      "linePathCount": 3
+    },
+    "双鱼": {
+      "file": "zodiac-shuangyu.svg",
+      "pinyin": "shuangyu",
+      "element": "water",
+      "starCount": 13,
+      "linePathCount": 3
+    }
+  }
+}

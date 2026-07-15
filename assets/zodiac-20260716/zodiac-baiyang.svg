@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" aria-hidden="true" focusable="false" data-zodiac="白羊" data-element="fire">
+  <g class="zodiac-lines" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".72">
+    <path class="zodiac-line" data-step="1" pathLength="100" d="M18 48Q28 34 39 38Q49 41 57 48L72 60L85 75L101 80"/>
+  </g>
+  <g class="zodiac-stars" fill="currentColor">
+    <circle class="zodiac-star" data-step="1" cx="18" cy="48" r="2.3" opacity=".82"/>
+    <circle class="zodiac-star" data-step="2" cx="39" cy="38" r="3.2" opacity=".98"/>
+    <circle class="zodiac-star" data-step="3" cx="57" cy="48" r="2.5" opacity=".9"/>
+    <circle class="zodiac-star" data-step="4" cx="72" cy="60" r="2.1" opacity=".78"/>
+    <circle class="zodiac-star" data-step="5" cx="85" cy="75" r="2.7" opacity=".92"/>
+    <circle class="zodiac-star" data-step="6" cx="101" cy="80" r="2" opacity=".74"/>
+  </g>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" aria-hidden="true" focusable="false" data-zodiac="巨蟹" data-element="water">
+  <g class="zodiac-lines" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-opacity=".72">
+    <path class="zodiac-line" data-step="1" pathLength="100" d="M58 22L60 53L31 73L18 95"/>
+    <path class="zodiac-line" data-step="2" pathLength="100" d="M60 53L85 68L102 84"/>
+    <path class="zodiac-line" data-step="3" pathLength="100" d="M60 53L66 98"/>
+  </g>
+  <g class="zodiac-stars" fill="currentColor">
+    <circle class="zodiac-star" data-step="1" cx="58" cy="22" r="2.5" opacity=".9"/>
+    <circle class="zodiac-star" data-step="2" cx="60" cy="53" r="3.3" opacity="1"/>
+    <circle class="zodiac-star" data-step="3" cx="31" cy="73" r="2.4" opacity=".86"/>
+    <circle class="zodiac-star" data-step="4" cx="18" cy="95" r="2" opacity=".74"/>
+    <circle class="zodiac-star" data-step="5" cx="85" cy="68" r="2.6" opacity=".9"/>
+    <circle class="zodiac-star" data-step="6" cx="102" cy="84" r="2.1" opacity=".77"/>
+    <circle class="zodiac-star" data-step="7" cx="66" cy="98" r="2.2" opacity=".8"/>
+  </g>
+</svg>

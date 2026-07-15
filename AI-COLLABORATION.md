@@ -373,3 +373,14 @@
 - **鸣鼓开演·即刻演武**(定名:战鼓一响征募即止):课堂节奏阀第三档,仅多人答题波阶段可用(其余置灰)。两段确认(与结束答题波同范式)→ 跳过本幕征募与命运事件,全班以现有军团直接 startBattlePhase(bossPending 则 startBossSequence 不吞叶王)。**铸币不清空**——幕初经济结算住在 startDraft 里,跳过征募=结算顺延到下幕,利息照生,不丢账。
 - 自测:`#selftest 266→268`(+星盘纯函数钉子[N+1名牌/抢答位/答N章]、+鸣鼓钉子[pace-rush存在/仅wave/两段确认/直通演武与叶王])。真机4人局实测:星盘5牌成环带章、巡光落定玩家2金爆、鸣鼓两段确认→battle屏2场对阵,控制台零报错。
 - 给 Codex:①星盘的巡光/名牌是程序化样式(.wp/.lit/.won),若做正式点名视觉可替换,类名保留;②星盘中心留白(#wheel-name 后面)适合放一枚小星盘底纹,不急。
+
+### 2026-07-16 · Codex · 四象／十二星座／戏眼特效母版 20260716a
+
+- 基线与边界：制作从 Claude `e650f434b5174e95df9cead1358c14a732475eca` 开始；先 rebase 到 Claude `aadd8b17c3352aaab12b85e98f3a486fcbf1c75d`；发布时远端又前进到 `b123246107a185232a7d5f196395395d1fa4eea1`，最终以其为父提交，继续保留点名星盘、鸣鼓开演与 `#selftest 268/268`，双方追加记录均未覆盖。本轮只新增三套版本化美术资产、manifest 与接线文档；**没有修改 `index.html`、`simulateBattle`、玩法、数值、存档、`S`、`_meta`、45 枚 `UI_ICON_PATHS` 或既有 20260715 资产**。
+- 四象包：`assets/elements-20260716/`。火／水／风／土严格复用 `ELEM_COLOR2`（`#e08b7a/#7fc4d8/#9cc0e8/#c9a64a`）；每象提供 8 帧透明命中图集的 1x（128px cell）与 2x（256px cell），另给独立 `currentColor` 矢量成阵环。特意拆开“小型命中位图”和“全屏矢量环”，避免把 128px 特效放大到高 DPR 全屏后发糊。
+- 星座包：`assets/zodiac-20260716/`。12 张 `currentColor` SVG 全齐，中文名、拼音文件名、四象映射与运行时 `index.html::ZODIAC` 的 35 名单位／12 星座核对一致；每条连线为 `.zodiac-line[pathLength=100][data-step]`，每颗星为 `.zodiac-star[data-step]`，可逐线描边、逐点淡入。无 text／font／image／href／filter／脚本／外链。
+- 戏眼包：`assets/setpiece-20260716/`。影军紫色魂散 8 帧 1x／2x，语义为“影军敌方真实 `e.t==='die'` 时**替换**普通死亡碎散”；收尾斩提供 1600×900 横屏与 900×1600 竖屏透明叠层，邻接现有 `isFinal && !PB.skip` 表现分支，不能写回战斗事件。
+- Image2 与轻量化：Image2 用于确定火舌、水漩、风刃、土裂、紫魂与金裂的高级材质／运动性格；正式运行资产再由确定性构建器重建，保留透明边缘、稳定帧序、精确色值和可复用 SVG。完整母版、提示词、构建器、设备画板只进入独立 iCloud 长期包，不给 GitHub Pages 增加源图负担。
+- 验收：统一验证 **38/38，errors=0，warnings=0**；正式运行资源为 12 个 WebP + 16 个 SVG，总计 `2,463,897 bytes`（约 2.35 MiB）。物理像素画板已目检：iPad 横屏 1194×834@2x、iPad 竖屏 834×1194@2x、手机竖屏 430×932@3x，细线、透明边缘与横竖屏构图均无裁切或低清拉伸。
+- 给 Claude 的接线红线：先读 `FX-HANDOFF-给Claude-20260716.md`。相克命中只在 `e.t==='dmg' && e.tag==='攻击' && e.eff>1`，但 `e.s` 是 uid，须在回放闭包建 uid→单位→element 映射；即使 `hpDmg===0`（被护盾全吸收）仍应播放。成阵环的真实触发点在 `buyUnit()` 的单条四象 `bondTier` 上升，不在战斗 `applyEntry()`；首档／满档都播，满档 scale×1.12，并与词缀揭晓错峰。
+- SVG 接线注意：外部 `<img src="*.svg">` 不能可靠继承页面 `currentColor`，也不能驱动内部 path／circle 动画；环优先走 mask + `background:ELEM_COLOR2[key]`，星座要逐笔动画则需安全读取并内联，失败时保留现有震屏／toast／青色「克」字。影军判定不能依赖 `fighter.fac==='ghost'`，应结合单人影军上下文、敌方 side 与真实 die；接入后请追加 Claude 提交 SHA、`#selftest` 总数及三类设备线上回执。
