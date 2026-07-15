@@ -544,8 +544,20 @@ body.playing #hud{display:flex}
 .u .hpb.low i{background:linear-gradient(90deg,#7a2020,#d56060);animation:ragePulse .8s infinite}
 .u .sh{position:absolute;top:-9px;left:-9px;font-size:13px;color:var(--shield);text-shadow:0 0 8px rgba(140,200,220,.8);font-family:var(--mono)} /* 护盾独立冰青，与天之国/速度的天蓝分离 */
 .u.dead{opacity:.22;filter:grayscale(1);transform:scale(.9) rotate(4deg)}
-.u.acting{transform:translateY(-7px);border-color:var(--gold);box-shadow:3px 3px 0 rgba(0,0,0,.45),var(--glow-gold);z-index:5}
-.u.hit{animation:hitFlash .32s ease}
+/* ===== 打击感物理层 20260715e：方向性弹退(--kb) + 攻击前冲(--lunge) + 命中微震(仅击杀·arena局部)。
+   纯代码零美术，尊重 prefers-reduced-motion。全屏 shake 仍只留给叶王/觉醒/加冕（一场震6-10次太吵）。 ===== */
+.u.acting{border-color:var(--gold);box-shadow:3px 3px 0 rgba(0,0,0,.45),var(--glow-gold);z-index:5;
+  animation:lungeKF .3s ease-out both}
+@keyframes lungeKF{0%{transform:translateY(-2px) translateX(0)}42%{transform:translateY(-6px) translateX(var(--lunge,0))}100%{transform:translateY(-7px) translateX(0)}}
+.u.hit{animation:hitKB .3s cubic-bezier(.2,.85,.3,1)}
+.u.hit.hit-hard{animation:hitKB .44s cubic-bezier(.2,.85,.3,1)} /* 暴击/击杀：弹更远、停更久 */
+@keyframes hitKB{0%{filter:brightness(2.3);transform:translateX(0) scale(1.05)}
+  30%{transform:translateX(var(--kb,0)) scale(1.03)}
+  48%{transform:translateX(calc(var(--kb,0)*.72)) scale(1.02)} /* 弹退峰值多停一拍＝hitstop 手感 */
+  100%{filter:brightness(1);transform:translateX(0) scale(1)}}
+@keyframes arenaJolt{0%,100%{transform:translate(0,0)}30%{transform:translate(-2px,1px)}62%{transform:translate(2px,-1px)}}
+#arena.jolt{animation:arenaJolt .16s ease}
+@media (prefers-reduced-motion:reduce){.u.hit,.u.hit.hit-hard{animation:hitFlash .18s ease}.u.acting{animation:none;transform:translateY(-7px)}#arena.jolt{animation:none}}
 /* 战斗单位阵营纹章（左上小徽，与右上 arch-mini 战术标不撞位）：演武时也一眼读出阵营/相克 */
 .u .fac-emblem{position:absolute;top:-7px;left:-6px;width:17px;height:17px;padding:2.5px;box-sizing:border-box;
   border:1px solid currentColor;border-radius:50%;background:radial-gradient(circle at 38% 32%,rgba(10,10,12,.92),rgba(8,8,10,.72));
@@ -3073,6 +3085,11 @@ function runSelftest(){
      im.remove();                                               // 模拟 artTag 的 onerror this.remove()
      const back=getComputedStyle(g).visibility!=='hidden';      // 图没了 → 占位字自动回来（回退不坏）
      b.remove();return hidden&&back})());
+   ok('打击感物理层：弹退/前冲/命中微震 CSS 齐 · 命中真设 --kb 与 hit-hard · 击杀触发 arena.jolt', (()=>{
+     const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
+     if(!/@keyframes hitKB/.test(css)||!/@keyframes lungeKF/.test(css)||!/#arena\.jolt/.test(css))return false;
+     const src=runPlayback.toString();
+     return src.indexOf('--kb')>0&&src.indexOf('hit-hard')>0&&src.indexOf("'jolt'")>0})());
    ok('视觉基准：安全区变量 + 动态视口 + 触屏命中区已进 CSS（不许改回 100vh）', (()=>{
      const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
      return css.includes('safe-area-inset-top')&&css.includes('100dvh')
@@ -3971,10 +3988,16 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
         barI.style.width=pct+'%';
         tgt.querySelector('.hpb').classList.toggle('low',pct<32);
         const hv=tgt.querySelector('.num .h');hv.querySelector('.stat-v').textContent=hpNow[e.d];hv.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
-        if(animate){tgt.classList.remove('hit');void tgt.offsetWidth;tgt.classList.add('hit');
+        if(animate){
+          // 打击感物理层：方向性弹退——攻击者在左则把受击者往右打退，反之往左。暴击/击杀弹更狠。
+          const hard=!!(e.crit||e.kill), dir=(sideOf[e.s]==='L')?1:-1;
+          tgt.style.setProperty('--kb',(dir*(hard?14:8))+'px');
+          tgt.classList.toggle('hit-hard',hard);
+          tgt.classList.remove('hit');void tgt.offsetWidth;tgt.classList.add('hit');
           const eff=e.eff||1; // 相克：克染青标「克」、被克淡化，不刷屏(金色专属暴击)
           floatNum(tgt,'-'+e.amt+(e.crit?'!':'')+(eff>1?' 克':''),e.crit?'#ffd075':(eff>1?'var(--teal)':(eff<1?'#9a9686':'var(--red2)')),e.crit); // 暴击金/相克青/被克灰/普通红 四态分色
-          if(e.s){const src=el(e.s);if(src){src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
+          if(e.s){const src=el(e.s);if(src){src.style.setProperty('--lunge',(dir*6)+'px');src.classList.add('acting');setTimeout(()=>src.classList.remove('acting'),300)}}
+          if(e.kill){const ar=$('#arena');if(ar){ar.classList.remove('jolt');void ar.offsetWidth;ar.classList.add('jolt')}} // 击杀=戏眼一拍，arena局部微震（非全屏）
           // —— VFX：普攻叠斩击/箭迹，技能伤害只给冲击环（不叠斩击，免得误导成普攻）——
           const atk=e.tag==='攻击';
           if(atk&&tgOf[e.s]==='pierce')vfxPlay('pierce',tgt,{from:el(e.s)});
