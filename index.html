@@ -2281,13 +2281,15 @@ const BONDS={
   fire: {n:'烈焰同燃', chip:'火象', th:[2,4], d:['火象单位 +1 攻','火象单位 +2 攻']}, // 两档1/2攻:移植自旧黑域2/3但无币税+大池,实测2/3档下等费四连100%通杀故再收
   water:{n:'潮汐同悲', chip:'水象', th:[2,3], d:['阵亡溅射敌 1 伤','阵亡溅射敌 2 伤']}, // 水象7人→大档3
   // —— 第二轴 · 打法（跨象）——
-  pierce:  {n:'破云之矢', chip:'穿透', th:[2,4], d:['穿透单位 开战 +2 护盾','穿透单位 +2 护盾 · +1 攻']},
+  pierce:  {n:'破云之矢', chip:'穿透', th:[2,4], d:['穿透单位 开战 +2 护盾','穿透单位 开战 +2 护盾 · 首击必暴击 ×2']}, // 4档从纯数值+1攻升级为机制质变(20260717·王老师:要机制不要+2)
   vanguard:{n:'不退之誓', chip:'嘲讽', th:[2,3], d:['嘲讽单位被普攻命中：反震 1 伤','嘲讽单位被普攻命中：反震 2 伤']},
+  death:   {n:'向死而生', chip:'亡语', th:[2,3], d:['同袍阵亡时 · 随机友军 +1 攻','同袍阵亡时 · 全队 +1 攻（前赴后继）']}, // 新增第三打法轴:机制型流派
 };
 // 两轴成员均由单一事实源派生：四象←ZODIAC,打法←UNITS 的 tg/taunt——绝不手抄名单
 ['wind','fire','earth','water'].forEach(e=>BONDS[e].ids=UNITS.filter(u=>unitElem(u.id)===e).map(u=>u.id));
 BONDS.pierce.ids  = UNITS.filter(u=>u.tg==='pierce').map(u=>u.id);
 BONDS.vanguard.ids= UNITS.filter(u=>u.taunt).map(u=>u.id);
+BONDS.death.ids   = UNITS.filter(u=>['splashDeath','boostLin','buffAdj','coinDeath'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 亡语=有阵亡时技能(屿/音/慧/车夫),由技能k派生不手抄名单
 function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1]?2:(c>=th[0]?1:0)}
 function bondName(f){return (BONDS[f]&&BONDS[f].chip)||(FACS[f]&&FACS[f].n)||f}
 const ELEM_COLOR2={wind:'#9cc0e8',fire:'#e08b7a',earth:'#c9a64a',water:'#7fc4d8'};
@@ -2308,7 +2310,7 @@ function bondAdvance(p,u,key){
   return {f:key,to,den,hit:(to===b.th[0]||to===b.th[1])};
 }
 function bondAdvList(p,u){ // 一张卡的两条轴(四象+打法)
-  return [unitElem(u.id),'pierce','vanguard'].map(k=>bondAdvance(p,u,k)).filter(Boolean);
+  return [unitElem(u.id),'pierce','vanguard','death'].map(k=>bondAdvance(p,u,k)).filter(Boolean);
 }
 /* 战报卡「本局羁绊」（纯函数，#selftest 可测）：把学生攒了一整局的成果画出来。
    满档在前、按档位降序；同档保持 BONDS 键序稳定（投屏观众的追踪锚点）。 */
@@ -2320,7 +2322,7 @@ function bondBadges(p){
 function bridgeUnits(p){
   const on=new Set(bondBadges(p).map(x=>x.f));
   return p.army.filter(a=>{const u=UMAP[a.id];
-    const axes=[...new Set([unitElem(a.id),'pierce','vanguard'])].filter(k=>k&&BONDS[k]&&on.has(k)
+    const axes=[...new Set([unitElem(a.id),'pierce','vanguard','death'])].filter(k=>k&&BONDS[k]&&on.has(k)
       &&(BONDS[k].ids?BONDS[k].ids.includes(a.id):inFac(a.id,k)));
     return axes.length>=2})
     .filter((a,i,arr)=>arr.findIndex(x=>x.id===a.id)===i); // 同名只表彰一次
@@ -2768,7 +2770,7 @@ function buyUnit(idx,u,price){
     burst(innerWidth/2,innerHeight/2,['#c9a64a','#e8c768','#fff'],30);
   }else{
     // 新单位入队：若这一张正好把某条羁绊推上新档，就在奖励的那一刻把效果念出来（首次教学=零阅读前置）
-    const before={};[unitElem(u.id),'pierce','vanguard'].forEach(k=>{if(BONDS[k])before[k]=bondTier(p,k)});
+    const before={};[unitElem(u.id),'pierce','vanguard','death'].forEach(k=>{if(BONDS[k])before[k]=bondTier(p,k)});
     p.army.push(mkInst(u.id));
     const lit=Object.keys(before).find(k=>bondTier(p,k)>before[k]);
     if(lit){const t=bondTier(p,lit);
@@ -2966,7 +2968,7 @@ function buildFighters(p, evFlags){
   if(bt.fire>=2)    fs.forEach(f=>{if(unitElem(f.id)==='fire')f.atk+=1}); // 4档：火象共 +2 攻(等费四连RR实测+3攻=100%通杀,攻击点数在本sim价值远高于血量)
   // —— 第二轴 · 破云之矢（穿透）：补纸血短板，攻击加成锁在满档 ——
   if(bt.pierce>=1)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.shield+=2});
-  if(bt.pierce>=2)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.atk+=1});
+  if(bt.pierce>=2)  fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.pierceCrit=true}); // 质变:穿透单位首击必暴击(替原+1攻·机制流派)
   // 遗物
   if(hasRelic(p,'tassel')&&fs[0]){fs[0].hp+=4;fs[0].maxhp+=4}
   if(hasRelic(p,'letter')) fs.forEach(f=>f.spd+=1);
@@ -3016,9 +3018,9 @@ function resolveTarget(f, foes){
   return tk||foes[0];
 }
 function sideFlags(p){ // 边级效果
-  if(!p) return {seaTier:0,vanTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false};
-  // seaTier 字段名保留(sim内部锚点),语义=水象·潮汐同悲
-  return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), shards:hasRelic(p,'shards'),
+  if(!p) return {seaTier:0,vanTier:0,deathTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false};
+  // seaTier 字段名保留(sim内部锚点),语义=水象·潮汐同悲;deathTier=向死而生(亡语流)
+  return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), deathTier:bondTier(p,'death'), shards:hasRelic(p,'shards'),
     ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf'),
     thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary')};
 }
@@ -3069,6 +3071,10 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       // 边级：海雾同悲 / 爆炸残片 / 菀的旧日记
       if(flags[s].seaTier){const e=pickR(foesOf(s));if(e)dealDmg(s,null,e,flags[s].seaTier>=2?2:1,'潮汐')}
       if(flags[s].shards){foesOf(s).forEach(e=>dealDmg(s,null,e,1,'残片'))}
+      // 向死而生（亡语流）：同袍阵亡→2档随机友军 / 3档全队 +1 攻。前赴后继越战越强,不制造新死亡(安全)
+      if(flags[s].deathTier){const survs=alive(s);if(survs.length){
+        if(flags[s].deathTier>=2){survs.forEach(x=>x.atk+=1);log.push({t:'buff',d:survs[0].uid,txt:'全队 +1 攻 · 向死而生'})}
+        else{const x=pickR(survs);x.atk+=1;log.push({t:'buff',d:x.uid,txt:'+1 攻 · 薪火'})}}}
       // 菀的旧日记：己方阵亡 +1 铸币，但每场封顶 3——否则「铺廉价队故意全灭稳收 6 币」的送死套路成立
       if(flags[s].diary){diaryCoins[s]=(diaryCoins[s]||0);if(diaryCoins[s]<3){diaryCoins[s]++;coinsGain[s]+=1;log.push({t:'coin',side:s,amt:1})}}
     }
@@ -3139,7 +3145,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
         if(f.afFirst)amt+=f.afFirst; // 词缀「先声」与 firstPlus 同权叠加
-        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit){amt*=2;crit=true} // 秘策「余烬亲和」/词缀「狼视」同款首击暴击
+        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit||f.pierceCrit){amt*=2;crit=true} // 秘策「余烬亲和」/词缀「狼视」/穿透流「破云之矢」满档 同款首击暴击
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
@@ -3256,6 +3262,17 @@ function runSelftest(){
    ok('新 VFX 条目：四象×4+斩影 帧数合网格 · 全带 @2x 与独立目录 · peak<fr', (()=>{
      return ['elem_fire','elem_water','elem_wind','elem_earth','ghostShatter'].every(k=>{
        const c=VFX[k];return c&&c.f2&&c.dir&&c.fr>0&&c.fr<=c.cols*c.rows&&c.peak>=0&&c.peak<c.fr})})());
+   ok('机制流派·穿透质变：破云满档=pierceCrit 首击必暴(buildFighters 赋值 + simulateBattle 暴击判定接线)', (()=>{
+     return buildFighters.toString().indexOf('pierceCrit=true')>0             // 4档赋值(羁绊预处理)
+       && simulateBattle.toString().indexOf('||f.pierceCrit')>0               // 暴击判定接线
+       && simulateBattle.toString().indexOf('amt*=2')>0})());
+   ok('机制流派·亡语轴：向死而生 4 单位(屿/音/慧/车夫)由技能k派生 · deathTier 入 sideFlags · 死亡触发接线 · 非成员不误报', (()=>{
+     if(!BONDS.death||BONDS.death.ids.length!==4)return false;
+     if(!['yu','yin','hui','carter'].every(id=>BONDS.death.ids.includes(id)))return false;
+     if(sideFlags({army:[{id:'yu'},{id:'yin'},{id:'hui'}],relics:[]}).deathTier!==2)return false; // 3亡语=满档tier2
+     if(sideFlags({army:[{id:'yu'}],relics:[]}).deathTier!==0)return false;                       // 1个=不成阵
+     return simulateBattle.toString().indexOf('flags[s].deathTier')>0
+       && bondAdvance({army:[{id:'yu'}]},UMAP['guard'],'death')===null})());  // 非亡语单位查亡语轴=null不误报
    ok('搭配可见性：4 组联动表齐 · comboHints 主动方看伙伴/被依赖方反向点亮 · 纯提示零数值', (()=>{
      if(COMBOS.length!==4||!COMBOS.every(c=>c.a&&(c.p||c.pf)&&c.on&&c.off))return false;
      const p1={army:[{id:'zi'}]}; const h1=comboHints(p1,UMAP['zeng']); // 增+梓在场→双璧 on
@@ -3558,7 +3575,7 @@ function runSelftest(){
     ok('破云档1：不加攻（攻来源已有三处，防溢出）', pg.atk===UMAP['pigeon'].atk&&xu.atk===UMAP['xuan'].atk);}
    {const F=buildFighters(parmy('zi','nuo','scout','pigeon'),{});
     const sc=F.find(f=>f.id==='scout');
-    ok('破云档2：穿透 +1 攻（天之国档1不加攻，隔离成立）', sc.atk===UMAP['scout'].atk+1&&sc.shield===2);}
+    ok('破云档2：穿透满档=首击必暴 pierceCrit(替原+1攻·机制质变) · 盾仍+2 · 攻不再溢出', sc.pierceCrit===true&&sc.atk===UMAP['scout'].atk&&sc.shield===2);}
    ok('sideFlags 透出 vanTier', sideFlags(parmy('guard','qi')).vanTier===1&&sideFlags(null).vanTier===0);
    // 反震：只随基本攻击、不递归、不吃相克
    {const van=()=>buildFighters(parmy('guard','qi'),{});           // 嘲讽档1 → 反震1
@@ -3607,7 +3624,7 @@ function runSelftest(){
    // —— 战报卡「本局羁绊」（bondBadges / bridgeUnits 纯函数）——
    {const P=parmy('lin','yin','qi','yu');  // 火象4=满档 · 嘲讽 qi=1 不成档
     const bb=bondBadges(P);
-    ok('战报：只列已成档的羁绊', bb.length===1&&bb[0].f==='fire'&&bb[0].t===2&&bb[0].c===4);
+    ok('战报：只列已成档的羁绊(火象满档 + 音屿=亡语成阵tier1,嘲讽1不列)', bb.length===2&&bb.some(x=>x.f==='fire'&&x.t===2&&x.c===4)&&bb.some(x=>x.f==='death'&&x.t===1&&x.c===2)&&!bb.some(x=>x.f==='vanguard'));
     ok('战报：空军团无羁绊', bondBadges({army:[],relics:[]}).length===0);
     const P2=parmy('nuo','zi','guard','qi');  // 穿透 nuo+zi=2 · 嘲讽 guard+qi=2（土象 zi+guard=2 也顺带成档）
     const bb2=bondBadges(P2);
