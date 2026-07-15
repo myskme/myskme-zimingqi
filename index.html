@@ -797,6 +797,11 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 .offer.rec-card.rare-UR .rec-frame{box-shadow:0 0 0 1px rgba(232,199,104,.7),0 12px 40px rgba(201,166,74,.3)}
 .rec-card.sold .rec-frame{filter:grayscale(.85)}
 @media(max-width:760px){.rec-frame{max-width:320px;margin:0 auto}.rec-plate .skill{font-size:12.5px}}
+/* 跨单位联动提示(20260717·搭配可见性):on=金亮可触发 / off=灰待伙伴。只在有联动的卡显示,大多数卡不显不挤 */
+.combo-row{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:5px}
+.combo-tag{font-size:10.5px;letter-spacing:.03em;padding:1px 7px;border:1px solid var(--line2);color:var(--ink3);border-radius:2px;white-space:nowrap;background:rgba(6,10,14,.5)}
+.combo-tag.on{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 8px rgba(201,166,74,.32)}
+.combo-tag .mi{width:.92em;height:.92em;vertical-align:-.12em;margin-right:2px;opacity:.85}
 /* ============ 名册视觉（roster-art-20260715）+ 界面框架件（ui-framework-20260715）接线 20260715d ============
    全部 mask + currentColor，由 body.rok/body.uok 门控；缺图/离线时这些装饰整体不显，名册退回纯文字版。 */
 .roster-banner{position:relative;max-width:520px;margin:0 auto 4px;aspect-ratio:1200/420;
@@ -2443,6 +2448,24 @@ function unitPrice(p,u){let c=u.cost;
   if(u.cost>=3&&hasRelic(p,'card'))c=Math.max(1,c-1);return c} // 减费排除航：面具只免吞币，不再叠双折扣
 function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
 function archIcon(a){return a?uiIcon(a.c==='p'?'state-pierce':'state-taunt'):''} // 战术标图标(Codex 20260714 画好一直闲置,0716 审计后接线)
+/* 跨单位联动表(20260717·搭配可见性:把藏在技能文字里的联动在征募时点亮给玩家看)。
+   纯提示,读现有 p.army,零数值改动——数值仍在各单位技能里,这里只是"照镜子"。a=主动方,p=需要的伙伴,pf=需要的伙伴阵营。 */
+const COMBOS=[
+  {a:'zeng',p:'zi',   on:'双璧 · 梓+2盾、自己+2攻', off:'双璧 · 待梓入队'},
+  {a:'qi',  p:'yu',   on:'兄弟 · 屿麒各+2攻',      off:'兄弟 · 待屿入队'},
+  {a:'yin', p:'lin',  on:'归琳 · 阵亡时琳+3攻',    off:'归琳 · 待琳入队'},
+  {a:'majun',pf:'dark',on:'归正 · 全队+1攻',        off:'归正 · 待黑域伙伴'},
+];
+function comboHints(p,u){ // 返回该单位相关的联动 [{on,txt}]:u 是主动方→看伙伴在不在;u 是被依赖方且伙伴在场→反向点亮
+  if(!p||!u)return [];
+  const has=id=>p.army.some(a=>a.id===id), hasFac=f=>p.army.some(a=>UMAP[a.id]&&UMAP[a.id].fac===f);
+  const out=[];
+  for(const c of COMBOS){
+    if(c.a===u.id){const on=c.pf?hasFac(c.pf):has(c.p);out.push({on,txt:on?c.on:c.off});}
+    else if(c.p===u.id&&has(c.a)){out.push({on:true,txt:c.on+'（'+UMAP[c.a].n+'在场）'});}
+  }
+  return out;
+}
 // 拥有扑克 SP 典藏立绘的高级角色
 const SP_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen']);
 // 单位详情弹窗（点立绘/长按触发，新手友好）。inst 可选(带 star/gAtk/gHp 则显示实际属性)
@@ -2576,6 +2599,7 @@ function renderDraft(fresh){
             <div class="stats">${statToken('stat-attack',u.atk,'攻击','atk')}${statToken('stat-vitality',u.hp,'生命','hp')}${statToken('stat-speed',u.spd,'速度','spd')}</div>
             ${(a=>a?`<div class="arch-tag arch-${a.c}">${archIcon(a)}${a.t}</div>`:'')(archOf(u))}
             <div class="skill">${u.skill.t}</div>
+            ${origin?'':(()=>{const h=comboHints(p,u);return h.length?`<div class="combo-row">${h.map(x=>`<span class="combo-tag${x.on?' on':''}">${uiIcon('state-halo')}${x.txt}</span>`).join('')}</div>`:'';})()}
           </div>
         </div>
         <div class="bond-advrow">${advHTML}</div>
@@ -3232,6 +3256,15 @@ function runSelftest(){
    ok('新 VFX 条目：四象×4+斩影 帧数合网格 · 全带 @2x 与独立目录 · peak<fr', (()=>{
      return ['elem_fire','elem_water','elem_wind','elem_earth','ghostShatter'].every(k=>{
        const c=VFX[k];return c&&c.f2&&c.dir&&c.fr>0&&c.fr<=c.cols*c.rows&&c.peak>=0&&c.peak<c.fr})})());
+   ok('搭配可见性：4 组联动表齐 · comboHints 主动方看伙伴/被依赖方反向点亮 · 纯提示零数值', (()=>{
+     if(COMBOS.length!==4||!COMBOS.every(c=>c.a&&(c.p||c.pf)&&c.on&&c.off))return false;
+     const p1={army:[{id:'zi'}]}; const h1=comboHints(p1,UMAP['zeng']); // 增+梓在场→双璧 on
+     const p0={army:[]};          const h0=comboHints(p0,UMAP['zeng']); // 军团空→双璧 off
+     const pr={army:[{id:'zeng'}]};const hr=comboHints(pr,UMAP['zi']);  // 买梓·增在场→反向点亮
+     const pm={army:[{id:'wan'}]}; const hm=comboHints(pm,UMAP['majun']);// 马将军+黑域菀→归正 on
+     return h1.length===1&&h1[0].on===true && h0.length===1&&h0[0].on===false
+       && hr.length===1&&hr[0].on===true && hm.length===1&&hm[0].on===true
+       && comboHints({army:[]},UMAP['guard']).length===0})());  // 无联动单位=不显,不挤
    ok('图标零孤儿：曾闲置 6 枚全部接线(穿透/嘲讽标·合星提示·复活日志·胜利横幅·星轨错位)', (()=>{
      if(!archIcon({c:'p'}).includes('mi-state-pierce')||!archIcon({c:'t'}).includes('mi-state-taunt'))return false;
      const rd=renderDraft.toString(),ue=unitEl.toString(),rp=runPlayback.toString(),
