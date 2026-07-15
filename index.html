@@ -3331,6 +3331,23 @@ function runSelftest(){
      if(buySpell.toString().indexOf('spellsPend=S.spellsPend||[]')<0)return false;  // 旧档无字段兜底
      return soloResolve.toString().indexOf('S.spellsPend=[]')>0                     // 战后清
        && applySpells.toString().indexOf('pend||[]')>0})());                        // 应用侧防御
+   ok('复仇战:rival 去重/新的置顶/pickRivalFoe 匹配难度与深度 · injectGhost/斩影removeRival/败存addRival 接线', (()=>{
+     const _bak=localStorage.getItem(RIVAL_KEY);
+     try{
+       localStorage.removeItem(RIVAL_KEY);
+       addRival({name:'甲',army:[{id:'lin',star:1}],difficulty:1,cleared:5});
+       addRival({name:'甲',army:[{id:'lin',star:1}],difficulty:1,cleared:5}); // 同一个→去重
+       if(loadRivals().length!==1)return false;
+       addRival({name:'乙',army:[{id:'nuo',star:2}],difficulty:0,cleared:8});
+       if(loadRivals().length!==2||loadRivals()[0].name!=='乙')return false;   // 新的置顶
+       const r1=pickRivalFoe(3,1); if(!r1||r1.g.name!=='甲')return false;       // 难度1·round3→甲
+       if(pickRivalFoe(9,1)!==null)return false;                              // round9>甲cleared5→无
+       removeRival({name:'甲',army:[{id:'lin',star:1}]});
+       if(loadRivals().length!==1||loadRivals()[0].name!=='乙')return false;
+       return soloRound.toString().indexOf('injectGhost')>0
+         && soloWinPerks.toString().indexOf('removeRival')>0 && soloWinPerks.toString().indexOf('revenge')>0
+         && soloResolve.toString().indexOf('addRival')>0;
+     }finally{ if(_bak==null)localStorage.removeItem(RIVAL_KEY); else localStorage.setItem(RIVAL_KEY,_bak); }})());
    ok('搭配可见性：4 组联动表齐 · comboHints 主动方看伙伴/被依赖方反向点亮 · 纯提示零数值', (()=>{
      if(COMBOS.length!==4||!COMBOS.every(c=>c.a&&(c.p||c.pf)&&c.on&&c.off))return false;
      const p1={army:[{id:'zi'}]}; const h1=comboHints(p1,UMAP['zeng']); // 增+梓在场→双璧 on
@@ -4537,7 +4554,7 @@ function metaGain(ev){ // 结算事件→XP增量(纯函数)。ev={cleared,win,s
 }
 function metaTitle(){ // 称号=等级里程碑(本地展示;不上榜——lbPayload schema 固定,硬塞会破坏后端)
   const lv=levelOf(_meta.xp).lv;
-  return lv>=20?'断云弟子':lv>=15?'首徒':lv>=10?'高徒':lv>=5?'学徒':'见习生';
+  return lv>=20?'衣钵传人':lv>=15?'首徒':lv>=10?'高徒':lv>=5?'学徒':'见习生'; // 0716去断云:「断云弟子」→「衣钵传人」(延续师承·纹章文件名 duanyun-disciple 属Codex交付残留不强改)
 }
 // —— 解锁(严守:仅单人 · 只加内容不加强) ——
 function metaUnlocked(k){const lv=levelOf(_meta.xp).lv;
@@ -4747,6 +4764,33 @@ function ghostToFoe(g){ // 纯函数,#selftest 可测:校验+映射影军army→
   const out=[];g.army.slice(0,6).forEach((u,i)=>{if(u&&UMAP[u.id])out.push({uid:'gh'+i+'_'+u.id,id:u.id,star:Math.max(1,Math.min(3,(u.star|0)||1)),gAtk:0,gHp:0})});
   return out.length?out:null;
 }
+/* ============ 复仇战(20260717·纯前端零后端)：输给某支影军→记本地,下次影军关优先遇到它,斩它=复仇成功 ============ */
+const RIVAL_KEY='zmq_rivals', RIVAL_MAX=6;
+function loadRivals(){try{const a=JSON.parse(localStorage.getItem(RIVAL_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
+function saveRivals(a){try{localStorage.setItem(RIVAL_KEY,JSON.stringify((a||[]).slice(0,RIVAL_MAX)))}catch(e){}}
+function rivalKey(g){return (g.name||'')+'|'+JSON.stringify((g.army||[]).map(u=>[u.id,u.star||1]))} // 去重键=名+阵容
+function addRival(g){ // g={name,army,difficulty,cleared};army 快照(小数据)。去重后置顶,封顶 RIVAL_MAX
+  if(!g||!Array.isArray(g.army)||!g.army.length)return;
+  const k=rivalKey(g), rest=loadRivals().filter(r=>rivalKey(r)!==k);
+  rest.unshift({name:g.name||'无名同窗',army:g.army.map(u=>({id:u.id,star:u.star||1})),difficulty:g.difficulty|0,cleared:g.cleared|0});
+  saveRivals(rest);
+}
+function removeRival(g){const k=rivalKey(g);saveRivals(loadRivals().filter(r=>rivalKey(r)!==k))}
+function pickRivalFoe(round,diff){ // 优先复仇:同难度且够格(cleared>=round)的 rival → {g,foe};否则 null
+  const rs=loadRivals();
+  for(const r of rs){if((r.difficulty|0)===diff && (r.cleared|0)>=round){const foe=ghostToFoe(r);if(foe)return {g:r,foe}}}
+  return null;
+}
+function injectGhost(round){ // 影军关统一注入:先复仇 rival、否则拉池。返回是否注入。S.ghostFoe 存 army/difficulty 供败后记 rival
+  const rv=pickRivalFoe(round,S.difficulty|0);
+  if(rv){S.soloFoe=rv.foe;S.ghostFoe={r:round,name:rv.g.name,army:rv.g.army,difficulty:rv.g.difficulty|0,cleared:rv.g.cleared|0,revenge:true};
+    (S.ghostUsed=S.ghostUsed||[]).push(round);toast(`复仇战 —— ${rv.g.name} 的军团又挡在你面前!赢下它,一雪前耻`,3600);return true}
+  const gi=(_ghostPool||[]).findIndex(g=>g&&g.cleared>=round&&ghostToFoe(g));
+  if(gi>=0){const g=_ghostPool.splice(gi,1)[0],foe=ghostToFoe(g);
+    if(foe){S.soloFoe=foe;S.ghostFoe={r:round,name:(g.name||'无名同窗'),army:g.army,difficulty:g.difficulty|0,cleared:g.cleared|0};
+      (S.ghostUsed=S.ghostUsed||[]).push(round);toast(`影军回响 —— ${S.ghostFoe.name} 的军团挡在这一阶`,3200);return true}}
+  return false;
+}
 let _ghostPool=null; // 影军池:模块级 transient——绝不挂 S(snapDraft 会整体序列化+回滚,异步回填的池会被撤销抹掉还写进存档)
 function ghostPull(){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo)return;
   try{fetch(LB_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpull',difficulty:S.difficulty})})
@@ -4893,8 +4937,11 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
     toast('险道已过 —— +6 铸币 · 可免费重铸一次',3000);S.pathTaken=null;
   }
   if(result&&result.surv&&A&&result.surv[0].length===A.length)S._noDeathWin=true; // 名册成就「一命不折」打点(任一场零阵亡胜利)
-  if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;you.coins+=2;S.slainN=(S.slainN||0)+1;
-    toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);S.ghostFoe=null;}
+  if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;S.slainN=(S.slainN||0)+1;
+    if(S.ghostFoe.revenge){you.coins+=4;removeRival(S.ghostFoe); // 复仇成功:移除 rival + 更厚回报 + 专属播报
+      toast(`复仇成功!${S.ghostFoe.name} 的军团被你斩落 —— 一雪前耻 +4 铸币`,3600);flash(false);}
+    else{you.coins+=2;toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);}
+    S.ghostFoe=null;}
   const ctx={result,A,round:S.round,ghost};
   (S.bounties||[]).forEach(x=>{if(x.done)return;const b=BOUNTY_MAP[x.id];if(!b)return;
     let hit=false;try{hit=!!b.chk(you,ctx)}catch(e){}
@@ -4972,11 +5019,8 @@ function applyPath(k){
     S.soloFoe=soloBuildFoe(S.round+(S.difficulty>=2?2:0),Math.min(2,S.difficulty+1)); // 2=顶格难度险道补偿深度(手感旋钮 1~3)
     toast('险道 —— 宿敌更强了,但赢下来值',3000);
   }
-  if(k==='shadow'){
-    const gi=(_ghostPool||[]).findIndex(g=>g&&g.cleared>=S.round&&ghostToFoe(g));
-    if(gi>=0){const g=_ghostPool.splice(gi,1)[0],foe=ghostToFoe(g);
-      if(foe){S.soloFoe=foe;S.ghostFoe={r:S.round,name:(g.name||'无名同窗')};(S.ghostUsed=S.ghostUsed||[]).push(S.round);
-        toast(`影军道 —— ${S.ghostFoe.name} 的军团挡在这一阶`,3200)}}
+  if(k==='shadow'){ // 影军道:优先复仇 rival、否则拉池;都没有则常规兜底
+    if(!injectGhost(S.round))S.soloFoe=soloBuildFoe(S.round,Math.min(2,S.difficulty+1));
   }
   startDraft();
 }
@@ -5057,11 +5101,9 @@ function soloRound(){
   S.soloFoe=soloIsBoss()?[]:soloBuildFoe(S.round,S.difficulty); // 第10关=叶王亲临（幽灵制式，见 soloRunBattle）
   // 影军回响:第4/7关若池中有"打得更深"的同学军团→本关宿敌换成它(离线/空池/无效army自动跳过)
   S.ghostFoe=null;
-  if((S.round===4||S.round===7)&&!soloIsBoss()&&Array.isArray(_ghostPool)&&!(S.ghostUsed||[]).includes(S.round)){
-    const gi=_ghostPool.findIndex(g=>g&&g.cleared>=S.round&&ghostToFoe(g));
-    if(gi>=0){const g=_ghostPool.splice(gi,1)[0],foe=ghostToFoe(g);
-      if(foe){S.soloFoe=foe;S.ghostFoe={r:S.round,name:(g.name||'无名同窗')};(S.ghostUsed=S.ghostUsed||[]).push(S.round);
-        toast(`影军回响——${S.ghostFoe.name} 的军团挡在第 ${S.round} 关`,3200)}}}
+  if((S.round===4||S.round===7)&&!soloIsBoss()&&!(S.ghostUsed||[]).includes(S.round)){
+    injectGhost(S.round); // 优先复仇 rival,否则拉池(内部处理空池);未注入则保留 5081 的常规宿敌
+  }
   // 秘策节点：第2/5/8关开局三选一（每节点只发一次；先落一次档，断电续局最多丢一次秘策不重复领）
   if([2,5,8].includes(S.round)&&!(S.stratsGiven||[]).includes(S.round)){S.phase='pick';save();showStratPick();return}
   // 宝库大幕断电续局:按落档的 ids 原样重开三选一(否则遗物凭空消失、round 不推进、整关收入被吞)
@@ -5130,18 +5172,19 @@ function soloResolve(result,A,B){
   const banner=document.createElement('div');banner.className='result-banner';
   if(win&&soloIsBoss()){ // 十关全破——试炼通关
     you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
-    banner.innerHTML=`<h1>${uiIcon('state-win')}十关全破 · 试炼通关</h1><p>叶王退走——断云为你加冕</p>${dmgRecap(result,A,B)}<p class="hint">点击加冕</p>`;
+    banner.innerHTML=`<h1>${uiIcon('state-win')}十关全破 · 试炼通关</h1><p>叶王退走——群星为你加冕</p>${dmgRecap(result,A,B)}<p class="hint">点击加冕</p>`;
     document.body.appendChild(banner);flash(false);shake();
     burst(innerWidth/2,innerHeight/3,null,44);SFX.play('crown');
     banner.onclick=()=>{banner.remove();soloEnd(true)};
   }else if(win){
     you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
-    if(S.lifeMax&&S.round%5===0)lifeHeal(1,'第 '+S.round+' 关 · 断云喘息'); // 每5关回1颗:长局不至于只出不进
+    if(S.lifeMax&&S.round%5===0)lifeHeal(1,'第 '+S.round+' 关 · 喘息回命'); // 每5关回1颗:长局不至于只出不进
     banner.innerHTML=`<h1>${uiIcon('state-win')}第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p>${dmgRecap(result,A,B)}<p class="hint">点击继续</p>`;
     document.body.appendChild(banner);flash(false);
     burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],28);SFX.play('win');
     banner.onclick=()=>{banner.remove();S.round++;soloRound()};
   }else{
+    if(S.ghostFoe&&S.ghostFoe.r===S.round&&Array.isArray(S.ghostFoe.army))addRival(S.ghostFoe); // 输给影军=记下这个对手,可复仇(去重·封顶6)
     // 不屈命脉:输一场不再直接终局——按惨烈程度掉命脉,掉光才结束
     if(!S.lifeMax)lifeInit(); // 旧档兼容:无命脉字段的存档续局时补发
     // 宗师 lifeMax=2 而 lifeLoss 最高-3 → 满命脉挨一场败退/惨败当场归零,「输一场不再终局」在宗师没兑现。
