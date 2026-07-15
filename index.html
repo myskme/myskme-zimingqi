@@ -680,7 +680,8 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 .rec-frame{position:relative;aspect-ratio:768/1024;width:100%;border-radius:2px;overflow:hidden;cursor:pointer;
   background:url(assets/card-frames-20260715/recruit-backplate.webp) center/cover no-repeat,var(--panel2)}
 .rec-glyph{position:absolute;left:0;right:0;top:16%;text-align:center;font-size:64px;font-weight:300;
-  color:var(--ink3);text-shadow:0 0 22px rgba(201,166,74,.3);z-index:0}
+  color:var(--ink3);text-shadow:0 0 22px rgba(201,166,74,.3);z-index:0;display:none} /* 默认隐藏：透明立绘走 contain，四周透明会漏出垫底汉字(「荣」字bug)。只在真缺图时亮 */
+.rec-frame.no-art .rec-glyph{display:block}
 .rec-art{position:absolute;left:10.5%;top:8%;width:79%;height:80%;z-index:1; /* 略小于画井：让卡框四角饰透气露出，立绘不顶到边 */
   object-fit:contain;object-position:center bottom}
 .rec-card.cf-op .rec-art{object-fit:cover;object-position:center top} /* 6 张深蓝不透明底立绘：cover 顶对齐，不强抠背景 */
@@ -2373,7 +2374,7 @@ function renderDraft(fresh){
       d.innerHTML=`
         <div class="rec-frame">
           <div class="rec-glyph">${u.n[0]}</div>
-          <img class="rec-art" src="${cardURL(u.id)}" alt="" onerror="this.style.display='none'">
+          <img class="rec-art" src="${cardURL(u.id)}" alt="" onerror="this.style.display='none';this.closest('.rec-frame').classList.add('no-art')">
           <i class="rec-fr" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
           <div class="rec-fac f-${u.fac}">${facEmblem(u.fac)}<span>${FACS[u.fac].n}</span></div>
           <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
