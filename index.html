@@ -802,6 +802,11 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 .combo-tag{font-size:10.5px;letter-spacing:.03em;padding:1px 7px;border:1px solid var(--line2);color:var(--ink3);border-radius:2px;white-space:nowrap;background:rgba(6,10,14,.5)}
 .combo-tag.on{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 8px rgba(201,166,74,.32)}
 .combo-tag .mi{width:.92em;height:.92em;vertical-align:-.12em;margin-right:2px;opacity:.85}
+/* 灵光法术牌(20260717):复用 .offer/.relic-tiered 容器,badge 中心一枚色阶星芒 */
+.spell-card .spell-badge{display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 50% 42%,rgba(255,255,255,.06),transparent 70%)}
+.spell-card .spell-glyph{display:inline-flex}
+.spell-card .spell-glyph .mi{width:40px;height:40px;filter:drop-shadow(0 0 10px currentColor)}
+.spell-card .lore{font-style:italic;opacity:.7}
 /* ============ 名册视觉（roster-art-20260715）+ 界面框架件（ui-framework-20260715）接线 20260715d ============
    全部 mask + currentColor，由 body.rok/body.uok 门控；缺图/离线时这些装饰整体不显，名册退回纯文字版。 */
 .roster-banner{position:relative;max-width:520px;margin:0 auto 4px;aspect-ratio:1200/420;
@@ -1477,6 +1482,23 @@ function mulberry32(a){const f=function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(
   f.state=()=>a|0; f.restore=v=>{a=v|0}; return f;}
 let rng = mulberry32(Date.now()%2147483647);
 const ri=(n)=>Math.floor(rng()*n), pick=(arr)=>arr[ri(arr.length)];
+/* ============ 灵光法术牌(20260717·借鉴炉石酒馆·一次性即时战术牌·机制型)============
+   混入征募三选一(仅单人),买了作用本场战斗己方军团、用完即弃(战后清 S.spellsPend)。
+   效果全复用现有战斗机制标记(spellCrit=首击暴击判定 / spellRevive=复活判定),零新战斗分支。
+   q=品质吃全局色阶 TIER_COLOR。数值/倍率是骨架,待王老师实测调。 */
+const SPELLS=[
+  {id:'sp_atk',  n:'星火',  q:1, cost:2, d:'全队本场 +1 攻'},                    // 秀·群体入门
+  {id:'sp_crit', n:'破釜',  q:2, cost:3, d:'全队本场首击必暴击 ×2'},              // 珍·机制:爆发(复用首击暴击判定)
+  {id:'sp_rev',  n:'回光',  q:2, cost:3, d:'全队本场首次阵亡以半血复起'},        // 珍·机制:复活流(复用 revive 判定)
+];
+const SMAP=SPELLS.reduce((o,s)=>(o[s.id]=s,o),{});
+function applySpells(fs,pend){ // 战斗前作用于己方 fighters(soloRunBattle 里 A=buildFighters 之后)
+  (pend||[]).forEach(id=>{
+    if(id==='sp_atk')      fs.forEach(f=>f.atk+=1);
+    else if(id==='sp_crit')fs.forEach(f=>f.spellCrit=true);
+    else if(id==='sp_rev') fs.forEach(f=>{if(!(f.skill&&f.skill.k==='revive1'))f.spellRevive=true});// 已自带复起的(欣)不叠,省一次复活给别人
+  });
+}
 function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),ms)}
 function shake(){document.body.classList.remove('shaking');void document.body.offsetWidth;document.body.classList.add('shaking')}
@@ -1832,7 +1854,7 @@ function newState(names,acts,rageMax,eventsOn){
     players:names.map((n,i)=>({i, name:n, coins:3, crowns:0, wins:0,
       army:[], relics:[], revenge:0, pity:0, tier:1})),
     // 征募运行时
-    draftQueue:[], draftIdx:0, offers:[], offersSold:[],
+    draftQueue:[], draftIdx:0, offers:[], offersSold:[], spellsPend:[],
     // 演武运行时
     pairs:[], battleIdx:0, actEvent:null, evFlags:{},
     dmgTally:{}, evLog:[], bossPending:false, bossDone:false, bossResolved:false,
@@ -2429,9 +2451,12 @@ function genOffers(p){
   // 22% 第三格换成遗物——但不覆盖「本轮唯一的高稀有」(否则遗物白吞保底、又触发补发窗口=遗物零代价)
   const owned=new Set(p.relics);
   const avail=RELICS.filter(r=>!owned.has(r.id));
-  if(avail.length&&rng()<0.22){
+  { // 第三格特殊物:遗物(22%) / 灵光(16%·仅单人)——都不覆盖「本轮唯一高稀有」(否则白吞保底)
     const slot2SoleHigh=isHigh(UMAP[offers[2].id]) && !offers.slice(0,2).some(o=>isHigh(UMAP[o.id]));
-    if(!slot2SoleHigh) offers[2]={type:'relic',id:pick(avail).id};
+    if(!slot2SoleHigh){const r3=rng();
+      if(avail.length&&r3<0.22){offers[2]={type:'relic',id:pick(avail).id}}
+      else if(S.solo&&r3<0.38){offers[2]={type:'spell',id:pick(SPELLS).id}} // 灵光是一次性即时战术牌
+    }
   }
   // 硬保底：pity≥3 且最终单位格无高稀有 → 强制补一张（严格封顶旱期≤3轮）
   const unitSlots=offers.map((o,i)=>o.type==='unit'?i:-1).filter(i=>i>=0);
@@ -2608,6 +2633,18 @@ function renderDraft(fresh){
         <button class="btn mini gold cost-btn">${origin?'免费 · 入队':`征募 · ${price} 铸币`}</button>`;
       d.querySelector('.cost-btn').onclick=()=>buyUnit(idx,u,price);
       bindDetail(d.querySelector('.rec-frame'),()=>showUnitDetail(u.id)); // 点/长按立绘看详情
+    }else if(o.type==='spell'){
+      const sp=SMAP[o.id], col=TIER_COLOR[sp.q];
+      d.classList.add('relic-tiered','spell-card');d.style.setProperty('--rtc',col);
+      d.innerHTML=`
+        <div class="fac" style="color:${col}">灵 光</div>
+        <div class="badge spell-badge" style="border-color:${col};color:${col}"><span class="spell-glyph">${uiIcon('state-halo')}</span></div>
+        <h3>${sp.n}</h3><div class="rar-tag" style="color:${col}">灵光 · ${TIER_NAME[sp.q]}</div>
+        <div class="stats" style="color:var(--ink3)">一次性 · 只作用本场</div>
+        <div class="skill">${sp.d}</div>
+        <div class="lore">灵光一现</div>
+        <button class="btn mini gold cost-btn">施展 · ${sp.cost} 铸币</button>`;
+      d.querySelector('.cost-btn').onclick=()=>buySpell(idx,sp);
     }else{
       const r=RMAP[o.id];
       d.innerHTML=`
@@ -2787,6 +2824,13 @@ function buyRelic(idx,r){
   snapDraft();
   p.coins-=3;p.relics.push(r.id);S.offersSold[idx]=true;
   toast(`遗物入手：${r.n}`);renderDraft();hud();save();
+}
+function buySpell(idx,sp){ // 灵光=一次性即时:入 S.spellsPend(旧档无字段则兜底),战斗前应用、战后清
+  const p=curDrafter();
+  if(p.coins<sp.cost){toast('铸币不够');return}
+  snapDraft(); // spellsPend 进快照 → 撤销可退(和买卡同范式)
+  p.coins-=sp.cost;(S.spellsPend=S.spellsPend||[]).push(sp.id);S.offersSold[idx]=true;
+  toast(`灵光待发：${sp.n} —— ${sp.d}`,2800);SFX.play('reveal');renderDraft();hud();save();
 }
 $('#btn-reroll').onclick=()=>{
   const p=curDrafter();
@@ -3053,7 +3097,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     while(deathQ.length){
       const f=deathQ.shift();const s=dieSideOf(f);
       // 一次复起：复读机 / 欣共用已验证分支
-      if(f.skill.k==='revive1'&&!f.usedRevive){f.usedRevive=true;f.alive=true;
+      if((f.skill.k==='revive1'||f.spellRevive)&&!f.usedRevive){f.usedRevive=true;f.alive=true; // 欣「站起八次」/ 灵光「回光」共用一次复起不变量
         f.hp=Math.ceil(f.maxhp/2);log.push({t:'revive',d:f.uid});continue}
       // 蛇蜕（叶王专属旗标，与技能槽正交）：首死原地蜕皮——50% 血复活、攻击 +2，一单位一复活（与复读机共用 usedRevive 不变量）
       // continue 在 die 日志与阵亡技/海雾/残片之前 → 假死不触发任何阵亡连锁
@@ -3145,7 +3189,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
         if(f.afFirst)amt+=f.afFirst; // 词缀「先声」与 firstPlus 同权叠加
-        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit||f.pierceCrit){amt*=2;crit=true} // 秘策「余烬亲和」/词缀「狼视」/穿透流「破云之矢」满档 同款首击暴击
+        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit||f.pierceCrit||f.spellCrit){amt*=2;crit=true} // 秘策余烬/词缀狼视/穿透流破云满档/灵光「破釜」 同款首击暴击
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
@@ -3273,6 +3317,20 @@ function runSelftest(){
      if(sideFlags({army:[{id:'yu'}],relics:[]}).deathTier!==0)return false;                       // 1个=不成阵
      return simulateBattle.toString().indexOf('flags[s].deathTier')>0
        && bondAdvance({army:[{id:'yu'}]},UMAP['guard'],'death')===null})());  // 非亡语单位查亡语轴=null不误报
+   ok('灵光法术牌：3张齐(星火/破釜/回光)· applySpells 机制标记正确 · sim 已接 spellCrit/spellRevive', (()=>{
+     if(SPELLS.length<3||!SMAP['sp_atk']||!SMAP['sp_crit']||!SMAP['sp_rev'])return false;
+     const fs=[{atk:2,skill:{k:'none'}},{atk:3,skill:{k:'revive1'}}];
+     applySpells(fs,['sp_atk']); if(fs[0].atk!==3||fs[1].atk!==4)return false;        // 星火:全队+1攻
+     applySpells(fs,['sp_crit']); if(!fs[0].spellCrit||!fs[1].spellCrit)return false;  // 破釜:全队首击暴击
+     applySpells(fs,['sp_rev']); if(!fs[0].spellRevive||fs[1].spellRevive)return false;// 回光:已自带复起(revive1)的不叠
+     const sim=simulateBattle.toString();
+     return sim.indexOf('f.spellCrit')>0 && sim.indexOf('f.spellRevive')>0})());
+   ok('灵光一次性:混入仅单人第三格 · 买入进 spellsPend · 战后 soloResolve 清 · 旧档兜底', (()=>{
+     if(newState(['t'],3,8,true).spellsPend===undefined)return false;               // 新档带字段
+     if(genOffers.toString().indexOf("type:'spell'")<0||genOffers.toString().indexOf('S.solo')<0)return false; // 仅单人混入
+     if(buySpell.toString().indexOf('spellsPend=S.spellsPend||[]')<0)return false;  // 旧档无字段兜底
+     return soloResolve.toString().indexOf('S.spellsPend=[]')>0                     // 战后清
+       && applySpells.toString().indexOf('pend||[]')>0})());                        // 应用侧防御
    ok('搭配可见性：4 组联动表齐 · comboHints 主动方看伙伴/被依赖方反向点亮 · 纯提示零数值', (()=>{
      if(COMBOS.length!==4||!COMBOS.every(c=>c.a&&(c.p||c.pf)&&c.on&&c.off))return false;
      const p1={army:[{id:'zi'}]}; const h1=comboHints(p1,UMAP['zeng']); // 增+梓在场→双璧 on
@@ -5047,6 +5105,7 @@ function soloRunBattle(){
   const boss=soloIsBoss();
   const foeP={name:soloFoeName(S.round),army:S.soloFoe||[],relics:[]};
   const A=buildFighters(you,{});
+  applySpells(A,S.spellsPend); // 灵光:一次性作用本场己方军团(战后 soloResolve 清)
   const B=boss?ghostFighters(soloBossUnits()):buildFighters(foeP,{});
   if(!A.length){soloEnd();return}
   if(!B.length){soloResolve({winner:0,dmgByUid:{},coinsGain:[0,0],surv:[A.map(f=>f.uid),[]]},A,B);return}
@@ -5056,6 +5115,7 @@ function soloRunBattle(){
 }
 function soloResolve(result,A,B){
   clearTimeout(PB.timer);
+  S.spellsPend=[]; // 灵光一次性:本场打完即清(战斗中断电则未到此、spellsPend 留存→续局重打时重新生效)
   const you=S.players[0], win=result.winner===0;
   // MVP 台账（只计我方单位，跨关累计）
   S.uidMeta=S.uidMeta||{};
