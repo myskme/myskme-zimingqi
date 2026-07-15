@@ -430,6 +430,12 @@ body.last-life #life-vignette{animation:lifeVigBreath 1.15s ease-in-out infinite
 @keyframes finFlash{0%{opacity:0}30%{opacity:1}62%{opacity:.55}100%{opacity:0}}
 #finisher-flash.rm{animation:finRM .13s ease both}
 @keyframes finRM{0%,88%{opacity:.9}100%{opacity:0}}
+/* 0716 图标审计接线:6 枚闲置图标归位(穿透/嘲讽标·合星提示·复活日志·胜利横幅·星轨错位) */
+.arch-mini .mi,.arch-tag .mi{width:1.05em;height:1.05em;vertical-align:-.18em;margin-right:2px}
+.rar-tag .mi{width:1.15em;height:1.15em;vertical-align:-.22em;margin:0 1px}
+.result-banner h1 .mi{width:.92em;height:.92em;vertical-align:-.1em;margin-right:.24em}
+#blog .mi-state-revive{width:1.15em;height:1.15em;vertical-align:-.2em;margin-right:3px;color:var(--purple)}
+#battle-sub .mi{width:1.15em;height:1.15em;vertical-align:-.22em;margin-right:3px}
 /* 词缀开箱仪式:传世大幕 */
 .affix-veil{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at center,rgba(30,22,6,.82),rgba(6,6,9,.95));cursor:pointer;animation:fade .3s both}
@@ -2436,6 +2442,7 @@ function unitPrice(p,u){let c=u.cost;
   if(u.fac==='dark'&&u.rar!=='UR'&&hasRelic(p,'mask'))c=Math.max(1,c-1);
   if(u.cost>=3&&hasRelic(p,'card'))c=Math.max(1,c-1);return c} // 减费排除航：面具只免吞币，不再叠双折扣
 function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
+function archIcon(a){return a?uiIcon(a.c==='p'?'state-pierce':'state-taunt'):''} // 战术标图标(Codex 20260714 画好一直闲置,0716 审计后接线)
 // 拥有扑克 SP 典藏立绘的高级角色
 const SP_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen']);
 // 单位详情弹窗（点立绘/长按触发，新手友好）。inst 可选(带 star/gAtk/gHp 则显示实际属性)
@@ -2549,7 +2556,7 @@ function renderDraft(fresh){
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
       if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
-      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===3)?' · 星芒可叠':(p.army.some(a=>a.id===u.id&&a.star===2)?' · ★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · ★★可合星':'')));
+      const mergeHint=origin?'':(p.army.some(a=>a.id===u.id&&a.star===3)?' · '+uiIcon('state-halo')+'星芒可叠':(p.army.some(a=>a.id===u.id&&a.star===2)?' · '+uiIcon('action-merge')+'★★★可觉醒':(p.army.some(a=>a.id===u.id&&a.star===1)?' · '+uiIcon('action-merge')+'★★可合星':'')));
       // 羁绊推进徽标：紫=在攒（N/门槛）· 金=买它立刻成套。开局点将不显（人人第一张）
       const advs=origin?[]:bondAdvList(p,u);
       const advHTML=advs.length
@@ -2567,7 +2574,7 @@ function renderDraft(fresh){
           <div class="rec-plate">
             <div class="rec-name"><h3>${u.n}</h3><span class="rar-tag rt-${u.rar}">${u.rar}${mergeHint}</span></div>
             <div class="stats">${statToken('stat-attack',u.atk,'攻击','atk')}${statToken('stat-vitality',u.hp,'生命','hp')}${statToken('stat-speed',u.spd,'速度','spd')}</div>
-            ${(a=>a?`<div class="arch-tag arch-${a.c}">${a.t}</div>`:'')(archOf(u))}
+            ${(a=>a?`<div class="arch-tag arch-${a.c}">${archIcon(a)}${a.t}</div>`:'')(archOf(u))}
             <div class="skill">${u.skill.t}</div>
           </div>
         </div>
@@ -2651,7 +2658,7 @@ function renderBench(p){
     const d=document.createElement('div');d.className='bunit'+(a.star>=2?' star'+a.star:'')+(a.af&&a.af.q>=2?' af-glow':'');
     if(a.af&&a.af.q>=2)d.style.setProperty('--afc',AFFIX_QC[a.af.q]); // 珍/传世:单位本体发该色光
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
-      ${(x=>x?`<div class="arch-mini ${x.c}">${x.t}</div>`:'')(archOf(u))}
+      ${(x=>x?`<div class="arch-mini ${x.c}">${archIcon(x)}${x.t}</div>`:'')(archOf(u))}
       <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}${a.halo?`<span class="halo-tag">${uiIcon('state-halo')}${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]};color:${AFFIX_QC[a.af.q]};--cfq:url(${cfAffix(a.af.q)})" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
       <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
       <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
@@ -3225,6 +3232,13 @@ function runSelftest(){
    ok('新 VFX 条目：四象×4+斩影 帧数合网格 · 全带 @2x 与独立目录 · peak<fr', (()=>{
      return ['elem_fire','elem_water','elem_wind','elem_earth','ghostShatter'].every(k=>{
        const c=VFX[k];return c&&c.f2&&c.dir&&c.fr>0&&c.fr<=c.cols*c.rows&&c.peak>=0&&c.peak<c.fr})})());
+   ok('图标零孤儿：曾闲置 6 枚全部接线(穿透/嘲讽标·合星提示·复活日志·胜利横幅·星轨错位)', (()=>{
+     if(!archIcon({c:'p'}).includes('mi-state-pierce')||!archIcon({c:'t'}).includes('mi-state-taunt'))return false;
+     const rd=renderDraft.toString(),ue=unitEl.toString(),rp=runPlayback.toString(),
+           sr=soloResolve.toString(),pp=renderPairings.toString();
+     return rd.includes('archIcon')&&ue.includes('archIcon')
+       &&rd.includes("'action-merge'")&&rp.includes("'state-revive'")
+       &&sr.includes("'state-win'")&&pp.includes("'action-swap'")})());
    ok('最后一颗命脉·红心跳：CSS 三件齐 · life=1 点亮 last+last-life · life>1 熄灭(不误伤)', (()=>{
      const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
      if(!/@keyframes heartbeatKF/.test(css)||!/@keyframes lifeVigBreath/.test(css)||!/#life-vignette/.test(css))return false;
@@ -3978,7 +3992,7 @@ function startBattlePhase(){
 }
 function renderPairings(resume){
   $('#battle-act-tag').textContent=ACT_CN[S.act];
-  $('#battle-sub').textContent=S.evFlags.maze?'星轨错位 · 随机配对':'宿敌对决 · 胜者夺王座分'+(S.act===S.actsTotal?'（终幕双倍）':'');
+  $('#battle-sub').innerHTML=S.evFlags.maze?uiIcon('action-swap')+'星轨错位 · 随机配对':'宿敌对决 · 胜者夺王座分'+(S.act===S.actsTotal?'（终幕双倍）':''); // 星轨错位=配对对调,吃 action-swap(0716 图标审计接线)
   const box=$('#pairings');box.style.display='';box.innerHTML='';
   S.pairs.forEach((pr,k)=>{
     const an=S.players[pr.a].name;
@@ -4009,7 +4023,7 @@ function unitEl(f){
   const d=document.createElement('div');
   d.className='u'+(f.star>=2?' star'+f.star:'')+(f.afQ>=2?' af-glow':'');d.dataset.uid=f.uid;if(f.fac)d.dataset.fac=f.fac;
   if(f.afQ>=2)d.style.setProperty('--afc',AFFIX_QC[f.afQ]); // 战斗棋子也带词缀光——"我那张金的"一眼可辨
-  d.innerHTML=`${(el=>el?elemGlyph(el):'')(unitElem(f.id))}${(x=>x?`<span class="arch-mini ${x.c}">${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}${f.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(f.star)}</span>`:''}</div><span class="n">${f.n}</span>
+  d.innerHTML=`${(el=>el?elemGlyph(el):'')(unitElem(f.id))}${(x=>x?`<span class="arch-mini ${x.c}">${archIcon(x)}${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}${f.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(f.star)}</span>`:''}</div><span class="n">${f.n}</span>
     <span class="num"><span class="a stat-token" aria-label="攻击 ${f.atk}">${uiIcon('stat-attack')}<span class="stat-v">${f.atk}</span></span><span class="h stat-token" aria-label="生命 ${f.hp}">${uiIcon('stat-vitality')}<span class="stat-v">${f.hp}</span></span></span>
     <div class="hpb"><i style="width:100%"></i></div>
     <span class="sh" style="display:none" aria-label="护盾已激活">${uiIcon('stat-shield')}</span>`;
@@ -4257,7 +4271,7 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
       hpNow[e.d]=Math.ceil(hpMax[e.d]/2);
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
       const rh=tgt.querySelector('.num .h');rh.querySelector('.stat-v').textContent=hpNow[e.d];rh.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]); // 复活后数值与血条同步
-      if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false);SFX.play('revive')}}}
+      if(animate){floatNum(tgt,'复读!','var(--purple)');blog.innerHTML=`${uiIcon('state-revive')}<b>${nameOf[e.d]}</b> 复读了自己——复活！`;flash(false);SFX.play('revive')}}}
     if(e.t==='shed'){const tgt=el(e.d);if(tgt){tgt.classList.remove('dead'); // 兜住 skip 模式给 kill 加的 dead 残留
       hpNow[e.d]=e.hp;
       tgt.querySelector('.hpb i').style.width=Math.max(0,hpNow[e.d]/hpMax[e.d]*100)+'%';
@@ -5006,14 +5020,14 @@ function soloResolve(result,A,B){
   const banner=document.createElement('div');banner.className='result-banner';
   if(win&&soloIsBoss()){ // 十关全破——试炼通关
     you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
-    banner.innerHTML=`<h1>十关全破 · 试炼通关</h1><p>叶王退走——断云为你加冕</p>${dmgRecap(result,A,B)}<p class="hint">点击加冕</p>`;
+    banner.innerHTML=`<h1>${uiIcon('state-win')}十关全破 · 试炼通关</h1><p>叶王退走——断云为你加冕</p>${dmgRecap(result,A,B)}<p class="hint">点击加冕</p>`;
     document.body.appendChild(banner);flash(false);shake();
     burst(innerWidth/2,innerHeight/3,null,44);SFX.play('crown');
     banner.onclick=()=>{banner.remove();soloEnd(true)};
   }else if(win){
     you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
     if(S.lifeMax&&S.round%5===0)lifeHeal(1,'第 '+S.round+' 关 · 断云喘息'); // 每5关回1颗:长局不至于只出不进
-    banner.innerHTML=`<h1>第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p>${dmgRecap(result,A,B)}<p class="hint">点击继续</p>`;
+    banner.innerHTML=`<h1>${uiIcon('state-win')}第 ${S.round} 关 · 通过</h1><p>宿敌溃退——继续深入</p>${dmgRecap(result,A,B)}<p class="hint">点击继续</p>`;
     document.body.appendChild(banner);flash(false);
     burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],28);SFX.play('win');
     banner.onclick=()=>{banner.remove();S.round++;soloRound()};
