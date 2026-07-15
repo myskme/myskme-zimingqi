@@ -1510,6 +1510,9 @@ const SPELLS=[
   {id:'sp_unyield',n:'不屈',q:3, cost:4, d:'全队本场首次阵亡半血复起 · 复起后 +3 攻'},// 复活流·加强
   {id:'sp_double',n:'破军', q:3, cost:4, d:'全队本场攻击翻倍 —— 一鼓作气'},        // 传世大招:攻击×2
   {id:'sp_all',  n:'天工',  q:3, cost:4, d:'全队本场 +3 攻 +3 命 +2 速'},          // 传世·全能
+  // P3 · 对敌/side 类(20260717·经 side flag 施放于敌方,与 applySpells 改己方正交)
+  {id:'sp_slow', n:'凝滞',  q:2, cost:3, d:'开战 · 全场敌军 -3 速'},                 // 控速(减速敌全体·走 spellSlow side flag·sim定-3)
+  {id:'sp_meteor',n:'星陨', q:3, cost:4, d:'开战 · 陨石坠落，敌方全体受 4 伤'},       // AOE(星陨·走 spellMeteor side flag·数值待sim)
 ];
 const SMAP=SPELLS.reduce((o,s)=>(o[s.id]=s,o),{});
 function applySpells(fs,pend){ // 战斗前作用于己方 fighters(soloRunBattle 里 A=buildFighters 之后)。全复用现有战斗机制标记,零新战斗分支
@@ -1526,6 +1529,14 @@ function applySpells(fs,pend){ // 战斗前作用于己方 fighters(soloRunBattl
     else if(id==='sp_unyield')fs.forEach(f=>{if(!(f.skill&&f.skill.k==='revive1')){f.spellRevive=true;f.spellReviveAtk=3}});// 复起后+攻
     else if(id==='sp_double')fs.forEach(f=>f.atk=Math.round(f.atk*2));
     else if(id==='sp_all')  fs.forEach(f=>{f.atk+=3;f.hp+=3;f.maxhp+=3;f.spd+=2});
+  });
+}
+// 对敌/side 类灵光(P3):不改己方 fighters,而是往己方 side flags 挂「开战对敌」效果,
+// 由 simulateBattle 开场施放于敌方(1-s)。与 applySpells 正交;soloRunBattle 里 flagsA=sideFlags(you) 之后调用。数值待 sim 调。
+function applySpellFlags(flags,pend){
+  (pend||[]).forEach(id=>{
+    if(id==='sp_slow')       flags.spellSlow=(flags.spellSlow||0)+3;   // 凝滞:敌全体 -3 速(sim定:-3=珍档0.472≈破釜0.484)
+    else if(id==='sp_meteor')flags.spellMeteor=(flags.spellMeteor||0)+4; // 星陨:敌全体 -4 血(sim定:4=传世档0.448≈破军0.441)
   });
 }
 function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');
@@ -3187,6 +3198,12 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     if(fo.length){const e=fo.reduce((m,x)=>x.atk>m.atk?x:m,fo[0]);
       e.atk=Math.max(0,e.atk-2);log.push({t:'debuff',d:e.uid,txt:'攻击 -2 · 羽笔'})}}});
 
+  // —— 灵光·对敌开场(P3 · 凝滞减速 / 星陨AOE):己方 spellSlow/spellMeteor side flag 施放于敌方(1-s),与羽笔同段 ——
+  [0,1].forEach(s=>{
+    if(flags[s].spellSlow){foesOf(s).forEach(e=>{e.spd=Math.max(1,e.spd-flags[s].spellSlow)});
+      const e0=foesOf(s)[0];if(e0)log.push({t:'debuff',d:e0.uid,txt:'速度 -'+flags[s].spellSlow+' · 凝滞'})}
+    if(flags[s].spellMeteor){foesOf(s).forEach(e=>dealDmg(s,null,e,flags[s].spellMeteor,'星陨'));processDeaths()}
+  });
   // —— 回合循环 ——
   let winner=-1;
   for(let r=1;r<=30;r++){
@@ -3346,10 +3363,10 @@ function runSelftest(){
      if(sideFlags({army:[{id:'yu'}],relics:[]}).deathTier!==0)return false;                       // 1个=不成阵
      return simulateBattle.toString().indexOf('flags[s].deathTier')>0
        && bondAdvance({army:[{id:'yu'}]},UMAP['guard'],'death')===null})());  // 非亡语单位查亡语轴=null不误报
-   ok('灵光法术牌 P2：12 张四品齐(秀3/珍6/传世3)· applySpells 各效果正确 · sim 接 spellCrit/spellRevive/复起加攻', (()=>{
-     if(SPELLS.length!==12)return false;
+   ok('灵光法术牌 P2+P3：14 张四品(秀3/珍7/传世4)· applySpells 各效果正确 · sim 接 spellCrit/spellRevive/复起加攻', (()=>{
+     if(SPELLS.length!==14)return false;
      const byQ={};SPELLS.forEach(s=>byQ[s.q]=(byQ[s.q]||0)+1);
-     if(byQ[1]!==3||byQ[2]!==6||byQ[3]!==3)return false;                              // 品质分布
+     if(byQ[1]!==3||byQ[2]!==7||byQ[3]!==4)return false;                              // 品质分布(P3 加凝滞珍/星陨传世)
      if(!SPELLS.every(s=>s.id&&s.n&&s.cost>0&&s.d))return false;
      // 数值类
      let fs=[{atk:2,hp:5,maxhp:5,spd:3,skill:{k:'none'}}]; applySpells(fs,['sp_all']);
@@ -3362,6 +3379,17 @@ function runSelftest(){
      fs=[{atk:2,skill:{k:'none'}}]; applySpells(fs,['sp_unyield']); if(!fs[0].spellRevive||fs[0].spellReviveAtk!==3)return false; // 不屈:复起+攻
      const sim=simulateBattle.toString();
      return sim.indexOf('f.spellCrit')>0 && sim.indexOf('f.spellRevive')>0 && sim.indexOf('f.spellReviveAtk')>0})());
+   ok('灵光 P3 · 对敌/side类:凝滞 spellSlow / 星陨 spellMeteor 走 side flag 施放于敌方(applySpellFlags 挂旗 · simulateBattle 开场对 foesOf 施放 · 与 applySpells 改己方正交)', (()=>{
+     if(typeof applySpellFlags!=='function')return false;
+     const f1={}; applySpellFlags(f1,['sp_slow']);   if(f1.spellSlow!==3)return false;   // 凝滞挂旗(sim定-3)
+     const f2={}; applySpellFlags(f2,['sp_meteor']); if(f2.spellMeteor!==4)return false; // 星陨挂旗
+     const sim=simulateBattle.toString();
+     if(sim.indexOf('spellSlow')<0||sim.indexOf('spellMeteor')<0)return false;           // sim 接线
+     // 行为:星陨开场清掉 1 血敌方(src=null AOE),我方无损获胜
+     const mk=o=>Object.assign({shield:0,alive:true,first:true,tg:'melee',taunt:false,usedRevive:false,skill:{k:'none'},ix:0},o);
+     const A=[mk({uid:1,atk:5,hp:10,maxhp:10,spd:9})], B=[mk({uid:2,atk:9,hp:1,maxhp:1,spd:1})];
+     const r=simulateBattle(A,B,{spellMeteor:4},{},mulberry32(5),{});
+     return r.log.some(e=>e.tag==='星陨') && r.winner===0;})());
    ok('灵光一次性:混入仅单人第三格 · 买入进 spellsPend · 战后 soloResolve 清 · 旧档兜底', (()=>{
      if(newState(['t'],3,8,true).spellsPend===undefined)return false;               // 新档带字段
      if(genOffers.toString().indexOf("type:'spell'")<0||genOffers.toString().indexOf('S.solo')<0)return false; // 仅单人混入
@@ -5241,7 +5269,8 @@ function soloRunBattle(){
   if(!A.length){soloEnd();return}
   if(!B.length){soloResolve({winner:0,dmgByUid:{},coinsGain:[0,0],surv:[A.map(f=>f.uid),[]]},A,B);return}
   const battleRng=mulberry32(S.seed+S.round*131+S.difficulty*7+7);
-  runPlayback(A,B,sideFlags(you),sideFlags(boss?null:foeP),`<b>${you.name}</b> 对阵 <b>${foeP.name}</b>`,{},battleRng,
+  const flagsA=sideFlags(you); applySpellFlags(flagsA,S.spellsPend); // 对敌灵光(凝滞/星陨)挂 side flag,开场施放于敌方(战后随 spellsPend 清)
+  runPlayback(A,B,flagsA,sideFlags(boss?null:foeP),`<b>${you.name}</b> 对阵 <b>${foeP.name}</b>`,{},battleRng,
     result=>soloResolve(result,A,B));
 }
 function soloResolve(result,A,B){
