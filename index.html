@@ -807,6 +807,13 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 .spell-card .spell-glyph{display:inline-flex}
 .spell-card .spell-glyph .mi{width:40px;height:40px;filter:drop-shadow(0 0 10px currentColor)}
 .spell-card .lore{font-style:italic;opacity:.7}
+/* 复仇战仇敌名单(20260717) */
+.rival-row{border:1px solid var(--line2);border-radius:4px;padding:10px 12px;margin:8px 0;display:flex;flex-direction:column;gap:6px;background:rgba(6,10,14,.35)}
+.rival-hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.rival-nm{font-size:15px;color:var(--gold2);font-weight:500}
+.rival-meta{font-size:11.5px;color:var(--ink3)}
+.rival-row .mini-army{display:flex;gap:4px;flex-wrap:wrap}
+.rival-row .rev-go{align-self:flex-end}
 /* ============ 名册视觉（roster-art-20260715）+ 界面框架件（ui-framework-20260715）接线 20260715d ============
    全部 mask + currentColor，由 body.rok/body.uok 门控；缺图/离线时这些装饰整体不显，名册退回纯文字版。 */
 .roster-banner{position:relative;max-width:520px;margin:0 auto 4px;aspect-ratio:1200/420;
@@ -1053,6 +1060,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
       <button class="btn" id="btn-roster"><span class="mi-slot" data-ui-icon="score-throne"></span>狼先生的名册</button>
       <button class="btn" id="btn-howto"><span class="mi-slot" data-ui-icon="help-book"></span>玩法与课堂说明</button>
       <button class="btn" id="btn-lbhall" style="display:none"><span class="mi-slot" data-ui-icon="score-throne"></span>世界回廊 · 排行</button>
+      <button class="btn" id="btn-revenge" style="display:none"><span class="mi-slot" data-ui-icon="state-shadow-echo"></span>复仇战</button>
     </div>
     <p class="title-foot"><a href="https://myskme.github.io/myskme-hub/" aria-label="返回 MYSKME 作品总目" style="color:inherit;text-decoration:underline dotted rgba(201,166,74,.5)"><span class="mi-slot" data-ui-icon="nav-back"></span> 作品总目</a>　·　MAKE YOURSELF SPECIAL &amp; KIND — MYSKME · Mr. Wang</p>
   </section>
@@ -3348,6 +3356,12 @@ function runSelftest(){
          && soloWinPerks.toString().indexOf('removeRival')>0 && soloWinPerks.toString().indexOf('revenge')>0
          && soloResolve.toString().indexOf('addRival')>0;
      }finally{ if(_bak==null)localStorage.removeItem(RIVAL_KEY); else localStorage.setItem(RIVAL_KEY,_bak); }})());
+   ok('复仇战主菜单入口:pickRivalFoe 优先指定目标 · startRevengeRun 锁定key+开局 · showRevenge 防XSS', (()=>{
+     if(typeof showRevenge!=='function'||typeof startRevengeRun!=='function')return false;
+     const pf=pickRivalFoe.toString(), sr=startRevengeRun.toString(), sv=showRevenge.toString();
+     return pf.indexOf('S.revengeTargetKey')>0                            // 指定目标优先
+       && sr.indexOf('S.revengeTargetKey=rivalKey')>0 && sr.indexOf('startOriginDraft')>0  // 锁定+开局
+       && sv.indexOf('textContent')>0})());                              // 名字 textContent 注入防 XSS
    ok('群英擂台:胜分加权(深关×高难×复仇1.5)· dmsub day=纯周号(无老师密码门,同单人榜)· 斩影/提交/页签 接线', (()=>{
      if(arenaWinScore(4,0,false)!==4||arenaWinScore(7,2,false)!==21||arenaWinScore(4,0,true)!==6)return false; // 加权公式
      if(/-/.test(weekKey()))return false;                                    // 周号纯数字→无短横线→不触发密码门
@@ -4790,10 +4804,33 @@ function addRival(g){ // g={name,army,difficulty,cleared};army 快照(小数据)
   saveRivals(rest);
 }
 function removeRival(g){const k=rivalKey(g);saveRivals(loadRivals().filter(r=>rivalKey(r)!==k))}
-function pickRivalFoe(round,diff){ // 优先复仇:同难度且够格(cleared>=round)的 rival → {g,foe};否则 null
+function pickRivalFoe(round,diff){ // 优先复仇:①主菜单指定的目标 ②任意同难度且够格(cleared>=round)的 rival → {g,foe};否则 null
   const rs=loadRivals();
+  if(typeof S!=='undefined'&&S&&S.revengeTargetKey){const t=rs.find(r=>rivalKey(r)===S.revengeTargetKey); // 玩家主动指定的复仇目标优先
+    if(t&&(t.difficulty|0)===diff&&(t.cleared|0)>=round){const foe=ghostToFoe(t);if(foe)return {g:t,foe}}}
   for(const r of rs){if((r.difficulty|0)===diff && (r.cleared|0)>=round){const foe=ghostToFoe(r);if(foe)return {g:r,foe}}}
   return null;
+}
+function startRevengeRun(rival){ // 复仇战入口:开一局指定难度,锁定复仇目标(injectGhost 优先它)。镜像 btn-start 单人分支
+  if(!rival)return; closeModal();
+  const nm=localStorage.getItem('zmq_lbname')||'挑战者';
+  S=newState([nm],3,0,false);
+  S.solo=true; S.difficulty=rival.difficulty|0; S.round=1; S.soloFoe=null; S.soloWins=0;
+  S.revengeTargetKey=rivalKey(rival); // 锁定 → pickRivalFoe 优先
+  lifeInit(); rng=mulberry32(S.seed); assignBounties();
+  setAct(1);hud();startOriginDraft();save();BGM.auto('play',true); ghostPull();
+  toast(`复仇启程 —— 目标:${rival.name} 的军团,在影军关狭路相逢`,3800);
+}
+function showRevenge(){ // 仇敌名单:看见+主动发起(把复仇战从"隐形"变"显眼")
+  const rs=loadRivals(), DIFF=['见习','精英','宗师'];
+  if(!rs.length){modal('<h3>复仇战</h3><div style="text-align:center;color:var(--ink3);padding:22px;line-height:1.9">你还没有败绩——没有需要复仇的军团。<br>输给影军后,他们会出现在这里,等你一雪前耻。</div>');return}
+  const rows=rs.map((r,i)=>{
+    const mini=(r.army||[]).map(a=>UMAP[a.id]?`<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(a.id)||'none'}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}${artTag(a.id,'mua')}</span>`:'').join('');
+    return `<div class="rival-row"><div class="rival-hd"><b class="rival-nm"></b><span class="rival-meta">${DIFF[r.difficulty|0]||''} · 曾胜到第 ${r.cleared} 关</span></div><div class="mini-army">${mini}</div><button class="btn mini gold rev-go" data-i="${i}">向他复仇</button></div>`;
+  }).join('');
+  modal('<h3>复仇战</h3><p style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.06em">打败过你的军团 —— 选一个,开一局向他复仇(影军关狭路相逢,斩它一雪前耻)</p>'+rows);
+  $$('#modal-box .rival-nm').forEach((el,i)=>{el.textContent=rs[i].name||'无名同窗'}); // textContent 注入防 XSS(名字来自他人)
+  $$('#modal-box .rev-go').forEach(b=>b.onclick=()=>startRevengeRun(rs[+b.dataset.i]));
 }
 function injectGhost(round){ // 影军关统一注入:先复仇 rival、否则拉池。返回是否注入。S.ghostFoe 存 army/difficulty 供败后记 rival
   const rv=pickRivalFoe(round,S.difficulty|0);
@@ -5975,6 +6012,7 @@ $('#btn-menu').onclick=showMenu;
   rProbe();  // 名册称号/成就纹章 → body.rok；界面四角饰/分隔/印章/云丝 → body.uok（同上，缺图退回文字）
   if(loadSave())$('#btn-continue').style.display='';
   if(LB_ON){const bh=$('#btn-lbhall');if(bh){bh.style.display='';bh.onclick=showLbHall}}
+  {const br=$('#btn-revenge');if(br&&loadRivals().length){br.style.display='';br.onclick=showRevenge}} // 复仇战:有仇敌才显
   renderSetup();
   // 标题徽记=MYSKME 印章（居中一枚；原「鸣」字与大标题的鸣重复、角落双章冗余，已合并）
   try{const tm=$('#title-mark');if(tm){const im=new Image();im.alt='MYSKME';
