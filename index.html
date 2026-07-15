@@ -3348,6 +3348,13 @@ function runSelftest(){
          && soloWinPerks.toString().indexOf('removeRival')>0 && soloWinPerks.toString().indexOf('revenge')>0
          && soloResolve.toString().indexOf('addRival')>0;
      }finally{ if(_bak==null)localStorage.removeItem(RIVAL_KEY); else localStorage.setItem(RIVAL_KEY,_bak); }})());
+   ok('群英擂台:胜分加权(深关×高难×复仇1.5)· dmsub day=纯周号(无老师密码门,同单人榜)· 斩影/提交/页签 接线', (()=>{
+     if(arenaWinScore(4,0,false)!==4||arenaWinScore(7,2,false)!==21||arenaWinScore(4,0,true)!==6)return false; // 加权公式
+     if(/-/.test(weekKey()))return false;                                    // 周号纯数字→无短横线→不触发密码门
+     const wp=soloWinPerks.toString(), sa=submitArena.toString(), sh=showLbHall.toString();
+     return wp.indexOf('addArenaWin')>0 && wp.indexOf('submitArena')>0       // 斩影胜利累加+提交
+       && sa.indexOf("action:'dmsub'")>0 && sa.indexOf('weekKey()')>0 && sa.indexOf('pass')<0 // 无密码提交
+       && sh.indexOf('d===7')>0 && sh.indexOf('FMT.arena')>0})());           // 世界回廊擂台榜页签
    ok('搭配可见性：4 组联动表齐 · comboHints 主动方看伙伴/被依赖方反向点亮 · 纯提示零数值', (()=>{
      if(COMBOS.length!==4||!COMBOS.every(c=>c.a&&(c.p||c.pf)&&c.on&&c.off))return false;
      const p1={army:[{id:'zi'}]}; const h1=comboHints(p1,UMAP['zeng']); // 增+梓在场→双璧 on
@@ -4938,6 +4945,7 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
   }
   if(result&&result.surv&&A&&result.surv[0].length===A.length)S._noDeathWin=true; // 名册成就「一命不折」打点(任一场零阵亡胜利)
   if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;S.slainN=(S.slainN||0)+1;
+    addArenaWin(S.round,S.difficulty,S.ghostFoe.revenge);submitArena(); // 群英擂台:胜场加权累加+提交本周榜(零后端)
     if(S.ghostFoe.revenge){you.coins+=4;removeRival(S.ghostFoe); // 复仇成功:移除 rival + 更厚回报 + 专属播报
       toast(`复仇成功!${S.ghostFoe.name} 的军团被你斩落 —— 一雪前耻 +4 铸币`,3600);flash(false);}
     else{you.coins+=2;toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);}
@@ -5241,6 +5249,15 @@ async function lbSendRetry(payload,tries){
 function nameKey(name){let h=5381;for(const c of String(name||''))h=((h*33)^c.charCodeAt(0))>>>0;return h.toString(36)} // 名字→ASCII 唯一键（中文名后端 id 正则会清空，故不能直接当 id）
 // —— 课堂榜按周分赛季：day=本周周一日期(YYYYMMDD)，一周一个赛季，公开激励攀比 ——
 function weekKey(){const d=new Date();const off=(d.getDay()+6)%7;d.setDate(d.getDate()-off);return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')} // 本周周一为赛季首（周一→周日一个赛季）
+/* ============ 群英擂台(20260717·擂台第二件·零后端复用 dmsub)============
+   影军战每胜=擂台分(按关数×难度加权防刷·复仇×1.5),本地按周累加(单调递增)。
+   提交 dmsub board='zmq' day=纯周号(不带短横线→无老师密码门,同单人榜)· 后端取max=当前累加值。 */
+const ARENA_KEY='zmq_arena';
+function loadArena(){try{const a=JSON.parse(localStorage.getItem(ARENA_KEY)||'null');return (a&&a.week===weekKey())?a:{week:weekKey(),score:0}}catch(e){return {week:weekKey(),score:0}}} // 跨周自动归零(新周新赛季)
+function arenaWinScore(round,diff,revenge){return Math.round(Math.max(1,round|0)*((diff|0)+1)*(revenge?1.5:1))} // 纯函数:深关/高难多分(防刷弱鸡),复仇×1.5
+function addArenaWin(round,diff,revenge){const a=loadArena();a.score=Math.min(999999,a.score+arenaWinScore(round,diff,revenge));try{localStorage.setItem(ARENA_KEY,JSON.stringify(a))}catch(e){}return a.score}
+function submitArena(){ if(typeof LB_ON==='undefined'||!LB_ON)return; const a=loadArena(); // fire-and-forget:无密码(day=纯周号),弱网自动重试
+  try{lbSendRetry({action:'dmsub',board:'zmq',day:weekKey(),id:lbId(),name:(localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),score:a.score},2).catch(()=>{})}catch(e){} }
 function fmtWeek(s){s=String(s);if(s.length<8)return s;const y=+s.slice(0,4),m=+s.slice(4,6),dd=+s.slice(6,8);const mon=new Date(y,m-1,dd),sun=new Date(y,m-1,dd+6);const p=x=>(x.getMonth()+1)+'.'+x.getDate();return p(mon)+'–'+p(sun)} // → "7.7–7.13"
 function getClassWeeks(){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');const t=weekKey();if(!a.includes(t))a.push(t);return a.slice().sort().reverse().slice(0,26)}catch(e){return[weekKey()]}} // 含本周，倒序，最多半年
 function addClassWeek(w){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');if(!a.includes(w)){a.push(w);localStorage.setItem('zmq_classweeks',JSON.stringify(a))}}catch(e){}}
@@ -5303,7 +5320,7 @@ async function showLbHall(){
   const tab=(d,label)=>`<button class="btn mini lbtab" data-d="${d}">${label}</button>`;
   modal(`<h3>世界回廊</h3>
     <p id="lb-cap" style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">单人试炼 · 通过关数 · 全球纪录</p>
-    <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(3,'课堂榜')+tab(4,'名匠·人物')+tab(5,'名匠·宝物')+tab(6,'绝品实录')}</div>
+    <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(7,uiIcon('state-shadow-echo')+'擂台榜')+tab(3,'课堂榜')+tab(4,'名匠·人物')+tab(5,'名匠·宝物')+tab(6,'绝品实录')}</div>
     <div id="lb-cats" class="btnrow" style="display:none;margin:0 0 6px;flex-wrap:wrap;gap:6px"></div>
     <div id="lb-days" class="btnrow" style="display:none;margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
     <div id="lblist" style="min-height:160px;max-height:44vh;overflow:auto"></div>
@@ -5315,6 +5332,7 @@ async function showLbHall(){
     power:s=>`${Math.min(999,s|0)} 战力`,                            // 战力榜
     wealth:s=>uiIcon('currency-coin')+Math.floor((s|0)/1000)+' · '+dec(s,100,10)+'胜',      // 财富榜：金币·战绩
     solo:s=>`${Math.min(999,s|0)} 关`,                               // 单人榜
+    arena:s=>uiIcon('state-shadow-echo')+(s|0)+' 擂台分',            // 群英擂台:影军战胜场加权积分
     legacy:s=>uiIcon('score-throne')+Math.min(999,s|0),                               // 旧纯皇冠周（兼容）
   };
   const CATS=[{k:'-0',fmt:FMT.glory,label:'荣耀榜',cap:'课堂·荣耀榜 · 皇冠优先·战力破平 · 按周结算'},
@@ -5391,6 +5409,10 @@ async function showLbHall(){
                   6:['feed','绝品实录 · 谁抽到了传世词缀（最近 20 条)']}[d];
       if(cap)cap.textContent=meta[1];
       fetchHall(meta[0]);
+    }else if(d===7){ // 群英擂台:本周赛季·影军战胜场积分(day=纯周号)
+      if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
+      if(cap)cap.textContent='群英擂台 · 影军战胜场积分 · 本周赛季';
+      fetchDay(weekKey(),FMT.arena);
     }else{ if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
       if(cap)cap.textContent='单人试炼 · 通过关数 · 全球纪录'; fetchDay(d,FMT.solo); }
   };
