@@ -228,6 +228,9 @@ body.playing #hud{display:flex}
 .mini-u.f-academy{border-color:rgba(232,199,104,.5)} .mini-u.f-sky{border-color:rgba(156,192,232,.5)}
 .mini-u.f-sea{border-color:rgba(95,184,165,.52)} .mini-u.f-swing{border-color:rgba(195,189,168,.46)}
 .mini-u.f-dark{border-color:rgba(180,140,230,.52)} .mini-u.f-novice{border-color:rgba(159,212,159,.5)}
+/* 军团架边框改吃四象色(20260716·四象上位替代流派)：凑队一眼看四象构成去搭相克/羁绊 */
+.mini-u.e-earth{border-color:rgba(201,166,74,.62)} .mini-u.e-water{border-color:rgba(127,196,216,.62)}
+.mini-u.e-fire{border-color:rgba(224,139,122,.62)} .mini-u.e-wind{border-color:rgba(156,192,232,.62)}
 .judge{display:grid;grid-template-columns:1fr 1fr;gap:7px}
 .judge .btn{padding:8px 4px;font-size:13.5px;letter-spacing:.06em;text-align:center}
 .judge .ok{border-color:rgba(106,168,106,.5);color:#9fd49f}
@@ -2030,7 +2033,7 @@ function renderWave(){
     d.innerHTML=`<h4>${p.name} <span class="crown icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
       <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
-        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} f-${u.fac}" title="${u.n} · ${FACS[u.fac]?FACS[u.fac].n:''}">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
+        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(u.id)||'none'}" title="${u.n} · ${ELEM_CN[unitElem(u.id)]||'无象'}">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
         <button class="btn ok"   data-a="ok">答对 +2</button>
         <button class="btn hard" data-a="hard">难题 +3</button>
@@ -2386,7 +2389,8 @@ function showUnitDetail(id,inst){
       <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
       ${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
     <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b class="halo-inline">'+uiIcon('state-halo')+inst.halo+'</b>':''}</span></h3>
-    <div style="text-align:center;margin:-6px 0 12px"><b style="color:var(--gold2)">${FACS[u.fac].n}</b> · 征募价 ${u.cost} 铸币</div>
+    <div style="text-align:center;margin:-6px 0 3px">${_el?elemGlyph(_el):''}<b style="color:${ELEM_COLOR2[_el]||'var(--gold2)'}">${ELEM_CN[_el]||'无象'}</b>${_zo?` · <span style="color:var(--ink2)">${_zo[0]}座</span>`:''} · 征募价 ${u.cost} 铸币</div>
+    <div style="text-align:center;margin:0 0 12px;font-size:10.5px;color:var(--ink4);letter-spacing:.14em">剧情归属 · ${FACS[u.fac].n}</div>
     ${affixLine(inst)}
     ${(inst&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${(S.freeReforge||0)>0?'免费':(4+2*(inst.rf||0))+' 铸币'}</span></button></div>`:''}
     <div class="stat-set" style="font-size:16px;margin-bottom:6px">
@@ -2460,7 +2464,7 @@ function renderDraft(fresh){
           <div class="rec-glyph">${u.n[0]}</div>
           <img class="rec-art" src="${cardURL(u.id)}" alt="" onerror="this.style.display='none';this.closest('.rec-frame').classList.add('no-art')">
           <i class="rec-fr" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
-          <div class="rec-fac f-${u.fac}">${facEmblem(u.fac)}<span>${FACS[u.fac].n}</span></div>
+          <div class="rec-fac rec-elem" style="color:${ELEM_COLOR2[unitElem(u.id)]||'var(--ink2)'}">${elemGlyph(unitElem(u.id))}<span>${ELEM_CN[unitElem(u.id)]||''}</span></div>
           <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
           <div class="rec-plate">
             <div class="rec-name"><h3>${u.n}</h3><span class="rar-tag rt-${u.rar}">${u.rar}${mergeHint}</span></div>
@@ -3090,6 +3094,12 @@ function runSelftest(){
      if(!/@keyframes hitKB/.test(css)||!/@keyframes lungeKF/.test(css)||!/#arena\.jolt/.test(css))return false;
      const src=runPlayback.toString();
      return src.indexOf('--kb')>0&&src.indexOf('hit-hard')>0&&src.indexOf("'jolt'")>0})());
+   ok('四象上位：征募卡/战斗棋子主位显示四象 · 图鉴按四象分组 · 流派退为详情剧情归属小字', (()=>{
+     const rd=renderDraft.toString(), ue=unitEl.toString(), su=showUnits.toString(), sd=showUnitDetail.toString();
+     if(rd.indexOf('rec-elem')<0||rd.indexOf('unitElem')<0)return false;         // 征募卡角标=四象
+     if(ue.indexOf('elemGlyph')<0||ue.indexOf('unitElem')<0)return false;        // 战斗棋子=四象徽记
+     if(su.indexOf("'earth','water','fire','wind'")<0||su.indexOf('unitElem')<0)return false; // 图鉴按四象分组
+     return sd.indexOf('剧情归属')>=0})());                                       // 流派退为详情剧情归属
    ok('视觉基准：安全区变量 + 动态视口 + 触屏命中区已进 CSS（不许改回 100vh）', (()=>{
      const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
      return css.includes('safe-area-inset-top')&&css.includes('100dvh')
@@ -3848,7 +3858,7 @@ function unitEl(f){
   const d=document.createElement('div');
   d.className='u'+(f.star>=2?' star'+f.star:'')+(f.afQ>=2?' af-glow':'');d.dataset.uid=f.uid;if(f.fac)d.dataset.fac=f.fac;
   if(f.afQ>=2)d.style.setProperty('--afc',AFFIX_QC[f.afQ]); // 战斗棋子也带词缀光——"我那张金的"一眼可辨
-  d.innerHTML=`${f.fac?facEmblem(f.fac):''}${(x=>x?`<span class="arch-mini ${x.c}">${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}${f.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(f.star)}</span>`:''}</div><span class="n">${f.n}</span>
+  d.innerHTML=`${(el=>el?elemGlyph(el):'')(unitElem(f.id))}${(x=>x?`<span class="arch-mini ${x.c}">${x.t}</span>`:'')(archOf(f))}<div class="face"><span class="g">${f.glyph}</span>${artTag(f.id)}${f.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(f.star)}</span>`:''}</div><span class="n">${f.n}</span>
     <span class="num"><span class="a stat-token" aria-label="攻击 ${f.atk}">${uiIcon('stat-attack')}<span class="stat-v">${f.atk}</span></span><span class="h stat-token" aria-label="生命 ${f.hp}">${uiIcon('stat-vitality')}<span class="stat-v">${f.hp}</span></span></span>
     <div class="hpb"><i style="width:100%"></i></div>
     <span class="sh" style="display:none" aria-label="护盾已激活">${uiIcon('stat-shield')}</span>`;
@@ -5483,7 +5493,7 @@ function showRoster(){
     <div class="codex-grid">`+UNITS.map(u=>{
       const seen=!!(_meta.seen||{})[u.id], s3=!!(_meta.star3||{})[u.id], mv=!!(_meta.mvp||{})[u.id];
       return `<div class="codex-u" data-uid="${u.id}" style="${seen?'':'opacity:.3;filter:grayscale(1)'}">
-        <div class="badge r-${u.rar}" data-fac="${u.fac}">${facEmblem(u.fac)}<span class="glyph">${u.n[0]}</span>${artTag(u.id)}
+        <div class="badge r-${u.rar}" data-fac="${u.fac}">${elemGlyph(unitElem(u.id))}<span class="glyph">${u.n[0]}</span>${artTag(u.id)}
           ${s3?'<span class="rmark" style="top:1px;right:2px;color:var(--gold2)">'+uiIcon('rank-star')+'</span>':''}
           ${mv?'<span class="rmark" style="bottom:1px;right:2px;color:var(--purple)">'+uiIcon('score-throne')+'</span>':''}</div>
         <div class="cu-n">${u.n}</div></div>`}).join('')+`</div>`;
@@ -5496,13 +5506,15 @@ function showRoster(){
 }
 function showUnits(){
   // 单位立绘网格就是最好的目录（文字墙时代结束）；点立绘进完整档案
-  const rows=Object.keys(FACS).map(fk=>{
-    const us=UNITS.filter(u=>u.fac===fk);
-    return `<h4 style="text-align:center;margin-top:20px">${FACS[fk].n}</h4>
-    <p style="text-align:center;color:var(--ink3);font-size:11.5px;letter-spacing:.06em;margin-bottom:4px">剧情阵营 · 羁绊看星象四象与打法（点立绘看每人星座）</p>
+  // 图鉴按四象分组（20260716·四象上位）：土掩水→水灭火→火灼风→风蚀土 顺序；阵营退为点开档案里的「剧情归属」小字
+  const rows=['earth','water','fire','wind'].map(el=>{
+    const us=UNITS.filter(u=>unitElem(u.id)===el);
+    const kf=ELEM_COUNTER[el];
+    return `<h4 style="text-align:center;margin-top:22px;color:${ELEM_COLOR2[el]}">${elemGlyph(el)} ${ELEM_CN[el]}<span style="font-size:12px;color:var(--ink4)"> · ${us.length}人</span></h4>
+    <p style="text-align:center;color:var(--ink3);font-size:11.5px;letter-spacing:.06em;margin-bottom:4px">克 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 相克与羁绊的核心轴（点立绘看星座与剧情归属）</p>
     <div class="codex-grid">`+us.map(u=>
       `<div class="codex-u" data-uid="${u.id}">
-        <div class="badge r-${u.rar}" data-fac="${u.fac}">${facEmblem(u.fac)}<span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
+        <div class="badge r-${u.rar}" data-fac="${u.fac}">${elemGlyph(unitElem(u.id))}<span class="beast">${u.beast}</span><span class="glyph">${u.n[0]}</span>${artTag(u.id)}</div>
         <div class="cu-n">${u.n}</div><div class="cu-i rar-tag rt-${u.rar}">${u.rar} · ${u.cost}币</div>
       </div>`).join('')+`</div>`;
   }).join('');
