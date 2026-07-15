@@ -390,6 +390,18 @@ body.playing #hud{display:flex}
 #rage-bar.life i{background:linear-gradient(90deg,#a83030,#d56060)}
 #rage-bar.life.warn{box-shadow:0 0 12px rgba(213,96,96,.7);animation:lifePulse 1s infinite}
 @keyframes lifePulse{0%,100%{opacity:1}50%{opacity:.55}}
+/* ── 最后一颗命脉·红心跳戏眼(20260716·纯CSS)：真实扑通-扑通双跳 + 屏幕边缘暗红呼吸晕。
+   晕圈 z-index 60 < 弹窗/flash(80+)，pointer-events:none 不挡任何操作；reduced-motion 退回原透明度闪烁。 ── */
+@keyframes heartbeatKF{0%,48%,100%{transform:scale(1)}10%{transform:scale(1.34)}20%{transform:scale(1)}30%{transform:scale(1.2)}40%{transform:scale(1)}}
+.life-pips.last .mi:first-child{animation:heartbeatKF 1.15s ease-in-out infinite;
+  filter:drop-shadow(0 0 8px rgba(213,96,96,.95))}
+#life-vignette{position:fixed;inset:0;pointer-events:none;z-index:60;opacity:0;transition:opacity .8s;
+  background:radial-gradient(ellipse at 50% 55%,transparent 58%,rgba(178,44,44,.3) 100%)}
+body.last-life #life-vignette{animation:lifeVigBreath 1.15s ease-in-out infinite}
+@keyframes lifeVigBreath{0%,48%,100%{opacity:.42}10%{opacity:1}20%{opacity:.55}30%{opacity:.85}}
+@media(prefers-reduced-motion:reduce){
+  .life-pips.last .mi:first-child{animation:lifePulse 1s infinite}
+  body.last-life #life-vignette{animation:none;opacity:.35}}
 /* 词缀开箱仪式:传世大幕 */
 .affix-veil{position:fixed;inset:0;z-index:95;display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at center,rgba(30,22,6,.82),rgba(6,6,9,.95));cursor:pointer;animation:fade .3s both}
@@ -941,6 +953,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 <div id="scene"><img id="scene-img" alt=""></div>
 <div id="clouds"><i class="cl c1"></i><i class="cl c2"></i><i class="cl c3"></i></div>
 <div id="flash"></div>
+<div id="life-vignette" aria-hidden="true"></div>
 
 <header id="hud">
   <span class="act-chip" id="hud-act">序幕</span>
@@ -1852,6 +1865,7 @@ function elemMult(srcId,tgtId){
 
 /* 屏幕切换 */
 function go(id){document.querySelectorAll('.result-banner').forEach(x=>x.remove()); // 清跳屏后残留的胜利横幅
+  if(id==='title'||id==='setup'||id==='final')document.body.classList.remove('last-life'); // 局外不留红晕
   $$('.scr').forEach(s=>s.classList.remove('on'));$('#scr-'+id).classList.add('on');
   window.scrollTo({top:0,behavior:'smooth'});
   if(typeof BGM!=='undefined')BGM.scene(id==='title'||id==='setup'?'title':'play')} // 标题/设置=宁静曲，进入游戏=主循环
@@ -1874,8 +1888,11 @@ function hud(){
     $('#rage-bar').classList.toggle('warn',S.life<=1);
     $('#rage-bar').classList.toggle('life',true);
     const _hearts=Array.from({length:S.lifeMax},(_,i)=>i<S.life?uiIcon('stat-vitality'):uiIcon('stat-vitality-empty')).join('');
-    $('#rage-num').innerHTML=`<span class="life-pips" aria-label="命脉 ${S.life} / ${S.lifeMax}">${_hearts}</span><span class="life-num">${S.life}/${S.lifeMax}</span>`;
+    const _last=S.life===1; // 最后一颗命脉:红心跳戏眼(实心心恰为 first-child)+全屏暗红呼吸晕
+    $('#rage-num').innerHTML=`<span class="life-pips${_last?' last':''}" aria-label="命脉 ${S.life} / ${S.lifeMax}">${_hearts}</span><span class="life-num">${S.life}/${S.lifeMax}</span>`;
+    document.body.classList.toggle('last-life',_last);
   }else{
+    document.body.classList.remove('last-life');
     if(_lbl)_lbl.innerHTML='<span class="mi-slot" data-ui-icon="state-rage"></span>暴走槽';
     $('#rage-bar').classList.toggle('life',false);
     const pct=S.rageMax?Math.min(100,S.rage/S.rageMax*100):0;
@@ -3094,6 +3111,17 @@ function runSelftest(){
      if(!/@keyframes hitKB/.test(css)||!/@keyframes lungeKF/.test(css)||!/#arena\.jolt/.test(css))return false;
      const src=runPlayback.toString();
      return src.indexOf('--kb')>0&&src.indexOf('hit-hard')>0&&src.indexOf("'jolt'")>0})());
+   ok('最后一颗命脉·红心跳：CSS 三件齐 · life=1 点亮 last+last-life · life>1 熄灭(不误伤)', (()=>{
+     const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
+     if(!/@keyframes heartbeatKF/.test(css)||!/@keyframes lifeVigBreath/.test(css)||!/#life-vignette/.test(css))return false;
+     if(!document.getElementById('life-vignette'))return false;
+     const _S=S;let r1,r2;
+     try{
+       S={solo:true,life:1,lifeMax:3,difficulty:1,round:1,players:[{name:'t',crowns:0,coins:0,army:[]}],rageMax:0};
+       hud();r1=document.body.classList.contains('last-life')&&!!document.querySelector('#rage-num .life-pips.last');
+       S.life=2;hud();r2=!document.body.classList.contains('last-life')&&!document.querySelector('#rage-num .life-pips.last');
+     }finally{S=_S;document.body.classList.remove('last-life')}
+     return r1&&r2})());
    ok('四象上位：征募卡/战斗棋子主位显示四象 · 图鉴按四象分组 · 流派退为详情剧情归属小字', (()=>{
      const rd=renderDraft.toString(), ue=unitEl.toString(), su=showUnits.toString(), sd=showUnitDetail.toString();
      if(rd.indexOf('rec-elem')<0||rd.indexOf('unitElem')<0)return false;         // 征募卡角标=四象
