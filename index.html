@@ -272,6 +272,13 @@ body.playing #hud{display:flex}
 .r-SSR .glyph{color:var(--gold);text-shadow:0 0 12px rgba(201,166,74,.55)}
 .r-UR .glyph{color:#fff;text-shadow:0 0 12px var(--gold),0 0 34px var(--gold)}
 /* UR 呼吸感改由虚线环旋转承担（text-shadow 逐帧动画在投影设备上代价过高，已移除） */
+/* ── 透明立绘/宝物图漏底字修复（20260715c · 王老师报「锚」字浮层，同「荣」字病根）──
+   历来模式：占位字(.glyph/.beast/.g)垫底 + artTag 的 <img> 覆盖。图不透明时盖住，但多数立绘/宝物是透明PNG，
+   占位字从透明区透出=图案上浮着中文字。用 :has() 时机免疫地治本：有 <img> 就藏占位字；
+   img 404 时 artTag 的 onerror 移除 img → :has 不再命中 → 占位字自动回来（缺图回退不坏）。 */
+.badge:has(> img.art) > .glyph,
+.badge:has(> img.art) > .beast,
+.u .face:has(> img.art) > .g{visibility:hidden}
 /* —— 稀有度边框：靠边框颜色+粗细+外发光在投屏/偏色/后排下可辨；只在边缘，不遮挡立绘 —— */
 .badge.r-N{border-color:rgba(120,116,104,.4);background:radial-gradient(ellipse at center,rgba(120,116,104,.08),transparent 70%)} /* N 降为无彩灰：不再比 R 的蓝边显贵，五阶单调递增 */
 .badge.r-R{border-color:rgba(143,184,232,.6);box-shadow:inset 0 0 0 1px rgba(143,184,232,.32)}
@@ -2992,6 +2999,15 @@ function runSelftest(){
      if(!rars.every(r=>cfCorner(r)===CF_DIR+'rarity-corner-'+r.toLowerCase()+'.svg'))return false;
      if(AFFIX_QFILE.length!==AFFIX_QC.length)return false;          // 凡/秀/珍/传世 四品同序
      return [...CF_OPAQUE].every(id=>UMAP[id])})());
+   ok('透明立绘/宝物图不漏底字：有 img.art 则占位字隐藏，img 移除则回退（治「荣」「锚」浮层复发，:has 时机免疫）', (()=>{
+     const b=document.createElement('div');b.className='badge r-SSR';
+     const g=document.createElement('span');g.className='glyph';g.textContent='锚';
+     const im=document.createElement('img');im.className='art'; // 存在即触发 :has，不必等加载
+     b.append(g,im);document.body.appendChild(b);
+     const hidden=getComputedStyle(g).visibility==='hidden';    // 有图 → 占位字藏
+     im.remove();                                               // 模拟 artTag 的 onerror this.remove()
+     const back=getComputedStyle(g).visibility!=='hidden';      // 图没了 → 占位字自动回来（回退不坏）
+     b.remove();return hidden&&back})());
    ok('视觉基准：安全区变量 + 动态视口 + 触屏命中区已进 CSS（不许改回 100vh）', (()=>{
      const css=[...document.querySelectorAll('style')].map(s=>s.textContent).join('');
      return css.includes('safe-area-inset-top')&&css.includes('100dvh')
