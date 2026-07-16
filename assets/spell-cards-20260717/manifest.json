@@ -1,0 +1,473 @@
+{
+  "schemaVersion": 1,
+  "assetVersion": "20260717a",
+  "description": "Fourteen reusable spell-card illustrations in three responsive sizes.",
+  "source": "OpenAI Image2, curated and responsively mastered by Codex",
+  "delivery": {
+    "format": "WebP",
+    "colorMode": "RGB",
+    "textBakedIntoArt": false
+  },
+  "files": [
+    {
+      "file": "spell-starfire.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 10284,
+      "sha256": "25899e7f42b4650fc7e9526623f67cb5576b1cd1d9b386348e9c996bcc6bd53c",
+      "alpha": false,
+      "logicalId": "sp_atk"
+    },
+    {
+      "file": "spell-starfire@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 34276,
+      "sha256": "2c7cb37d1fc3dcbb1289cfc8fa2d6d3bd6e7da3d3d3713f3b09bdc94f9376b3d",
+      "alpha": false,
+      "logicalId": "sp_atk"
+    },
+    {
+      "file": "spell-starfire@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 56298,
+      "sha256": "c7052d8d21e6d3f1535faecb719e623981f645846957097b8a28e3edbe8ee7b4",
+      "alpha": false,
+      "logicalId": "sp_atk"
+    },
+    {
+      "file": "spell-stoneheart.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 15456,
+      "sha256": "1c4a1183d0845502ef520a35d8ce18bc059009e888b35484205c69b8858dd116",
+      "alpha": false,
+      "logicalId": "sp_hp"
+    },
+    {
+      "file": "spell-stoneheart@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 50272,
+      "sha256": "06ff5c8517ab9c81ce0903cebab2bdf6df89fe9198474469be372a552c91c575",
+      "alpha": false,
+      "logicalId": "sp_hp"
+    },
+    {
+      "file": "spell-stoneheart@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 79542,
+      "sha256": "3708f4856f827d4ab000f2dbbde16e05beb477c38c67d10f6d38a741561e32a4",
+      "alpha": false,
+      "logicalId": "sp_hp"
+    },
+    {
+      "file": "spell-windstep.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 19104,
+      "sha256": "ad28d4269c3f63d2b806042abb280b3ec5e8a8c4f7afdab9d43817742f202b6d",
+      "alpha": false,
+      "logicalId": "sp_spd"
+    },
+    {
+      "file": "spell-windstep@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 59810,
+      "sha256": "baa1bfaf8bc0d13dbe27911b52eefc8197b918104f13afbdd4887c469c2f09eb",
+      "alpha": false,
+      "logicalId": "sp_spd"
+    },
+    {
+      "file": "spell-windstep@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 95024,
+      "sha256": "d9fa6c9e140b440bc60eb53e6c12a178d46f5ac4102a2b37a44d09ca94e37e3b",
+      "alpha": false,
+      "logicalId": "sp_spd"
+    },
+    {
+      "file": "spell-starburst.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 19978,
+      "sha256": "b86942b1bb411196699bc41c4716190084ceab24e98d9831618a6c56e3559c68",
+      "alpha": false,
+      "logicalId": "sp_crit"
+    },
+    {
+      "file": "spell-starburst@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 50284,
+      "sha256": "d86c057196da340245cd3f8d6ae0d996a1c3596850b17f895cdfc53f03f4091c",
+      "alpha": false,
+      "logicalId": "sp_crit"
+    },
+    {
+      "file": "spell-starburst@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 80520,
+      "sha256": "e7bd362e93c1db5d04cbd8a2b5956336b96e0659ba48372a17b4d91bbddde8e7",
+      "alpha": false,
+      "logicalId": "sp_crit"
+    },
+    {
+      "file": "spell-return-lantern.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 14536,
+      "sha256": "b5ee6571faee6d476df2891dc70adb1089831108ae6053fae3e91e5aacd8b605",
+      "alpha": false,
+      "logicalId": "sp_rev"
+    },
+    {
+      "file": "spell-return-lantern@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 37748,
+      "sha256": "4a2a4513fca4f1aa6b6751dc712dc40ae76bd5b982bd999bacfd0bfcd23e3333",
+      "alpha": false,
+      "logicalId": "sp_rev"
+    },
+    {
+      "file": "spell-return-lantern@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 61168,
+      "sha256": "80e6e8f7da8dae5b79d4d91fadb01b1761180350b83c2ba8e9a312971e4dc359",
+      "alpha": false,
+      "logicalId": "sp_rev"
+    },
+    {
+      "file": "spell-void-arrow.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 12902,
+      "sha256": "a230b4bb44a068fd4cec93c6531b8ecef8824f208b5d2b9b1ee5929d4334a8fd",
+      "alpha": false,
+      "logicalId": "sp_pierce"
+    },
+    {
+      "file": "spell-void-arrow@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 33384,
+      "sha256": "dfcdd067de2acfbfd97a96285a6f5a832c4ca6f57fccc14e521855f0a0cc3bad",
+      "alpha": false,
+      "logicalId": "sp_pierce"
+    },
+    {
+      "file": "spell-void-arrow@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 55524,
+      "sha256": "cb733d36e00a688b2911e27a2b2c8221b9f66f68eea702d45c1f43b87e14ed39",
+      "alpha": false,
+      "logicalId": "sp_pierce"
+    },
+    {
+      "file": "spell-dawnline.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 7834,
+      "sha256": "98f9cffa8a2faf5de0d3e7575e3d7519cf62ba8ac78f0146424bc51f10430570",
+      "alpha": false,
+      "logicalId": "sp_first"
+    },
+    {
+      "file": "spell-dawnline@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 21694,
+      "sha256": "790f6801b0b62bd2d42de73a0f2368ec620fcb444284ab8b896fa3878d43d29f",
+      "alpha": false,
+      "logicalId": "sp_first"
+    },
+    {
+      "file": "spell-dawnline@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 36468,
+      "sha256": "b9524e42b1b7832109122461141d9f7a162a2ab92a479e231ceb29aac8c8780a",
+      "alpha": false,
+      "logicalId": "sp_first"
+    },
+    {
+      "file": "spell-twinblades.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 14762,
+      "sha256": "82b2b27b441c2f3e6b61533d255d66ce3c14c986b358bb21bd07f46f0c1ef66f",
+      "alpha": false,
+      "logicalId": "sp_atk2"
+    },
+    {
+      "file": "spell-twinblades@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 38676,
+      "sha256": "5493f4a3f38267ff3be083bc3c8c06b4802c897ad6d95fd0110d1538bdae763b",
+      "alpha": false,
+      "logicalId": "sp_atk2"
+    },
+    {
+      "file": "spell-twinblades@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 63320,
+      "sha256": "2138fda923c91de9cc602c9531ad68d53f09945d34e0362993b67ab661331c55",
+      "alpha": false,
+      "logicalId": "sp_atk2"
+    },
+    {
+      "file": "spell-gate-arrow.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 15536,
+      "sha256": "71dbbf0989fd2c1514c054130698808905e5e00c3c3731bcc2d9d1e219b609ab",
+      "alpha": false,
+      "logicalId": "sp_pcrit"
+    },
+    {
+      "file": "spell-gate-arrow@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 41274,
+      "sha256": "e5b7fcc59e49258f743948d3390e7d8b6cd145ac1326e879ce8c9e489dadd5cb",
+      "alpha": false,
+      "logicalId": "sp_pcrit"
+    },
+    {
+      "file": "spell-gate-arrow@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 65828,
+      "sha256": "2786c3bb3ba80f9b0fdcd8c7b47f5fca5de683692e00ae0697b59215bd57848f",
+      "alpha": false,
+      "logicalId": "sp_pcrit"
+    },
+    {
+      "file": "spell-oath-crystal.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 20278,
+      "sha256": "0ceb8b31ee4f7d2c6973335a63455a4da3c3e87595aa0c491b9b836ed768d185",
+      "alpha": false,
+      "logicalId": "sp_unyield"
+    },
+    {
+      "file": "spell-oath-crystal@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 60408,
+      "sha256": "53ab5bff45e085512a7eb17412fcf3b738eb5ab96ed04357bc615276ac2b2ced",
+      "alpha": false,
+      "logicalId": "sp_unyield"
+    },
+    {
+      "file": "spell-oath-crystal@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 96466,
+      "sha256": "1ea78d51f19c56acfc16984a09056df8aa7d95dc8704caee422feca30c62de5f",
+      "alpha": false,
+      "logicalId": "sp_unyield"
+    },
+    {
+      "file": "spell-doubled-strike.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 24492,
+      "sha256": "46bc813f71e509024ccd5f4fbb36775dd1ee49001f6726a02476378d429efb56",
+      "alpha": false,
+      "logicalId": "sp_double"
+    },
+    {
+      "file": "spell-doubled-strike@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 75022,
+      "sha256": "ac2640fe6be041d3aa4a42d19752bcce9fb6143db7173cbbdaece50a0cca769f",
+      "alpha": false,
+      "logicalId": "sp_double"
+    },
+    {
+      "file": "spell-doubled-strike@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 118396,
+      "sha256": "16c208c6947ee676abe943dd6c87e797de4ecd24930821eed4c1a25f065848ac",
+      "alpha": false,
+      "logicalId": "sp_double"
+    },
+    {
+      "file": "spell-grand-orrery.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 26654,
+      "sha256": "c2202f6344f94dd2cca772f885b7f95e34922fa4dcfa1faec9aa340ae1911522",
+      "alpha": false,
+      "logicalId": "sp_all"
+    },
+    {
+      "file": "spell-grand-orrery@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 81270,
+      "sha256": "f1b9254ae24744777b966a05fa33464f3766f56a08483829b4a144e2ae0b7994",
+      "alpha": false,
+      "logicalId": "sp_all"
+    },
+    {
+      "file": "spell-grand-orrery@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 126574,
+      "sha256": "c329797e4ae181fa419758c822aa7c0ee88b8cca0ea626f1526f276d24d5ea2d",
+      "alpha": false,
+      "logicalId": "sp_all"
+    },
+    {
+      "file": "spell-stasis-ripple.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 21908,
+      "sha256": "7d317ac8e9784ca87bda812d30d97ca6c182782b1cbdedd0e70e0bdcf426ce7c",
+      "alpha": false,
+      "logicalId": "sp_slow"
+    },
+    {
+      "file": "spell-stasis-ripple@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 73714,
+      "sha256": "206ba3ec6e01775a1d08841c24e1f0d1efce20625b623e1ea7174a2b8c90de6b",
+      "alpha": false,
+      "logicalId": "sp_slow"
+    },
+    {
+      "file": "spell-stasis-ripple@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 121320,
+      "sha256": "90a75faac9b579ce01f23c8126a18e135f552696a03a13de919bca11ed644666",
+      "alpha": false,
+      "logicalId": "sp_slow"
+    },
+    {
+      "file": "spell-starfall.webp",
+      "role": "spell-card-art",
+      "width": 384,
+      "height": 512,
+      "bytes": 24676,
+      "sha256": "ccacab6103ff3f472b04447aadb073b438959bbc1596b90938dcf43700d42d84",
+      "alpha": false,
+      "logicalId": "sp_meteor"
+    },
+    {
+      "file": "spell-starfall@2x.webp",
+      "role": "spell-card-art",
+      "width": 768,
+      "height": 1024,
+      "bytes": 88606,
+      "sha256": "6603a33ba7886d2347bedf235b573a21aa5dab1d559b2af895cbbfe4333b7ba0",
+      "alpha": false,
+      "logicalId": "sp_meteor"
+    },
+    {
+      "file": "spell-starfall@3x.webp",
+      "role": "spell-card-art",
+      "width": 1152,
+      "height": 1536,
+      "bytes": 154134,
+      "sha256": "7fd9d3b22fd8d317319b16ec35f6e633c491154c25f25ace3cf7399e5df74304",
+      "alpha": false,
+      "logicalId": "sp_meteor"
+    },
+    {
+      "file": "preview.webp",
+      "role": "contact-sheet",
+      "width": 1572,
+      "height": 2084,
+      "bytes": 205742,
+      "sha256": "df4768abee30f787fe27f40a0e3e1c6d23001a49b3dffb493e8ca50f45d43172",
+      "alpha": false
+    },
+    {
+      "file": "spell-frame-fine.svg",
+      "role": "currentColor-card-frame",
+      "format": "SVG",
+      "bytes": 571,
+      "sha256": "6bec2b9fe32095f785e2a30c2a7984c865f3b8ff432997a36f6640495104e537",
+      "viewBox": "0 0 384 512"
+    },
+    {
+      "file": "spell-frame-rare.svg",
+      "role": "currentColor-card-frame",
+      "format": "SVG",
+      "bytes": 709,
+      "sha256": "a673f4160f75557d41d440431418a87f6e2c9cb9551e81d783a2f44ec0e4588e",
+      "viewBox": "0 0 384 512"
+    },
+    {
+      "file": "spell-frame-legendary.svg",
+      "role": "currentColor-card-frame",
+      "format": "SVG",
+      "bytes": 1111,
+      "sha256": "86de726db7c9fce73a27dad08442b4230c542777ea2fbfd9ba55acca412b8391",
+      "viewBox": "0 0 384 512"
+    },
+    {
+      "file": "README.md",
+      "role": "integration-documentation",
+      "format": "MD",
+      "bytes": 1483,
+      "sha256": "c75bcc51b48a62ce1b3ed175329e4ba51b70f3e9edfa1bce36bf86c51170b8f8"
+    }
+  ]
+}

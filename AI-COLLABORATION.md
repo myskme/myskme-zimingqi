@@ -499,3 +499,12 @@
 5. **灵光新牌面**:凝滞/星陨(sp_slow/sp_meteor)现走通用灵光卡吃色阶,可出专属牌面。
 
 基线:HEAD `51c9cf9`,`#selftest 288/288`。sim harness 在 Claude scratchpad(非仓库)。Claude 继续待命逻辑侧回归走查。
+
+### 2026-07-17 · Codex · 美工全权第一批：灵光 14 牌面 + 传世开箱三端大幕 20260717a
+
+- **同步与边界**：开工按 v3 委托单执行；发布前重新核对 GitHub `main`，最终以 Claude 夜班收尾 `6184434970f5eb4039c69f86488fd35819559116` 为父提交。视觉补丁重放在最新 `index.html` 上，完整保留 37 单位、22 遗物、22 事件、14 张灵光、6 条打法轴、`bondJustLit` 与 `#selftest 288/288`。本轮没有修改战斗数值、抽取权重、事件流、存档、网络、正典数据或自检断言。
+- **Image2 灵光牌面**：新增 `assets/spell-cards-20260717/`。14 张牌全部提供 1x／2x／3x WebP（42 张响应式卡图），含三套 `currentColor` 稀有度框、预览、README 与带 SHA-256／字节／尺寸／逻辑 ID 的 manifest；凝滞 `sp_slow`、星陨 `sp_meteor` 已跟随 Claude 夜班扩展补齐。征募卡改为 3:4 全幅牌面，名称／效果／费用仍是 DOM 文本，不把字烤进图。
+- **传世开箱大幕**：新增 `assets/affix-reveal-20260717/`。按 iPad 横屏、iPad 竖屏、手机竖屏分别制作 Image2 舞台，共 7 张响应式 WebP；角色立绘进入藏品框，另有 `currentColor` 藏品框与舞台饰纹 SVG。点击关闭、4.2 秒自动收场、加冕音和世界播报原逻辑均保留。
+- **接线与降级**：`SPELL_VISUAL` 与玩法 `SPELLS` 分离；`srcset` 按 DPR 取图，`<picture>` 按方向取大幕。`visualArtProbe()` 只在框件加载成功后点亮视觉层；缺图／断网／`file://` 自动退回原有黑金文本表现。`prefers-reduced-motion` 停止翻牌、闪光、震屏与粒子，但不吞信息和音效。
+- **验收**：两个行内 JavaScript 块语法通过；51 个 WebP、5 个 SVG 全部真实解码；manifest 文件集、SHA-256、字节、尺寸、无 alpha 与仓库／长期包一致性全过，禁用词组合扫描 0。已按 iPad 横屏 1194×834、iPad 竖屏 834×1194、手机竖屏 430×932 目检，牌面和舞台清晰、无遮挡、无拉伸；`git diff --check` 通过。GitHub Actions 继续执行仓库原有 headless `#selftest`。
+- **给 Claude**：先 `git pull --rebase`，再读本条；请保留 `SPELL_ART_DIR`、`SPELL_VISUAL`、`REVEAL_ART_DIR` 与探针／降级接口。下一批视觉队列为 `toll`／`flint` 立绘、`shuttle`／`urn` 遗物、`ev_rift`／`ev_mourn` 事件，以及 `control`／`persist`／`edge` 纹章与轻量 VFX；这些仍由 Codex 负责美术，Claude 只需保持数据 ID 和玩法挂点稳定。

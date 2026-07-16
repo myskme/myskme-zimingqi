@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "assetVersion": "20260717a",
+  "description": "Orientation-specific legendary reveal stages for iPad and phone.",
+  "source": "OpenAI Image2, curated and responsively mastered by Codex",
+  "delivery": {
+    "format": "WebP",
+    "colorMode": "RGB",
+    "textBakedIntoArt": false
+  },
+  "files": [
+    {
+      "file": "affix-stage-landscape.webp",
+      "role": "responsive-reveal-stage",
+      "width": 1200,
+      "height": 840,
+      "bytes": 91572,
+      "sha256": "7fe9b3642987d9274d63cc62c0b2d8a73b810d3b09e28cbdf54f8a32d02d9d23",
+      "alpha": false
+    },
+    {
+      "file": "affix-stage-landscape@2x.webp",
+      "role": "responsive-reveal-stage",
+      "width": 2400,
+      "height": 1680,
+      "bytes": 231410,
+      "sha256": "322d643232fe9de396f42c547cb86fdbe9b4343bc9f155651719f47d477cb1e9",
+      "alpha": false
+    },
+    {
+      "file": "affix-stage-ipad-portrait.webp",
+      "role": "responsive-reveal-stage",
+      "width": 834,
+      "height": 1194,
+      "bytes": 97684,
+      "sha256": "637d0b26d2165fd0934c8fde184e5329046b52776534b408ccd7303a07d2817a",
+      "alpha": false
+    },
+    {
+      "file": "affix-stage-ipad-portrait@2x.webp",
+      "role": "responsive-reveal-stage",
+      "width": 1668,
+      "height": 2388,
+      "bytes": 235424,
+      "sha256": "a6b38ca5160bb8cb17f8640c03c61594ff0d26171172a9f910c44b926661d79d",
+      "alpha": false
+    },
+    {
+      "file": "affix-stage-phone-portrait.webp",
+      "role": "responsive-reveal-stage",
+      "width": 430,
+      "height": 932,
+      "bytes": 44522,
+      "sha256": "c7595b42be39b3b58397791f98347afd2650f8f852d0636ad78feba05a426ee9",
+      "alpha": false
+    },
+    {
+      "file": "affix-stage-phone-portrait@2x.webp",
+      "role": "responsive-reveal-stage",
+      "width": 860,
+      "height": 1864,
+      "bytes": 140380,
+      "sha256": "7ec9bfbe135a57edf0b63f2a61d464d0b21b5444439c9b51544b230e7719f6d3",
+      "alpha": false
+    },
+    {
+      "file": "affix-stage-phone-portrait@3x.webp",
+      "role": "responsive-reveal-stage",
+      "width": 1290,
+      "height": 2796,
+      "bytes": 227590,
+      "sha256": "38fc76af537bf265837a9d54b84e29bf37ea35a7203d618cadb1ca54b2864165",
+      "alpha": false
+    },
+    {
+      "file": "preview.webp",
+      "role": "contact-sheet",
+      "width": 1704,
+      "height": 560,
+      "bytes": 50088,
+      "sha256": "6fdd65d8ee52abecbd1e6e7a7d25f400bd2a45fbb68f28ebb09666d7d84fae70",
+      "alpha": false
+    },
+    {
+      "file": "legendary-reliquary-frame.svg",
+      "role": "currentColor-reliquary-frame",
+      "format": "SVG",
+      "bytes": 1019,
+      "sha256": "307ef641d84786092575fd5fd6b73e3a3a6f259eab6d9eb0366552f7c2a504dc",
+      "viewBox": "0 0 384 512"
+    },
+    {
+      "file": "legendary-stage-ornament.svg",
+      "role": "currentColor-stage-ornament",
+      "format": "SVG",
+      "bytes": 992,
+      "sha256": "017d5c091d30a854120f3b1ca2be34bb7c6eb134e2771186a4d694a1fcd2a815",
+      "viewBox": "0 0 1200 840"
+    },
+    {
+      "file": "README.md",
+      "role": "integration-documentation",
+      "format": "MD",
+      "bytes": 1145,
+      "sha256": "82c0dd07fa7ea1bf6dc62353cd4e44b35dd47378f717845e50a6db30237d841b"
+    }
+  ]
+}
