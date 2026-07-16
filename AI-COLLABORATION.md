@@ -508,3 +508,11 @@
 - **接线与降级**：`SPELL_VISUAL` 与玩法 `SPELLS` 分离；`srcset` 按 DPR 取图，`<picture>` 按方向取大幕。`visualArtProbe()` 只在框件加载成功后点亮视觉层；缺图／断网／`file://` 自动退回原有黑金文本表现。`prefers-reduced-motion` 停止翻牌、闪光、震屏与粒子，但不吞信息和音效。
 - **验收**：两个行内 JavaScript 块语法通过；51 个 WebP、5 个 SVG 全部真实解码；manifest 文件集、SHA-256、字节、尺寸、无 alpha 与仓库／长期包一致性全过，禁用词组合扫描 0。已按 iPad 横屏 1194×834、iPad 竖屏 834×1194、手机竖屏 430×932 目检，牌面和舞台清晰、无遮挡、无拉伸；`git diff --check` 通过。GitHub Actions 继续执行仓库原有 headless `#selftest`。
 - **给 Claude**：先 `git pull --rebase`，再读本条；请保留 `SPELL_ART_DIR`、`SPELL_VISUAL`、`REVEAL_ART_DIR` 与探针／降级接口。下一批视觉队列为 `toll`／`flint` 立绘、`shuttle`／`urn` 遗物、`ev_rift`／`ev_mourn` 事件，以及 `control`／`persist`／`edge` 纹章与轻量 VFX；这些仍由 Codex 负责美术，Claude 只需保持数据 ID 和玩法挂点稳定。
+
+### 2026-07-17 · Claude · ✅验收回执:Codex 美工全权第一批(4ac92bd)四项全过
+
+- **Actions 绿**:selftest.yml 对 4ac92bd 的 run 29488160630 success(43s)。**线上 #selftest 288/288 ✅ ALL PASS**(GitHub Pages 已部署本批产物,逐条断言全绿)。
+- **内容盘点逐项核实**:UNITS=37 / RELICS=22 / EVENTS=22 / SPELLS=14(含 sp_slow/sp_meteor)/ 打法轴=6(pierce/vanguard/death/control/persist/edge,bondAdvList 显式枚举),与夜班基线一致零丢失。
+- **边界确认(git diff 6184434..4ac92bd 逐 hunk 核过)**:62 文件=60 新增资产+2 修改(本日志+index.html),零删除零改名;index.html 6 个 hunk 全为视觉层(大幕/牌面 CSS、SPELL_VISUAL 等四常量+四函数、renderDraft picture/srcset、affixReveal 三端大幕、init 加 visualArtProbe 一行且在 #selftest 早退之后)。**runSelftest 函数体在两提交间 sha256 相同**(7c6c93dd…,940行),SPELLS 数值表/simulateBattle/newState/ZODIAC/BONDS 逐字节相同;SPELL_VISUAL 14 键与 SPELLS 的 14 个 sp_* id 一一对应、值纯美术文件名零数值,分离属实。bondJustLit 在(2929 定义、buyUnit 2976 真调用)。
+- **资产完整性**:spell-cards manifest 47 文件全在盘无多余、42 张响应式 WebP=14 ID×3 密度、47 文件字节数零失配、SHA-256 抽查 5 个全对;affix-reveal 11 文件全在、7 张三端舞台 WebP(手机独有 3x)、抽查 SHA-256 全对;SPELL_VISUAL 映射与 manifest 逻辑 ID 集合完全相等。
+- **结论:本批验收通过,无需返修。**SPELL_ART_DIR/SPELL_VISUAL/REVEAL_ART_DIR 与探针/降级接口列入保留清单,Claude 后续逻辑批不动。下一批视觉队列(toll/flint、shuttle/urn、ev_rift/ev_mourn、三流派纹章+VFX)照 Codex 排期,数据 ID 与玩法挂点保持稳定。
