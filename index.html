@@ -1416,7 +1416,7 @@ const UNITS = [
  {id:'zeng', n:'增',   fac:'academy', cost:3, atk:3, hp:12, spd:3, rar:'SSR', w:6,  taunt:true, beast:'熊',
   skill:{k:'pairZi', v:2, t:'双璧：开战时若梓在场，梓获 2 盾、自己 +2 攻'}, lore:'初代先锋。第一个冲上去，也第一个回头看有没有人跟上'},
  {id:'lin',  n:'琳',   fac:'academy', cost:3, atk:3, hp:10, spd:4, rar:'SSR', w:7,  beast:'剑',
-  skill:{k:'shieldAll', v:2, t:'开战时：全队获得 2 护盾'}, lore:'首徒。剑横膝上，一坐十年'},
+  skill:{k:'shieldAll', v:2, t:'开战时：全队获得 2 护盾'}, lore:'首徒。剑横膝上，佩剑未拔'},
  {id:'yin',  n:'音',   fac:'academy', cost:2, atk:3, hp:5,  spd:6, rar:'SR',  w:9,  beast:'弦',
   skill:{k:'boostLin', v:3, t:'阵亡时：若琳在场，琳 +3 攻（归于琳）'}, lore:'琳的独立形态，一缕离体的弦音'},
  {id:'lu',   n:'璐',   fac:'academy', cost:2, atk:2, hp:6,  spd:3, rar:'SR',  w:9,  beast:'歌',
@@ -1459,29 +1459,29 @@ const UNITS = [
   skill:{k:'slowFast', v:2, t:'开战时：敌方最快单位 -2 速'}, lore:'从上岸那天起就没干过'},
  {id:'hai',  n:'海',   fac:'sea',     cost:3, atk:3, hp:8,  spd:6, rar:'SSR', w:5,  beast:'舞',
   skill:{k:'slowFast', v:2, t:'海之节拍：开战震荡敌方最快单位 -2 速度'}, lore:'驼鹿少女。橙围巾一扬，整支队伍就找回自己的节拍'},
- // —— 摇摆队④ ——
+ // —— 摇摆系 · 三向（荣·洋·炜）+ 马将军 —— (20260716设定定稿:废除①②③④⑤编号,正式起名)
  {id:'wei',  n:'炜',   fac:'swing',   cost:1, atk:2, hp:5,  spd:4, rar:'R',   w:11, beast:'衡',
-  skill:{k:'none', t:'无技能。阵营未定，价格好谈'}, lore:'摇摆队④。谁赢帮谁'},
+  skill:{k:'none', t:'无技能。阵营未定，价格好谈'}, lore:'三向队。谁赢帮谁'},
  {id:'rong', n:'荣',   fac:'swing',   cost:1, atk:1, hp:7,  spd:3, rar:'R',   w:11, taunt:true, beast:'衡',
-  skill:{k:'none', t:'无技能。站得稳，看得远'}, lore:'摇摆队④。观望是一种武艺'},
+  skill:{k:'none', t:'无技能。站得稳，看得远'}, lore:'三向队。观望是一种武艺'},
  {id:'yang', n:'洋',   fac:'swing',   cost:2, atk:2, hp:6,  spd:5, rar:'SR',  w:9,  beast:'衡',
-  skill:{k:'growAtk', v:1, t:'每回合：自身 +1 攻（越打越来劲）'}, lore:'摇摆队④里最先动摇的那个'},
+  skill:{k:'growAtk', v:1, t:'每回合：自身 +1 攻（越打越来劲）'}, lore:'三向队里最先动摇的那个'},
  {id:'majun',n:'马将军',fac:'swing',  cost:1, atk:2, hp:8,  spd:3, rar:'N',   w:11, beast:'归', // beast≠glyph(名字首字'马')，否则徽章重字
   skill:{k:'atone', v:1, t:'归正：开战时，若队中有黑域单位，全队 +1 攻'}, lore:'曾站在错误的一边。「成为你本可成为的人，永远不会太晚。」'},
  // —— 黑域系 ——
  {id:'wan',  n:'菀',   fac:'dark',    cost:3, atk:4, hp:6,  spd:5, rar:'SSR', w:6,  beast:'尺',
   skill:{k:'snipeBack', v:4, t:'开战时：理性尺精准斩后排 4 伤'}, lore:'尺的零刻度，曾对着诺的座位'},
- {id:'xuan', n:'璇',   fac:'dark',    cost:3, atk:5, hp:5,  spd:6, rar:'SR',  w:8,  tg:'pierce', beast:'猁',
-  skill:{k:'firstCrit', t:'首次攻击必定暴击 ×2（猞猁突袭）'}, lore:'大耳猞猁，从不打第二声招呼'},
+ {id:'xuan', n:'璇',   fac:'dark',    cost:3, atk:5, hp:5,  spd:6, rar:'SR',  w:8,  tg:'pierce', beast:'狞',
+  skill:{k:'firstCrit', t:'首次攻击必定暴击 ×2（狞猫突袭）'}, lore:'狞猫，从不打第二声招呼'},
  {id:'hui',  n:'慧',   fac:'dark',    cost:2, atk:2, hp:6,  spd:4, rar:'SR',  w:9,  beast:'烬',
   skill:{k:'buffAdj', v:2, t:'阵亡时：相邻友军 +2 攻（低语留下了）'}, lore:'「她只是让我们停止说服自己。」'},
  {id:'hang', n:'航',   fac:'dark',    cost:4, atk:7, hp:8,  spd:5, rar:'UR',  w:3,  beast:'锁',
   skill:{k:'drain', t:'全场最高攻。代价：每幕征募开始吞你 1 铸币（自愿戴上锁）'}, lore:'紫光面具后，眼里只剩一个方向'},
- // —— 挑战者队⑤ · 新徒 ——
+ // —— 挑战者系 · 藏锋（晓·月·铎·文）· 新徒 ——
  {id:'yue',  n:'月',   fac:'novice',  cost:2, atk:3, hp:6,  spd:5, rar:'SR',  w:9,  beast:'霄',
-  skill:{k:'growth', g:{atk:1}, t:'成长：每场战斗存活后永久 +1 攻'}, lore:'挑战者队⑤，战书已下'},
+  skill:{k:'growth', g:{atk:1}, t:'成长：每场战斗存活后永久 +1 攻'}, lore:'藏锋队，战书已下'},
  {id:'duo',  n:'铎',   fac:'novice',  cost:2, atk:2, hp:8,  spd:3, rar:'SR',  w:9,  beast:'钟',
-  skill:{k:'growth', g:{hp:2}, t:'成长：每场战斗存活后永久 +2 最大生命'}, lore:'挑战者队⑤，钟声不退'},
+  skill:{k:'growth', g:{hp:2}, t:'成长：每场战斗存活后永久 +2 最大生命'}, lore:'藏锋队，钟声不退'},
  {id:'wen',  n:'文',   fac:'novice',  cost:1, atk:2, hp:5,  spd:5, rar:'R',   w:10, beast:'卷',
   skill:{k:'growth', g:{atk:1}, t:'成长：每场战斗存活后永久 +1 攻'}, lore:'潜力待发，笔比剑快'},
  {id:'xiao', n:'晓',   fac:'novice',  cost:1, atk:1, hp:6,  spd:6, rar:'R',   w:10, beast:'晨',
@@ -6271,7 +6271,7 @@ function showHowto(){
   第 2 / 5 / 8 关有<b>断云秘策</b>三选一，决定这一局的构筑路线。
   战报卡右下角的二维码扫开就是本游戏。`)
   +sec('世界观',`
-  取材《狼先生与他的学生们 · 世界编年史》：光明学员、摇摆队④、挑战者队⑤与黑域诸将同池征募——
+  取材《狼先生与他的学生们 · 世界编年史》：光明学员、三向、藏锋与黑域诸将同池征募——
   黑域单位更强，但各有代价。叶王不可征募，她只在你们答错太多时，亲自来。<br><br>
   <b style="color:var(--gold2)">S2E5 · 初代双璧归来</b>：初代首徒<b>梓</b>（梅花鹿 · UR · 学生中唯一）与初代先锋<b>增</b>（黑熊 · SSR）已入征募池。
   梓的「先见」开战惠及全队；增在梓同场时会替她挡下第一击、自己也更猛——把他俩凑到一队，是这个夏天的构筑浪漫。<br><br>
