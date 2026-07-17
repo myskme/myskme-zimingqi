@@ -19,6 +19,7 @@
   --fac-academy:#e8c768; --fac-sky:#9cc0e8; --fac-sea:#5fb8a5;
   --fac-swing:#c3bda8; --fac-dark:#b48ce6; --fac-novice:#9fd49f;
   --fac-pierce:#7fb0e0; --fac-vanguard:#d9964a;
+  --fac-control:#6fd6ff; --fac-persist:#73d69b; --fac-edge:#ff8a5b;
   --line:rgba(201,166,74,.24); --line2:rgba(201,166,74,.10);
   --glow-gold:0 0 22px rgba(201,166,74,.38);
   --glow-red:0 0 22px rgba(168,48,48,.5);
@@ -221,6 +222,7 @@ body.playing #hud{display:flex}
   font-size:14px;position:relative;background:rgba(0,0,0,.25);overflow:hidden}
 .mini-u .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%}
 .mini-u{position:relative}
+.mini-u:has(>img.mua),.bunit .g:has(>img.mua){color:transparent} /* 透明头像成功时藏垫底字；img 移除后自动恢复 */
 .star-pips{position:absolute;top:-7px;right:-5px;display:inline-flex;gap:0;pointer-events:none}
 .star-pips .mi{width:8px;height:8px;color:var(--gold2)}
 .star3 .star-pips .mi{color:#fff;filter:drop-shadow(0 0 4px var(--gold))}
@@ -305,6 +307,7 @@ body.playing #hud{display:flex}
 .fem-academy{color:var(--fac-academy)} .fem-sky{color:var(--fac-sky)} .fem-sea{color:var(--fac-sea)}
 .fem-swing{color:var(--fac-swing)} .fem-dark{color:var(--fac-dark)} .fem-novice{color:var(--fac-novice)}
 .fem-pierce{color:var(--fac-pierce)} .fem-vanguard{color:var(--fac-vanguard)}
+.fem-control{color:var(--fac-control)} .fem-persist{color:var(--fac-persist)} .fem-edge{color:var(--fac-edge)}
 /* 徽章底光按阵营轻微染色（在稀有度边框之下，不抢主体） */
 .badge[data-fac=academy]{background:radial-gradient(ellipse at 50% 46%,rgba(232,199,104,.15),transparent 72%)}
 .badge[data-fac=sky]{background:radial-gradient(ellipse at 50% 46%,rgba(156,192,232,.15),transparent 72%)}
@@ -524,8 +527,9 @@ body.arok .av-reliquary-frame{display:block}
 #draft-coins .int-hint{display:block;font-style:normal;font-size:10.5px;letter-spacing:.1em;color:var(--ink3);margin-top:2px} /* 利息断点预览 */
 /* 羁绊推进徽标（征募卡）：紫=在攒 · 金=买它立刻成套。全游戏羁绊三色语义统一：灰没攒/紫在攒/金攒满 */
 .bond-advrow{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:5px 0 1px;min-height:20px}
-.bond-adv{display:inline-block;font-size:11.5px;letter-spacing:.1em;padding:1px 8px;
+.bond-adv{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;letter-spacing:.1em;padding:1px 8px;
   border:1px solid rgba(157,114,214,.55);color:var(--purple);border-radius:2px}
+.bond-adv .fac-emblem{width:1.08em;height:1.08em;flex:0 0 auto}
 .bond-adv.hit{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 8px rgba(201,166,74,.3)}
 .bond-adv.none{visibility:hidden}
 .bond-chip.bond-near{border-style:dashed;border-color:var(--gold);color:var(--gold2)} /* 虚线金=差1满档 */
@@ -571,6 +575,12 @@ body.arok .av-reliquary-frame{display:block}
 .bond-chip[data-f=sea] .fac-emblem{color:var(--fac-sea)} .bond-chip[data-f=swing] .fac-emblem{color:var(--fac-swing)}
 .bond-chip[data-f=dark] .fac-emblem{color:var(--fac-dark)} .bond-chip[data-f=novice] .fac-emblem{color:var(--fac-novice)}
 .bond-chip[data-f=pierce] .fac-emblem{color:var(--fac-pierce)} .bond-chip[data-f=vanguard] .fac-emblem{color:var(--fac-vanguard)}
+.bond-chip[data-f=control]{background:rgba(111,214,255,.07)}
+.bond-chip[data-f=persist]{background:rgba(115,214,155,.07)}
+.bond-chip[data-f=edge]{background:rgba(255,138,91,.07)}
+.bond-chip[data-f=control] .fac-emblem,.bond-adv[data-f=control] .fac-emblem{color:var(--fac-control)}
+.bond-chip[data-f=persist] .fac-emblem,.bond-adv[data-f=persist] .fac-emblem{color:var(--fac-persist)}
+.bond-chip[data-f=edge] .fac-emblem,.bond-adv[data-f=edge] .fac-emblem{color:var(--fac-edge)}
 .bond-chip.bond-t1{border-color:rgba(157,114,214,.55);color:var(--purple)}
 .bond-chip.bond-t2{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 9px rgba(201,166,74,.28)}
 #bounty-shelf .bond-chip .mi{width:1.12em;height:1.12em;color:var(--gold2);margin-right:1px}
@@ -590,6 +600,7 @@ body.arok .av-reliquary-frame{display:block}
 .ev-front h3{font-size:26px;letter-spacing:.24em;color:var(--gold2);font-weight:400}
 .ev-front p{color:var(--ink2);font-size:15px;line-height:1.8;letter-spacing:.06em}
 .ev-front .ev-icon{font-size:44px;color:var(--gold2);font-family:var(--serif);text-shadow:0 0 18px rgba(201,166,74,.4)} /* 事件符号=金色单字，与徽章字形体系同源（弃 emoji） */
+.ev-front.has-art .ev-icon{display:none} /* 正式插图加载成功才藏单字；失败/离线仍回退 */
 
 /* ============ 演武（战斗） ============ */
 #pairings{max-width:640px;margin:0 auto 20px}
@@ -606,6 +617,17 @@ body.arok .av-reliquary-frame{display:block}
 /* 战斗 VFX 层（Codex 20260715a）：绝对定位=不参与 flex 排布；不挡点击；不进无障碍树 */
 #arena .vfx{position:absolute;z-index:6;pointer-events:none;background-repeat:no-repeat;
   will-change:background-position,translate}
+/* 第二批战斗专属轻量 SVG mask：只挂回放层，不参与布局/点击/结算。 */
+#arena .b2-vfx{position:absolute;z-index:7;pointer-events:none;width:var(--b2-size);height:var(--b2-size);
+  color:var(--b2-color);opacity:0;animation:b2VfxPeak var(--b2-life) ease-out both;will-change:transform,opacity}
+#arena .b2-vfx::before{content:'';position:absolute;inset:0;background:currentColor;
+  -webkit-mask:var(--b2-mask) center/contain no-repeat;mask:var(--b2-mask) center/contain no-repeat;
+  filter:drop-shadow(0 0 10px currentColor)}
+@keyframes b2VfxPeak{0%{opacity:0;transform:scale(.78)}32%{opacity:.92;transform:scale(1)}100%{opacity:0;transform:scale(1.06)}}
+#arena .b2-vfx.fx-sp_meteor{mix-blend-mode:screen}
+#arena .b2-vfx.rm{animation:b2VfxReduced .16s ease-out both}
+@keyframes b2VfxReduced{0%,72%{opacity:.78;transform:none}100%{opacity:0;transform:none}}
+@media(prefers-reduced-motion:reduce){#arena .b2-vfx{animation-name:b2VfxReduced;transform:none!important}}
 /* 演武台（源图 1600×420）：垫在单位之下（.u 是 position:relative、DOM 在后 → 自然压住它）。
    顶部渐隐，免得椭圆上缘把战斗标题圈进去。
    max-width:820 是两个约束的交点：①台顶不再压住「XX 对阵 XX」战斗标题；
@@ -1313,6 +1335,10 @@ const FAC_EMBLEM = {
   novice:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.45" stroke-linejoin="round"><path d="M12 3l2.5 6.3 6.7.3-5.2 4.3 1.8 6.5L12 16.9 6.4 20.7l1.8-6.5L3 9.9l6.7-.3z"/></svg>',
   pierce:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12h15M13.5 6.5l6 5.5-6 5.5"/></svg>',
   vanguard:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 3l7 2.5v5.6c0 4.5-3 7.6-7 9-4-1.4-7-4.5-7-9V5.5z"/><path d="M6 11h12" stroke-width="1.25"/></svg>',
+  // 第二批打法纹章：制御=滴漏约束环 / 坚韧=盾环连续结 / 锋锐=箭簇突破星芒。
+  control:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25" stroke-width="1.5" opacity=".52"/><path d="M12 1.75v2M12 20.25v2M1.75 12h2M20.25 12h2" stroke-width="1.4"/><path d="M8.25 5.7h7.5M8.25 18.3h7.5" stroke-width="1.65"/><path d="M9 6.15c.12 2.55 1.17 3.9 3 5.25-1.83 1.35-2.88 2.7-3 5.25M15 6.15c-.12 2.55-1.17 3.9-3 5.25 1.83 1.35 2.88 2.7 3 5.25" stroke-width="1.45"/><path d="M12 9.35c-.9 1.12-1.4 1.83-1.4 2.55a1.4 1.4 0 0 0 2.8 0c0-.72-.5-1.43-1.4-2.55Z" fill="currentColor" stroke="none"/></svg>',
+  persist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.25" stroke-width="1.45" opacity=".5"/><path d="M12 2.15v2.1M12 19.75v2.1M2.15 12h2.1M19.75 12h2.1" stroke-width="1.45"/><path d="M12 5.05 17.3 7.2v4.25c0 3.5-2.05 6.1-5.3 7.55-3.25-1.45-5.3-4.05-5.3-7.55V7.2L12 5.05Z" stroke-width="1.45"/><path d="M8.7 10c-1.3 0-2.3.9-2.3 2s1 2 2.3 2c2.7 0 3.9-4 6.6-4 1.3 0 2.3.9 2.3 2s-1 2-2.3 2c-2.7 0-3.9-4-6.6-4Z" stroke-width="1.35"/><circle cx="12" cy="12" r=".85" fill="currentColor" stroke="none"/></svg>',
+  edge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.35 20.55 15.9 8" stroke-width="2.1"/><path d="m21 3-3.3 8.35-5-5L21 3Z" fill="currentColor" stroke="none"/><path d="m3.05 13.6 6.35-6.35M10.45 20.95l6.3-6.3" stroke-width="1.45" opacity=".68"/><path d="m19.15 12.35.82 2.18 2.18.82-2.18.82-.82 2.18-.82-2.18-2.18-.82 2.18-.82.82-2.18Z" fill="currentColor" stroke="none"/></svg>',
 };
 function facEmblem(f){const s=FAC_EMBLEM[f];return s?`<span class="fac-emblem fem-${f}">${s}</span>`:'';}
 
@@ -1849,6 +1875,8 @@ const BGM=(function(){
    每批资产先记入 AI-COLLABORATION.md，再接线并 bump ART_VER。
    ============================================================ */
 const ART_DIR='assets/';
+const VISUAL_BATCH2_REL='visual-batch2-20260717/';
+const VISUAL_BATCH2_DIR=ART_DIR+VISUAL_BATCH2_REL;
 const ART={
   // 单位立绘（512×768 竖版）
   zi:'unit-zi.webp',     zeng:'unit-zeng.webp', // 初代双璧（S2E5·0710 交付）
@@ -1864,6 +1892,10 @@ const ART={
   wei:'unit-wei.webp',   rong:'unit-rong.webp', yang:'unit-yang.webp',
   wan:'unit-wan.webp',   xuan:'unit-xuan.webp', hui:'unit-hui.webp',   hang:'unit-hang.webp',
   yue:'unit-yue.webp',   duo:'unit-duo.webp',   wen:'unit-wen.webp',   xiao:'unit-xiao.webp',
+  // 第二批通用本地单位：不写入正典角色数据；场景立绘 / 透明征募卡 / 头肩小头像分轨。
+  toll:VISUAL_BATCH2_REL+'units/unit-toll.webp', flint:VISUAL_BATCH2_REL+'units/unit-flint.webp',
+  card_toll:VISUAL_BATCH2_REL+'units/card-toll.webp', card_flint:VISUAL_BATCH2_REL+'units/card-flint.webp',
+  avatar_toll:VISUAL_BATCH2_REL+'units/avatar-toll.webp', avatar_flint:VISUAL_BATCH2_REL+'units/avatar-flint.webp',
   // Boss 与幽灵军（512×768）
   yewang:'image2-system-20260713/boss-yewang.webp',
   g1:'ghost-raider.webp', g2:'ghost-guard.webp', g3:'ghost-armor.webp',
@@ -1876,6 +1908,7 @@ const ART={
   relic_quiver:'relic-quiver.webp', relic_plaque:'relic-plaque.webp', relic_bell:'relic-bell.webp',
   relic_scale:'relic-scale.webp', relic_card:'relic-card.webp', relic_lamp:'relic-lamp.webp',
   relic_thorn:'relic-thorn.webp', relic_anchor:'relic-anchor.webp', relic_seal:'relic-seal.webp', relic_diary:'relic-diary.webp',
+  relic_shuttle:VISUAL_BATCH2_REL+'relics/relic-shuttle.webp', relic_urn:VISUAL_BATCH2_REL+'relics/relic-urn.webp',
   // 命运事件插图（768×512 横版）
   ev_rain:'event-rain.webp',   ev_wind:'event-wind.webp',   ev_swing:'event-swing.webp',
   ev_gaze:'event-gaze.webp',   ev_crane:'event-crane.webp', ev_purple:'event-purple.webp',
@@ -1884,20 +1917,44 @@ const ART={
   ev_tithe:'event-tithe.webp', ev_letter:'event-letter.webp', ev_shell:'event-shell.webp',
   ev_forge:'event-forge.webp', ev_bulwark:'event-bulwark.webp',
   ev_desk:'event-desk.webp', ev_thorn:'event-thorn.webp', ev_lantern:'event-lantern.webp',
+  ev_rift:VISUAL_BATCH2_REL+'events/event-rift.webp', ev_mourn:VISUAL_BATCH2_REL+'events/event-mourn.webp',
   // 场景（1600×900 横版）
   title:'image2-system-20260713/title-kv-1600.webp', titleSmall:'image2-system-20260713/title-kv-800.webp',
   ending:'image2-system-20260713/ending-coronation-1600.webp', endingSmall:'image2-system-20260713/ending-coronation-800.webp',
   bg1:'bg-act1.webp', bg2:'bg-act2.webp', bg3:'bg-act3.webp',
 };
+// 只对白名单新资产派生高清档，旧资源绝不盲猜 @2x/@3x，避免线上 404。
+const ART_DPR=new Set([
+  'toll','flint','card_toll','card_flint','avatar_toll','avatar_flint',
+  'relic_shuttle','relic_urn','ev_rift','ev_mourn'
+]);
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260713f'; // Codex Image 2：正典新角色第二批（睿 / 海 / 欣）
-function artURL(key){const u=ART[key]?ART_DIR+ART[key]:null;
-  return (u&&location.protocol!=='file:')?u+'?v='+ART_VER:u}
-function cardURL(id){const u=ART_DIR+(ART['card_'+id]||('card-'+id+'.webp'));
-  return location.protocol!=='file:'?u+'?v='+ART_VER:u}
+const ART_VER='20260717b'; // Codex Image 2：视觉全权第二批
+function artURLAt(key,suffix){
+  suffix=suffix||'';
+  const base=ART[key];if(!base)return null;
+  const rel=suffix&&/\.webp$/.test(base)?base.replace(/\.webp$/,suffix+'.webp'):base;
+  const u=ART_DIR+rel;return location.protocol!=='file:'?u+'?v='+ART_VER:u;
+}
+function artURL(key){return artURLAt(key)}
+function artSrcset(key){return ART_DPR.has(key)
+  ?[artURLAt(key)+' 1x',artURLAt(key,'@2x')+' 2x',artURLAt(key,'@3x')+' 3x'].join(', '):''}
+function cardURL(id,suffix){
+  const key='card_'+id;if(ART[key])return artURLAt(key,suffix||'');
+  const u=ART_DIR+'card-'+id+(suffix||'')+'.webp';
+  return location.protocol!=='file:'?u+'?v='+ART_VER:u;
+}
+function cardSrcset(id){const key='card_'+id;return ART_DPR.has(key)
+  ?[cardURL(id)+' 1x',cardURL(id,'@2x')+' 2x',cardURL(id,'@3x')+' 3x'].join(', '):''}
 // 返回内嵌 <img>，加载失败自动移除自己（露出下层字形徽章）
-function artTag(key,cls){const u=artURL(key);
-  return u?`<img class="${cls||'art'}" src="${u}" alt="" decoding="async" onerror="this.remove()">`:''}
+function artTag(key,cls){const u=artURL(key),ss=artSrcset(key);
+  return u?'<img class="'+(cls||'art')+'" src="'+u+'"'+(ss?' srcset="'+ss+'"':'')+' alt="" decoding="async" onerror="this.remove()">':''}
+// 高频小头像优先走专用头肩裁切；失败时退回场景立绘，再失败才移除并露出原字形。
+function avatarArtTag(id,cls){
+  const key='avatar_'+id;if(!ART[key])return artTag(id,cls||'mua');
+  const src=artURLAt(key),ss=artSrcset(key),fb=artURL(id)||'';
+  return '<img class="'+(cls||'mua')+'" src="'+src+'"'+(ss?' srcset="'+ss+'"':'')+' data-fb="'+fb+'" alt="" decoding="async" onerror="if(this.dataset.fb){this.srcset=\'\';this.src=this.dataset.fb;this.dataset.fb=\'\'}else this.remove()">';
+}
 function relicArtTag(id,cls){return artTag('relic_'+id,cls||'relic-art')}
 function relicDetailHTML(r){return `${relicArtTag(r.id,'relic-detail-art')}<h3>${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`}
 function showFinalArt(){
@@ -2255,7 +2312,7 @@ function renderWave(){
     d.innerHTML=`<h4>${p.name} <span class="crown icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
       <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
-        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(u.id)||'none'}" title="${u.n} · ${ELEM_CN[unitElem(u.id)]||'无象'}">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
+        return `<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(u.id)||'none'}" title="${u.n} · ${ELEM_CN[unitElem(u.id)]||'无象'}">${u.n[0]}${avatarArtTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
         <button class="btn ok"   data-a="ok">答对 +2</button>
         <button class="btn hard" data-a="hard">难题 +3</button>
@@ -2656,7 +2713,8 @@ function probeVisualSet(urls,okClass){let left=urls.length,failed=false;
     im.onerror=()=>{failed=true};im.src=url})}
 function visualArtProbe(){
   probeVisualSet([spellFrameURL(1),spellFrameURL(2),spellFrameURL(3)],'spok');
-  probeVisualSet([REVEAL_ART_DIR+'legendary-reliquary-frame.svg',REVEAL_ART_DIR+'legendary-stage-ornament.svg'],'arok')}
+  probeVisualSet([REVEAL_ART_DIR+'legendary-reliquary-frame.svg',REVEAL_ART_DIR+'legendary-stage-ornament.svg'],'arok');
+  probeVisualSet(Object.values(B2_VFX).map(x=>B2_VFX_DIR+x.f),'b2vok')}
 /* 名册美术（Codex roster-art-20260715）+ 界面框架件（ui-framework-20260715）接线。
    称号/成就/装饰都是 currentColor SVG：<img> 加载会渲成黑（暗底隐形），故一律走 mask + background:currentColor，
    由 body.rok / body.uok 门控（探到资源才点亮，缺图/离线自动退回文字），与 cf-corner 同一套安全模式。 */
@@ -2688,7 +2746,7 @@ function showUnitDetail(id,inst){
   const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-20%）`:'不参与星象相克';
   const isSP=SP_UNITS.has(id);
   modal(`<div class="udetail-card cf-${u.rar.toLowerCase()}${CF_OPAQUE.has(id)?' cf-op':''}">
-      <img class="ud-art" src="${cardURL(id)}" alt="" onerror="this.remove()">
+      <img class="ud-art" src="${cardURL(id)}" srcset="${cardSrcset(id)}" alt="" onerror="this.remove()">
       <i class="cf-frame" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
       <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
       ${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
@@ -2759,14 +2817,14 @@ function renderDraft(fresh){
       // 羁绊推进徽标：紫=在攒（N/门槛）· 金=买它立刻成套。开局点将不显（人人第一张）
       const advs=origin?[]:bondAdvList(p,u);
       const advHTML=advs.length
-        ? advs.map(a=>`<span class="bond-adv${a.hit?' hit':''}">${bondName(a.f)} ${a.to}/${a.den}${a.hit?' · 成套':''}</span>`).join('')
+        ? advs.map(a=>`<span class="bond-adv${a.hit?' hit':''}" data-f="${a.f}">${facEmblem(a.f)||elemGlyph(a.f)}${bondName(a.f)} ${a.to}/${a.den}${a.hit?' · 成套':''}</span>`).join('')
         : '<span class="bond-adv none">&nbsp;</span>'; // 占位：三卡内部节奏对齐，投屏不跳行
       // 全幅立绘卡（20260715b）：立绘铺满卡框，名/稀/三维/技能/穿透压底部文字板；典故移到详情弹窗。
       d.classList.add('rec-card'); if(CF_OPAQUE.has(u.id))d.classList.add('cf-op');
       d.innerHTML=`
         <div class="rec-frame">
           <div class="rec-glyph">${u.n[0]}</div>
-          <img class="rec-art" src="${cardURL(u.id)}" alt="" onerror="this.style.display='none';this.closest('.rec-frame').classList.add('no-art')">
+          <img class="rec-art" src="${cardURL(u.id)}" srcset="${cardSrcset(u.id)}" alt="" onerror="this.style.display='none';this.closest('.rec-frame').classList.add('no-art')">
           <i class="rec-fr" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
           <div class="rec-fac rec-elem" style="color:${ELEM_COLOR2[unitElem(u.id)]||'var(--ink2)'}">${elemGlyph(unitElem(u.id))}<span>${ELEM_CN[unitElem(u.id)]||''}</span></div>
           <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
@@ -2857,7 +2915,7 @@ function renderFoeIntel(p){
   }
   if(ghostUnits)chips=ghostUnits.map(g=>`<span class="mini-u" title="${g.n}">${g.glyph}</span>`).join('');
   else chips=(army||[]).map(a=>{const u=UMAP[a.id];
-    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')
+    return `<span class="mini-u ${a.star>=2?'star'+a.star:''} ${u.fac==='dark'?'f-dark':''}" title="${u.n}">${u.n[0]}${avatarArtTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')
     ||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>';
   let hint='';
   if(army&&army.length){
@@ -2880,7 +2938,7 @@ function renderBench(p){
     if(a.af&&a.af.q>=2)d.style.setProperty('--afc',AFFIX_QC[a.af.q]); // 珍/传世:单位本体发该色光
     d.innerHTML=`${ai===0?'<div class="front-tag">前排</div>':''}
       ${(x=>x?`<div class="arch-mini ${x.c}">${archIcon(x)}${x.t}</div>`:'')(archOf(u))}
-      <div class="g">${u.n[0]}${artTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}${a.halo?`<span class="halo-tag">${uiIcon('state-halo')}${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]};color:${AFFIX_QC[a.af.q]};--cfq:url(${cfAffix(a.af.q)})" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
+      <div class="g">${u.n[0]}${avatarArtTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}${a.halo?`<span class="halo-tag">${uiIcon('state-halo')}${a.halo}</span>`:''}${a.af?`<span class="af-dot" style="background:${AFFIX_QC[a.af.q]};color:${AFFIX_QC[a.af.q]};--cfq:url(${cfAffix(a.af.q)})" title="${AFFIX_Q[a.af.q]}词缀"></span>`:''}</div><div class="n">${u.n}</div>
       <div class="st stat-set" style="gap:7px">${statToken('stat-attack',st.atk,'攻击','atk')}${statToken('stat-vitality',st.hp,'生命','hp')}</div>
       <div class="bmove" role="group" aria-label="${u.n} 的站位与出售操作">
         <button type="button" aria-label="将${u.n}向前排移动一格" title="向前排移动" ${ai===0?'disabled':''}>${uiIcon('action-move-front')}</button>
@@ -3086,10 +3144,20 @@ function renderEvent(){
   $('#event-card').classList.remove('flip');
   $('#btn-event-done').disabled=S.eventResolved?false:true;
   $('#ev-icon').textContent=ev.icon;$('#ev-name').textContent=ev.n;$('#ev-desc').textContent=ev.d;
-  // 事件插图（有则作衬底）
-  const ai=$('#ev-art-img');
-  if(ai){ai.style.display='none';const u=artURL(ev.id);
-    if(u){ai.onload=()=>ai.style.display='';ai.onerror=()=>{ai.style.display='none'};ai.src=u}}
+  // 事件插图（有则作衬底）：加载 token 防止旧请求迟到；成功才藏单字，失败/离线恢复字形。
+  const ai=$('#ev-art-img'),face=ai&&ai.closest('.ev-front');
+  if(ai){
+    const token=String((+ai.dataset.loadToken||0)+1);
+    ai.dataset.loadToken=token;ai.style.display='none';
+    ai.removeAttribute('src');ai.removeAttribute('srcset');
+    if(face)face.classList.remove('has-art');
+    const u=artURL(ev.id);
+    if(u){
+      ai.onload=()=>{if(ai.dataset.loadToken!==token)return;ai.style.display='';if(face)face.classList.add('has-art')};
+      ai.onerror=()=>{if(ai.dataset.loadToken!==token)return;ai.style.display='none';if(face)face.classList.remove('has-art')};
+      const ss=artSrcset(ev.id);if(ss)ai.srcset=ss;ai.src=u;
+    }
+  }
   go('event');
 }
 $('#event-card').onclick=()=>{
@@ -4404,7 +4472,7 @@ $('#btn-battle-next').onclick=()=>{
 /* —— 战斗播放 —— */
 let PB={speed:1,skip:false,timer:null};
 $('#btn-speed').onclick=()=>{PB.speed=PB.speed===1?2:1;const b=$('#btn-speed');b.querySelector('.speed-label').textContent=PB.speed===2?'一倍速':'二倍速';b.setAttribute('aria-label',PB.speed===2?'切换为一倍速':'切换为二倍速');b.setAttribute('aria-pressed',PB.speed===2?'true':'false')};
-$('#btn-skipb').onclick=()=>{PB.skip=true};
+$('#btn-skipb').onclick=()=>{PB.skip=true;vfxClear()};
 
 function unitEl(f){
   const d=document.createElement('div');
@@ -4514,7 +4582,28 @@ function vfxPlay(kind,el,opts){
 }
 function vfxClear(){_vfxNodes.forEach(n=>n.el.remove());_vfxNodes=[];
   if(_vfxRAF){cancelAnimationFrame(_vfxRAF);_vfxRAF=0}
+  document.querySelectorAll('#arena .b2-vfx').forEach(n=>n.remove());
   const ff=document.getElementById('finisher-flash');if(ff)ff.remove()}
+/* 第二批专属效果：透明 currentColor SVG mask，只读现有回放日志，不新增战斗事件。 */
+const B2_VFX_DIR=VISUAL_BATCH2_DIR+'vfx/';
+const B2_VFX={
+  sp_slow:{f:'slow-field.svg',color:'var(--fac-control)',size:118,life:620},
+  sp_meteor:{f:'meteor-strike.svg',color:'var(--fac-edge)',size:220,life:500},
+  control:{f:'control-orrery.svg',color:'var(--fac-control)',size:124,life:720},
+};
+function b2VfxPlay(kind,target,scale){
+  const c=B2_VFX[kind],host=$('#arena');
+  if(!c||!target||!host||PB.skip||!document.body.classList.contains('b2vok'))return;
+  if(host.querySelectorAll('.b2-vfx').length>=8)return; // 独立轻量并发闸，宁少一层光也不压 iPad
+  const hr=host.getBoundingClientRect(),r=target.getBoundingClientRect(),size=c.size*(scale||1);
+  const d=document.createElement('i');
+  d.className='b2-vfx fx-'+kind+(vfxReduced()?' rm':'');d.setAttribute('aria-hidden','true');
+  d.style.left=(r.left-hr.left+r.width/2-size/2)+'px';
+  d.style.top=(r.top-hr.top+r.height*.46-size/2)+'px';
+  d.style.setProperty('--b2-size',size+'px');d.style.setProperty('--b2-color',c.color);
+  d.style.setProperty('--b2-life',c.life+'ms');d.style.setProperty('--b2-mask','url('+B2_VFX_DIR+c.f+')');
+  host.appendChild(d);setTimeout(()=>d.remove(),vfxReduced()?200:c.life+80);
+}
 /* ============ 20260716 特效接线(Codex 四象/星座/戏眼)。只挂表现层,缺图回退,PB.skip/reduced-motion 全尊重 ============ */
 const ELEM_FX_DIR='assets/elements-20260716/', SETP_DIR='assets/setpiece-20260716/', ZOD_DIR='assets/zodiac-20260716/';
 const ELEM_RING_KEYS=new Set(['fire','water','wind','earth']); // 成阵环只认四象;pierce/vanguard 升档不播(接线单§2.3)
@@ -4598,6 +4687,17 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
   const nameOf={},tgOf={},sideOf={},elemOfUid={}; // tg=穿透路由;side=斩击朝向;elemOfUid=四象命中路由(e.s 是实例 uid,不从 fac/名字猜——接线单§2.2)
   A.forEach(f=>{nameOf[f.uid]=f.n;tgOf[f.uid]=f.tg||'melee';sideOf[f.uid]='L';elemOfUid[f.uid]=unitElem(f.id)||null});
   B.forEach(f=>{nameOf[f.uid]=f.n;tgOf[f.uid]=f.tg||'melee';sideOf[f.uid]='R';elemOfUid[f.uid]=unitElem(f.id)||null});
+  const b2Seen=new Set(); // 每场重置；同一效果按目标侧 one-shot，避免全体日志逐条重播
+  const sideBox=s=>s==='L'?L:(s==='R'?R:null);
+  function b2Once(kind,e,run){
+    const side=sideOf[e.d],key=kind+':'+side;
+    if(!side||b2Seen.has(key))return;
+    b2Seen.add(key);run(side);
+  }
+  function b2Team(kind,side){
+    const box=sideBox(side);if(!box)return;
+    box.querySelectorAll('.u:not(.dead)').forEach(u=>b2VfxPlay(kind,u));
+  }
   const ghostBattle=!!(S&&S.solo&&S.ghostFoe); // 斩影上下文开场快照:结算会清 S.ghostFoe,不能事后猜(接线单§4.2)
   const hpNow={},hpMax={};
   [...A,...B].forEach(f=>{hpNow[f.uid]=f.maxhp;hpMax[f.uid]=f.maxhp});
@@ -4627,6 +4727,11 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
         tgt.querySelector('.hpb').classList.toggle('low',pct<32);
         const hv=tgt.querySelector('.num .h');hv.querySelector('.stat-v').textContent=hpNow[e.d];hv.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
         if(animate){
+          if(e.tag==='星陨')b2Once('sp_meteor',e,side=>{
+            const box=sideBox(side);if(!box)return;
+            const scale=Math.max(.72,Math.min(1.3,box.clientWidth/B2_VFX.sp_meteor.size));
+            b2VfxPlay('sp_meteor',box,scale);
+          });
           // 打击感物理层：方向性弹退——攻击者在左则把受击者往右打退，反之往左。暴击/击杀弹更狠。
           const hard=!!(e.crit||e.kill), dir=(sideOf[e.s]==='L')?1:-1;
           tgt.style.setProperty('--kb',(dir*(hard?14:8))+'px');
@@ -4670,8 +4775,14 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
       tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
       const hh=tgt.querySelector('.num .h');hh.querySelector('.stat-v').textContent=hpNow[e.d];hh.setAttribute('aria-label','当前生命 '+hpNow[e.d]+'，最大生命 '+hpMax[e.d]);
       if(animate){vfxPlay('heal',tgt);floatNum(tgt,'+'+e.amt,'#9fd49f');SFX.play('heal')}}}
-    if((e.t==='buff'||e.t==='debuff')&&animate){const tgt=el(e.d);
-      if(tgt)floatNum(tgt,e.txt,e.t==='buff'?'var(--gold2)':'var(--purple)')}
+    if((e.t==='buff'||e.t==='debuff')&&animate){
+      const tgt=el(e.d),txt=String(e.txt||'');
+      if(tgt)floatNum(tgt,txt,e.t==='buff'?'var(--gold2)':'var(--purple)');
+      if(e.t==='debuff'){
+        if(/^速度 -\d+ · 凝滞$/.test(txt))b2Once('sp_slow',e,side=>b2Team('sp_slow',side));
+        else if(/^速度 -\d+ · 制御$/.test(txt))b2Once('control',e,side=>b2Team('control',side));
+      }
+    }
     if(e.t==='shield'&&animate){const tgt=el(e.d);if(tgt){tgt.querySelector('.sh').style.display='';
       floatNum(tgt,e.txt,'var(--shield)');SFX.play('shield')}}
     // shieldHit 只表示「护盾受击」，不承诺破盾（事件里没有护盾剩余量）——裂纹每次都播
@@ -4961,7 +5072,7 @@ function affixReveal(u,af,a){ // 开箱仪式:品质越高越隆重(色彩上瘾
       <i class="av-stage-ornament" style="--avo:url(${REVEAL_ART_DIR}legendary-stage-ornament.svg);color:${c}" aria-hidden="true"></i>
       <div class="av-layout">
         <div class="av-reliquary" aria-hidden="true">
-          <img class="av-unit" src="${cardURL(u.id)}" alt="" onerror="this.remove()">
+          <img class="av-unit" src="${cardURL(u.id)}" srcset="${cardSrcset(u.id)}" alt="" onerror="this.remove()">
           <i class="av-reliquary-frame" style="--avf:url(${REVEAL_ART_DIR}legendary-reliquary-frame.svg);color:${c}"></i>
         </div>
         <div class="av-in"><div class="av-q">传 世</div><div class="av-n">${a.n}</div><div class="av-d">${u.n} · ${a.d(a.vs[af.q])}</div><div class="av-hint">点击继续</div></div>
@@ -5074,7 +5185,7 @@ function showRevenge(){ // 仇敌名单:看见+主动发起(把复仇战从"隐�
   const rs=loadRivals(), DIFF=['见习','精英','宗师'];
   if(!rs.length){modal('<h3>复仇战</h3><div style="text-align:center;color:var(--ink3);padding:22px;line-height:1.9">你还没有败绩——没有需要复仇的军团。<br>输给影军后,他们会出现在这里,等你一雪前耻。</div>');return}
   const rows=rs.map((r,i)=>{
-    const mini=(r.army||[]).map(a=>UMAP[a.id]?`<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(a.id)||'none'}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}${artTag(a.id,'mua')}</span>`:'').join('');
+    const mini=(r.army||[]).map(a=>UMAP[a.id]?`<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(a.id)||'none'}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}${avatarArtTag(a.id,'mua')}</span>`:'').join('');
     return `<div class="rival-row"><div class="rival-hd"><b class="rival-nm"></b><span class="rival-meta">${DIFF[r.difficulty|0]||''} · 曾胜到第 ${r.cleared} 关</span></div><div class="mini-army">${mini}</div><button class="btn mini gold rev-go" data-i="${i}">向他复仇</button></div>`;
   }).join('');
   modal('<h3>复仇战</h3><p style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.06em">打败过你的军团 —— 选一个,开一局向他复仇(影军关狭路相逢,斩它一雪前耻)</p>'+rows);
@@ -5432,7 +5543,7 @@ function soloPreBattle(){
     ?`单人试炼 · 终战 —— 叶王亲临 · 蛇蜕两形 · 胜则加冕`
     :`${S.endless?'无尽回廊':'单人试炼'} · 难度 ${SOLO_DIFF[S.difficulty]||''} · 迎战「${soloFoeName(S.round)}」· 败则终局`;
   const you=S.players[0], foe=S.soloFoe||[];
-  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}${artTag(a.id,'mua')}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
+  const mini=arr=>arr.map(a=>`<span class="mini-u ${a.star>=2?'star'+a.star:''} ${UMAP[a.id].fac==='dark'?'f-dark':''}" title="${UMAP[a.id].n}">${UMAP[a.id].n[0]}${avatarArtTag(a.id,'mua')}</span>`).join('')||'<span style="color:var(--ink4);font-size:11px">—</span>';
   const ghostMini=us=>us.map(g=>`<span class="mini-u f-dark" title="${g.n}">${g.glyph}</span>`).join('');
   const box=$('#pairings');box.style.display='';
   const foeChips=boss?ghostMini(soloBossUnits()):mini(foe);

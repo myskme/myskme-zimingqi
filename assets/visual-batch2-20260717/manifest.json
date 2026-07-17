@@ -1,0 +1,577 @@
+{
+  "asset_root": "assets/visual-batch2-20260717/",
+  "files": [
+    {
+      "bytes": 715,
+      "dimensions": [
+        24,
+        24
+      ],
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "path": "emblems/control.svg",
+      "sha256": "8afacba8b49550bbd1a1bdc82d9883195dde9f9681e7e5e6a43fb668f9c40bfa",
+      "svg": {
+        "forbidden_content": [],
+        "uses_currentColor": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "bytes": 570,
+      "dimensions": [
+        24,
+        24
+      ],
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "path": "emblems/edge.svg",
+      "sha256": "4033613a9c7a01157ed6d140193e5d9e4db1a38e8bc746471538a11cfb254134",
+      "svg": {
+        "forbidden_content": [],
+        "uses_currentColor": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "bytes": 712,
+      "dimensions": [
+        24,
+        24
+      ],
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "path": "emblems/persist.svg",
+      "sha256": "82783c40c75e373dd1a2c94b39dc17701a5c01bdeca9aab12264eca0fc3bdf27",
+      "svg": {
+        "forbidden_content": [],
+        "uses_currentColor": true,
+        "viewBox": "0 0 24 24"
+      }
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 11128,
+      "dimensions": [
+        512,
+        341
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "events/event-mourn.webp",
+      "sha256": "67da7f74bb5ae899f378b09f15080dc6d2a73ddc5e46f863cd3e0773c2eff2d2"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 51932,
+      "dimensions": [
+        1024,
+        683
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "events/event-mourn@2x.webp",
+      "sha256": "dfc0b04563c426e7d181f384d324d913588e0b4910d51e18ed478d7ee02e23c1"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 115522,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "events/event-mourn@3x.webp",
+      "sha256": "01e781298e5c7d59d95eae4c570b1f11397e4319697fd6d3a22d767bf0b09d53"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 15698,
+      "dimensions": [
+        512,
+        341
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "events/event-rift.webp",
+      "sha256": "102333b3482d1e5c783c5f3940d3785f76360d06a80a797f95f42d7e324721f6"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 46140,
+      "dimensions": [
+        1024,
+        683
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "events/event-rift@2x.webp",
+      "sha256": "d23156dd9d776508e4c4398868616a30162649b797268e3596de6b4cb5c4ab68"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 84364,
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "events/event-rift@3x.webp",
+      "sha256": "ee9f8e8d9daba6eda548893cc0b995e83425237c4a271a74793f75655549cf4c"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.261047,
+        "present": true
+      },
+      "bytes": 5696,
+      "dimensions": [
+        128,
+        128
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "relics/relic-shuttle.webp",
+      "sha256": "3e38a712b1680c14db8113c277887caf002c0724b6fbfa953378d820aead8292"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.250076,
+        "present": true
+      },
+      "bytes": 15812,
+      "dimensions": [
+        256,
+        256
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "relics/relic-shuttle@2x.webp",
+      "sha256": "6d45581d2bffe15c2b2ebed2d34ffb2678ebbad82d2a391582db0fd991f1f4c0"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.246914,
+        "present": true
+      },
+      "bytes": 30762,
+      "dimensions": [
+        384,
+        384
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "relics/relic-shuttle@3x.webp",
+      "sha256": "152d00507bd582fd42e258b229521ab89952ba27e5713c01352d2005b446d508"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.429871,
+        "present": true
+      },
+      "bytes": 5482,
+      "dimensions": [
+        128,
+        128
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "relics/relic-urn.webp",
+      "sha256": "91be1ba03a674ce729812f5ec67fc3cc8e7438d016cf20d01fff62b4a319d3f0"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.418839,
+        "present": true
+      },
+      "bytes": 14944,
+      "dimensions": [
+        256,
+        256
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "relics/relic-urn@2x.webp",
+      "sha256": "d4bff7c2b7844cc6c4e741da469130dc18830c4f14a86c1eadd4d2b39f704198"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.419237,
+        "present": true
+      },
+      "bytes": 29562,
+      "dimensions": [
+        384,
+        384
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "relics/relic-urn@3x.webp",
+      "sha256": "3f549082ad33a573ec99b75144c0a49746c593a9a8ae6b86232ac0097eb83e07"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.469184,
+        "present": true
+      },
+      "bytes": 4564,
+      "dimensions": [
+        96,
+        96
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/avatar-flint.webp",
+      "sha256": "9de24bccd6510dccf7a38a28361542f5607ebfb46583bca642c5ddb4e79a6160"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.440891,
+        "present": true
+      },
+      "bytes": 12900,
+      "dimensions": [
+        192,
+        192
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/avatar-flint@2x.webp",
+      "sha256": "24d83804008a4b771dfdeaf5782030f7c4fb5990e0e760dd07667ebd73c50629"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.435583,
+        "present": true
+      },
+      "bytes": 25270,
+      "dimensions": [
+        288,
+        288
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/avatar-flint@3x.webp",
+      "sha256": "9cc2490e1c6854798a2569d6a79b4dd477ffe98e6fea506b4bde70c51b6fbece"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.442817,
+        "present": true
+      },
+      "bytes": 3466,
+      "dimensions": [
+        96,
+        96
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/avatar-toll.webp",
+      "sha256": "01f3c369878cf6bb7208bb0707b4f1b725c2996ef01d32f1e3b4ff42c423c453"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.41984,
+        "present": true
+      },
+      "bytes": 9158,
+      "dimensions": [
+        192,
+        192
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/avatar-toll@2x.webp",
+      "sha256": "8c847c32864ceb864d271ca0e8a4a93ac0f582e11215c2080e530f9e784af9ee"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.417137,
+        "present": true
+      },
+      "bytes": 17250,
+      "dimensions": [
+        288,
+        288
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/avatar-toll@3x.webp",
+      "sha256": "fdd78ce453cea5a7f2d46507388c726646047fe9ad280c8dfceebf375380de49"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.283027,
+        "present": true
+      },
+      "bytes": 47856,
+      "dimensions": [
+        384,
+        576
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/card-flint.webp",
+      "sha256": "ef0523b420390edb73b3b0e10559e616ba7df46da6d04b1d59112489802cadff"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.277696,
+        "present": true
+      },
+      "bytes": 136966,
+      "dimensions": [
+        768,
+        1152
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/card-flint@2x.webp",
+      "sha256": "c97f8b59f7d2c1b6f560a885cdcdbf9d1d18b342ea18c3842129cc8d91dd371c"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.277358,
+        "present": true
+      },
+      "bytes": 204022,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/card-flint@3x.webp",
+      "sha256": "9e43d396e66d4a0cfecabe81334f5986e9bd01ff199f0d073f1438cb83363ef4"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.371035,
+        "present": true
+      },
+      "bytes": 37358,
+      "dimensions": [
+        384,
+        576
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/card-toll.webp",
+      "sha256": "148a6d8fb1fc73898bde1e17022da445681239c272d56466514f14181874529a"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.367972,
+        "present": true
+      },
+      "bytes": 106722,
+      "dimensions": [
+        768,
+        1152
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/card-toll@2x.webp",
+      "sha256": "f7452b226d3bd41e0610a036b60c8991677e584f15f8d3e79754b792bdfcbc89"
+    },
+    {
+      "alpha": {
+        "corner_max": 0,
+        "corners_transparent": true,
+        "coverage": 0.367636,
+        "present": true
+      },
+      "bytes": 155566,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "kind": "webp",
+      "mode": "RGBA",
+      "path": "units/card-toll@3x.webp",
+      "sha256": "0fed806b2c3eff7ba229a78739bc042db4a9a6e1e195dda34dbfe48c1741b4bb"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 41688,
+      "dimensions": [
+        384,
+        576
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "units/unit-flint.webp",
+      "sha256": "439fc0d7a2a045192ba274604e609ffc7ca9d3863066a0390d9a660fb67c4ec0"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 151504,
+      "dimensions": [
+        768,
+        1152
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "units/unit-flint@2x.webp",
+      "sha256": "07ab028ab6016af9106f9d63e61b7c021ed9b214add0f34afa0ed46f5b92d1e1"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 228056,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "units/unit-flint@3x.webp",
+      "sha256": "be903f5a392f930ee1857ea99c62a5905948921c252b20b4f5b1bbd5f7877ecd"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 38770,
+      "dimensions": [
+        384,
+        576
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "units/unit-toll.webp",
+      "sha256": "c5f37819da646f56344b18d44b981699ca59fda77c9a9ee1e0d47906bc9ccb68"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 126584,
+      "dimensions": [
+        768,
+        1152
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "units/unit-toll@2x.webp",
+      "sha256": "bcd851af2c817a978eebd08b6cc2cc55cbc585ba660c23efe613b47b5672015c"
+    },
+    {
+      "alpha": {
+        "present": false
+      },
+      "bytes": 188702,
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "kind": "webp",
+      "mode": "RGB",
+      "path": "units/unit-toll@3x.webp",
+      "sha256": "0d063c69802f9ad5631affc020b7df90efde0c95c00fa0dde57647c16f22009c"
+    },
+    {
+      "bytes": 1162,
+      "dimensions": [
+        128,
+        128
+      ],
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "path": "vfx/control-orrery.svg",
+      "sha256": "c7aae07afd50b35a176046d9357c1af779800a7df7ccf6b67f8f341175f703dc",
+      "svg": {
+        "forbidden_content": [],
+        "uses_currentColor": true,
+        "viewBox": "0 0 128 128"
+      }
+    },
+    {
+      "bytes": 821,
+      "dimensions": [
+        128,
+        128
+      ],
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "path": "vfx/meteor-strike.svg",
+      "sha256": "3ada39d70a259875db978d6a1bd9160ed3c4db53b586f35d2750929f20e96191",
+      "svg": {
+        "forbidden_content": [],
+        "uses_currentColor": true,
+        "viewBox": "0 0 128 128"
+      }
+    },
+    {
+      "bytes": 912,
+      "dimensions": [
+        128,
+        128
+      ],
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "path": "vfx/slow-field.svg",
+      "sha256": "15a16414d16e694998244407e8b3bbe9f46ed61bfe147b92304c807ccb2e2d4f",
+      "svg": {
+        "forbidden_content": [],
+        "uses_currentColor": true,
+        "viewBox": "0 0 128 128"
+      }
+    }
+  ],
+  "schema": 1,
+  "version": "visual-batch2-20260717"
+}

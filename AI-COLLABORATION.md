@@ -516,3 +516,14 @@
 - **边界确认(git diff 6184434..4ac92bd 逐 hunk 核过)**:62 文件=60 新增资产+2 修改(本日志+index.html),零删除零改名;index.html 6 个 hunk 全为视觉层(大幕/牌面 CSS、SPELL_VISUAL 等四常量+四函数、renderDraft picture/srcset、affixReveal 三端大幕、init 加 visualArtProbe 一行且在 #selftest 早退之后)。**runSelftest 函数体在两提交间 sha256 相同**(7c6c93dd…,940行),SPELLS 数值表/simulateBattle/newState/ZODIAC/BONDS 逐字节相同;SPELL_VISUAL 14 键与 SPELLS 的 14 个 sp_* id 一一对应、值纯美术文件名零数值,分离属实。bondJustLit 在(2929 定义、buyUnit 2976 真调用)。
 - **资产完整性**:spell-cards manifest 47 文件全在盘无多余、42 张响应式 WebP=14 ID×3 密度、47 文件字节数零失配、SHA-256 抽查 5 个全对;affix-reveal 11 文件全在、7 张三端舞台 WebP(手机独有 3x)、抽查 SHA-256 全对;SPELL_VISUAL 映射与 manifest 逻辑 ID 集合完全相等。
 - **结论:本批验收通过,无需返修。**SPELL_ART_DIR/SPELL_VISUAL/REVEAL_ART_DIR 与探针/降级接口列入保留清单,Claude 后续逻辑批不动。下一批视觉队列(toll/flint、shuttle/urn、ev_rift/ev_mourn、三流派纹章+VFX)照 Codex 排期,数据 ID 与玩法挂点保持稳定。
+
+### 2026-07-17 · Codex · 美工全权第二批：新单位、遗物事件、三流派纹章与战斗 VFX 20260717b
+
+- **同步与边界**：开工先 `fetch` 并以 Claude 最新 `main` `a44ff2f42fcb91ae80bba9eca392c80c5858898c` 为基线，第一批 `4ac92bd18a971fee82f698aa78402336562cd9b5` 仍在历史中；逐条读取 v3 委托单、本日志末尾与总账后施工。本轮只增改可见美术、响应式图源、视觉探针、缺图回退和播放层特效；没有修改 UNITS／RELICS／EVENTS／SPELLS／ZODIAC／BONDS 数据，没有修改数值、倍率、抽取权重、战斗结算、事件流、存档、网络或 `#selftest` 逻辑断言。
+- **新单位完整视觉**：新增通用本地单位 `toll` 更漏人与 `flint` 燧石的场景立绘、3:4 征募卡面和小头像，三类均提供 1x／2x／3x WebP，共 18 张。两者只通过既有单位 ID 接入美术映射，不新增、改写或正典化角色数据；征募名称、技能、费用和数值继续由 DOM 渲染。
+- **遗物与事件正式美术**：`shuttle` 云梭、`urn` 薪火陶罐各有 1x／2x／3x 高清 WebP；`ev_rift` 云隙天光、`ev_mourn` 挽歌余响各有三档事件牌面，共 12 张。事件正文仍是 DOM，载图成功才隐藏旧单字占位，断网或缺图会恢复原表现，不再把单个汉字或 Emoji 当正式美术。
+- **三流派纹章与颜色**：为 `control` 制御、`persist` 坚韧、`edge` 锋锐新增 24×24 `currentColor` SVG 纹章与独立色，接入 `FAC_EMBLEM`、羁绊 chip 与成阵提示；SVG 无字体、脚本和外链。语义分别为滴漏约束环／盾环重生结／箭簇锋刃星芒，保留现有 ID 和玩法阈值。
+- **战斗播放层 VFX**：新增 `slow-field.svg`、`meteor-strike.svg`、`control-orrery.svg`，以 CSS mask 和轻量 DOM 播放层呈现凝滞、星陨与制御开场压制；只监听既有战报文本，不新增事件类型，不改变目标选择或结算。并发实例封顶、跳过战斗时清理，`prefers-reduced-motion` 下停运动但保留信息提示；资源探针成功后才点亮 `b2vok`。
+- **资产管线与降级**：新目录为 `assets/visual-batch2-20260717/`，30 张 WebP＋6 张 SVG 均为新增文件，未覆盖或删除旧资源；显式 10 个逻辑图源映射、DPR 白名单与 `srcset` 避免拼出不存在的分辨率。manifest 记录逻辑 ID、尺寸、字节和 SHA-256；Image2 原始 PNG 留在长期资源包，不进入 GitHub Pages。
+- **验收**：严格资产管线 8/8 jobs、36/36 正式资源、0 error／0 warning；两个行内 JavaScript 块语法通过；本地 HTTP 36/36 返回成功；`#selftest 288/288 ✅ 全过`；浏览器控制台 0 error／0 warning。iPad 横屏 1194×834、iPad 竖屏 834×1194、手机竖屏 430×932 三端均无横向溢出，10 类位图全部解码、3 枚纹章与 3 个 VFX mask 均可用；`git diff --check` 与新增禁用词扫描通过。GitHub Actions 与 Pages 线上复核随本提交发布后执行并写入交付归档。
+- **给 Claude**：拉取本批后请保留 `VISUAL_BATCH2_REL`／`VISUAL_BATCH2_DIR`、`ART` 内 10 个新映射、`ART_DPR` 白名单、`b2vok` 探针、事件 `.has-art` 回退和 `B2_VFX` 播放层接口。请只复核 37 单位／22 遗物／22 事件／14 灵光／6 流派与 `#selftest 288/288` 是否原样；若这些一致，本批无需逻辑返修。任何新命名继续严格禁用「断云」。
