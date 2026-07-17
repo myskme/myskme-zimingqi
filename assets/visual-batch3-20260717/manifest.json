@@ -1,0 +1,138 @@
+{
+  "version": "20260717c",
+  "title": "MYSKME 自鸣棋视觉全权第三批 · 世界回廊名望仪式",
+  "files": [
+    {
+      "path": "emblems/arena-tier-0.svg",
+      "bytes": 296,
+      "sha256": "7b89c08e7d7b0ffd3e681a59eac4ac4f6fdf5116206ef3b53d7fb6d85c51289c",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/arena-tier-1.svg",
+      "bytes": 354,
+      "sha256": "3ea5602bdba649068ed7797088e53b5fe6d71eb98572784846889b58f622a4df",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/arena-tier-2.svg",
+      "bytes": 356,
+      "sha256": "3e418bed611bdd55af1c59b69db972b88ef4344d43fccfffba4521300dde4d50",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/arena-tier-3.svg",
+      "bytes": 468,
+      "sha256": "b10f9bf3889ee257b9102e73005b817a3e7e927f8c548470e759174c0164b6a7",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/arena-tier-4.svg",
+      "bytes": 395,
+      "sha256": "b66771a79a6c800c204c481962936474e0de42f2de779b9ddc849ae2ce5f768a",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/corridor-pattern.svg",
+      "bytes": 600,
+      "sha256": "997a786a4c2cf57f4c4e303fac0372376a91d3aa9c0da381e918f2c3717b6c9e",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/emblem-death.svg",
+      "bytes": 656,
+      "sha256": "1878187bef2c6ff2bb20372183a7f25171c65fb65148b8674566a7b5e8195f05",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/feed-ribbon.svg",
+      "bytes": 372,
+      "sha256": "d6e64acd58edc20aed21e65eb80e7b2a5c7843f8a4d45a4be1b8a025e38dcbf5",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/hall-laurel.svg",
+      "bytes": 566,
+      "sha256": "75cfaea99277b36a15f5aedd8e90e56b2bfb3116d5dd641204d3b52c68090f83",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/rank-1.svg",
+      "bytes": 449,
+      "sha256": "02251aff8b99a3df2af9a5d266f0e0724908e29f51abc0a9b840bb522ea9d5f2",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/rank-2.svg",
+      "bytes": 412,
+      "sha256": "e8ee42cf7b87101dc3887a073f6f7434a2835f3ec3af3079f1af59ea073da500",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "emblems/rank-3.svg",
+      "bytes": 432,
+      "sha256": "9fe6fca65e1251a75ef1f33098820de7374941d33420c90a0d34965053228ec5",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "profile/profile-backplate-portrait.webp",
+      "bytes": 21264,
+      "sha256": "934bc136f62f9363307ec7eadab4553aaccaaad6a619fb9c8cef487be7d77bda",
+      "width": 480,
+      "height": 600,
+      "mode": "RGB"
+    },
+    {
+      "path": "profile/profile-backplate-portrait@2x.webp",
+      "bytes": 102122,
+      "sha256": "b558dc223a7126de09bde3d8469d83e3b46795d3cbb24936e8e2c4ddafbe51c5",
+      "width": 960,
+      "height": 1200,
+      "mode": "RGB"
+    },
+    {
+      "path": "profile/profile-backplate-portrait@3x.webp",
+      "bytes": 148910,
+      "sha256": "77331c20230270cd3dfc67e4a6674c316e1e446fc27ef538a71e097b6e67ce4f",
+      "width": 1120,
+      "height": 1400,
+      "mode": "RGB"
+    },
+    {
+      "path": "profile/profile-backplate.webp",
+      "bytes": 18484,
+      "sha256": "ce163b18bddce4c004aa4d8e09903ed71ae63110ae4233a10b445dcf8faee946",
+      "width": 640,
+      "height": 427,
+      "mode": "RGB"
+    },
+    {
+      "path": "profile/profile-backplate@2x.webp",
+      "bytes": 78680,
+      "sha256": "356e18436908c3c8459957c36c659825d1008613306553d74aca9991b65b618d",
+      "width": 1280,
+      "height": 853,
+      "mode": "RGB"
+    },
+    {
+      "path": "profile/profile-backplate@3x.webp",
+      "bytes": 125946,
+      "sha256": "02dcd29bfc870313ab0d138949cc95fc1203112b6ad9bb39aef48cb7cd2d8daf",
+      "width": 1536,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    {
+      "path": "profile/profile-divider.svg",
+      "bytes": 382,
+      "sha256": "f81fc38e3bba6733a6add6f8a866b95cc88f567150034873a18770617da5d33f",
+      "type": "currentColor-svg"
+    },
+    {
+      "path": "profile/profile-frame.svg",
+      "bytes": 901,
+      "sha256": "8a927f0c0221024a508fa1aad53cb76297a358f7970e523387807df4876b951f",
+      "type": "currentColor-svg"
+    }
+  ]
+}

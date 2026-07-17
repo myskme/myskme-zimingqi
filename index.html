@@ -19,7 +19,7 @@
   --fac-academy:#e8c768; --fac-sky:#9cc0e8; --fac-sea:#5fb8a5;
   --fac-swing:#c3bda8; --fac-dark:#b48ce6; --fac-novice:#9fd49f;
   --fac-pierce:#7fb0e0; --fac-vanguard:#d9964a;
-  --fac-control:#6fd6ff; --fac-persist:#73d69b; --fac-edge:#ff8a5b;
+  --fac-control:#6fd6ff; --fac-persist:#73d69b; --fac-edge:#ff8a5b; --fac-death:#e1a35a;
   --line:rgba(201,166,74,.24); --line2:rgba(201,166,74,.10);
   --glow-gold:0 0 22px rgba(201,166,74,.38);
   --glow-red:0 0 22px rgba(168,48,48,.5);
@@ -307,7 +307,7 @@ body.playing #hud{display:flex}
 .fem-academy{color:var(--fac-academy)} .fem-sky{color:var(--fac-sky)} .fem-sea{color:var(--fac-sea)}
 .fem-swing{color:var(--fac-swing)} .fem-dark{color:var(--fac-dark)} .fem-novice{color:var(--fac-novice)}
 .fem-pierce{color:var(--fac-pierce)} .fem-vanguard{color:var(--fac-vanguard)}
-.fem-control{color:var(--fac-control)} .fem-persist{color:var(--fac-persist)} .fem-edge{color:var(--fac-edge)}
+.fem-control{color:var(--fac-control)} .fem-persist{color:var(--fac-persist)} .fem-edge{color:var(--fac-edge)} .fem-death{color:var(--fac-death)}
 /* 徽章底光按阵营轻微染色（在稀有度边框之下，不抢主体） */
 .badge[data-fac=academy]{background:radial-gradient(ellipse at 50% 46%,rgba(232,199,104,.15),transparent 72%)}
 .badge[data-fac=sky]{background:radial-gradient(ellipse at 50% 46%,rgba(156,192,232,.15),transparent 72%)}
@@ -379,6 +379,91 @@ body.playing #hud{display:flex}
 .hall-art{width:30px;height:30px;border:1px solid var(--line);object-fit:cover;flex:0 0 30px;border-radius:2px}
 .hall-lab,.feed-lab{flex:1;min-width:0;font-size:13px;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .feedrow{padding:7px 10px}
+/* 世界回廊·名望仪式（视觉全权第三批 20260717c）。
+   资产探针成功才挂 body.b3ok；失败时完整保留上方原名片/榜行/数字名次。 */
+.b3-pc-bg,.b3-rank-mark,.b3-feed-mark,.b3-tier-mark{display:none}
+body.b3ok #pc-body{padding:0!important;color:var(--ink3)!important}
+body.b3ok #pc-body .player-profile-card{isolation:isolate;min-height:388px;padding:48px 48px 34px;
+  border-color:rgba(232,199,104,.68);background:rgba(5,9,14,.94);box-shadow:0 18px 46px rgba(0,0,0,.5),inset 0 0 40px rgba(201,166,74,.05)}
+body.b3ok #pc-body .player-profile-card>.b3-pc-bg{display:block;position:absolute;inset:0;z-index:-3;pointer-events:none}
+body.b3ok #pc-body .b3-pc-bg img{width:100%;height:100%;object-fit:cover;object-position:center;opacity:.82}
+body.b3ok #pc-body .player-profile-card::before{content:'';position:absolute;inset:6px;z-index:-1;pointer-events:none;
+  color:var(--gold2);background:currentColor;opacity:.72;
+  -webkit-mask:url(assets/visual-batch3-20260717/profile/profile-frame.svg) center/100% 100% no-repeat;
+  mask:url(assets/visual-batch3-20260717/profile/profile-frame.svg) center/100% 100% no-repeat}
+body.b3ok #pc-body .player-profile-card::after{content:'';position:absolute;inset:0;z-index:-2;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 28%,rgba(157,114,214,.1),transparent 38%),linear-gradient(180deg,rgba(3,7,11,.08),rgba(3,7,11,.64))}
+body.b3ok #pc-body .pc-head{position:relative;padding:6px 36px 12px}
+body.b3ok #pc-body .pc-head::after,body.b3ok #pc-body .pc-treasure::before{content:'';display:block;width:min(320px,90%);height:24px;margin:8px auto 0;
+  background:var(--gold2);opacity:.6;-webkit-mask:url(assets/visual-batch3-20260717/profile/profile-divider.svg) center/contain no-repeat;
+  mask:url(assets/visual-batch3-20260717/profile/profile-divider.svg) center/contain no-repeat}
+body.b3ok #pc-body .pc-name{font-size:clamp(25px,4vw,34px);letter-spacing:.18em;text-shadow:0 0 24px rgba(232,199,104,.46)}
+body.b3ok #pc-body .pc-title{display:inline-block;margin-top:5px;padding:2px 13px;border:1px solid rgba(157,114,214,.46);background:rgba(17,11,26,.55);border-radius:999px}
+body.b3ok #pc-body .pc-sig{width:min(430px,88%);margin:4px auto 15px;min-height:26px;color:#c9c2b3;line-height:1.7}
+body.b3ok #pc-body .pc-stats{width:min(360px,86%);margin:0 auto 14px;gap:12px}
+body.b3ok #pc-body .pc-st{flex:1;padding:8px 12px;border:1px solid rgba(201,166,74,.17);background:rgba(3,7,11,.46)}
+body.b3ok #pc-body .pc-st b{font-size:23px;text-shadow:0 0 12px rgba(201,166,74,.28)}
+body.b3ok #pc-body .pc-treasure{position:relative;width:min(440px,92%);margin:0 auto;border-top:0;padding-top:0}
+body.b3ok #pc-body .pc-treasure::before{margin:0 auto 4px;transform:scaleY(-1)}
+body.b3ok #pc-body .pc-trlab{color:var(--gold2);text-shadow:0 0 10px rgba(201,166,74,.3)}
+body.b3ok #pc-body .pc-tr1{min-width:96px;padding:7px 10px;border:1px solid rgba(201,166,74,.16);background:rgba(3,7,11,.52)}
+body.b3ok #pc-body .pc-art{width:62px;height:62px;border-color:rgba(232,199,104,.46);box-shadow:0 6px 18px rgba(0,0,0,.48)}
+
+#lblist.b3-list{position:relative;isolation:isolate;border:1px solid rgba(201,166,74,.12);background:rgba(3,7,11,.24)}
+body.b3ok #lblist.b3-list::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:var(--gold);
+  opacity:.035;-webkit-mask:url(assets/visual-batch3-20260717/emblems/corridor-pattern.svg) center/96px 96px repeat;
+  mask:url(assets/visual-batch3-20260717/emblems/corridor-pattern.svg) center/96px 96px repeat}
+body.b3ok #lblist .lbrow{min-height:46px;position:relative;border-bottom-color:rgba(201,166,74,.12);transition:background .2s,border-color .2s,transform .2s}
+body.b3ok #lblist .lbrow.clickable:hover{transform:translateX(2px);border-color:rgba(232,199,104,.32)}
+.lbrow>.lb-rank{position:relative;display:inline-flex;align-items:center;justify-content:center;flex:0 0 34px;width:34px;height:34px}
+.lbrow .lb-rank-num{position:relative;z-index:1;flex:0 0 auto;font-size:11px;line-height:1;color:currentColor}
+body.b3ok .lb-rank[data-rank="1"],body.b3ok .lbrow.b3-r1{color:#ffd166}
+body.b3ok .lb-rank[data-rank="2"],body.b3ok .lbrow.b3-r2{color:#c4c8d0}
+body.b3ok .lb-rank[data-rank="3"],body.b3ok .lbrow.b3-r3{color:#c88f5e}
+body.b3ok .lbrow .b3-rank-mark{display:block;position:absolute;inset:2px;flex:0 0 auto;background:currentColor;opacity:.94;-webkit-mask:var(--b3-rank) center/contain no-repeat;mask:var(--b3-rank) center/contain no-repeat}
+body.b3ok .lb-rank[data-rank="1"]{--b3-rank:url(assets/visual-batch3-20260717/emblems/rank-1.svg)}
+body.b3ok .lb-rank[data-rank="2"]{--b3-rank:url(assets/visual-batch3-20260717/emblems/rank-2.svg)}
+body.b3ok .lb-rank[data-rank="3"]{--b3-rank:url(assets/visual-batch3-20260717/emblems/rank-3.svg)}
+body.b3ok .lb-rank[data-rank="1"] .lb-rank-num,body.b3ok .lb-rank[data-rank="2"] .lb-rank-num,body.b3ok .lb-rank[data-rank="3"] .lb-rank-num{transform:translateY(1px);font-size:9px;color:#f5f1e6;text-shadow:0 1px 2px #000}
+body.b3ok .lbrow.b3-r1{background:linear-gradient(90deg,rgba(255,209,102,.13),rgba(255,209,102,.025));box-shadow:inset 3px 0 #ffd166}
+body.b3ok .lbrow.b3-r2{background:linear-gradient(90deg,rgba(196,200,208,.1),transparent);box-shadow:inset 2px 0 #c4c8d0}
+body.b3ok .lbrow.b3-r3{background:linear-gradient(90deg,rgba(200,143,94,.1),transparent);box-shadow:inset 2px 0 #c88f5e}
+body.b3ok .hall-art{width:38px;height:38px;flex-basis:38px;border-color:rgba(201,166,74,.3);box-shadow:0 5px 12px rgba(0,0,0,.38)}
+.lbrow .lb-player{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.lbrow .lb-player-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lbrow .b3-arena-badge{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;font-size:10px;letter-spacing:.08em;color:var(--ink3)}
+body.b3ok .b3-tier-mark{display:inline-block;width:25px;height:25px;background:currentColor;-webkit-mask:var(--b3-tier) center/contain no-repeat;mask:var(--b3-tier) center/contain no-repeat}
+body.b3ok .lbrow .b3-tier-mark{flex:0 0 25px}
+.b3-tier-0{color:#8f918f;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-0.svg)}
+.b3-tier-1{color:#7fc4d8;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-1.svg)}
+.b3-tier-2{color:#c77dff;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-2.svg)}
+.b3-tier-3{color:#ffd166;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-3.svg)}
+.b3-tier-4{color:#ff8c42;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-4.svg)}
+.b3-arena-inline{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid rgba(157,114,214,.3);background:rgba(13,7,20,.38)}
+body.b3ok .lbrow .b3-feed-mark{display:inline-block;width:24px;height:24px;flex:0 0 24px;color:var(--gold2);background:currentColor;
+  -webkit-mask:url(assets/visual-batch3-20260717/emblems/feed-ribbon.svg) center/contain no-repeat;mask:url(assets/visual-batch3-20260717/emblems/feed-ribbon.svg) center/contain no-repeat}
+body.b3ok .feedrow{min-height:50px;overflow:hidden;background:linear-gradient(90deg,rgba(157,114,214,.06),transparent 72%)}
+body.b3ok .feedrow::after{content:'';position:absolute;top:0;bottom:0;width:22%;left:-26%;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(232,199,104,.13),transparent);animation:b3FeedGlint 7s ease-in-out infinite}
+body.b3ok .feedrow:nth-child(3n+2)::after{animation-delay:1.8s}body.b3ok .feedrow:nth-child(3n)::after{animation-delay:3.6s}
+@keyframes b3FeedGlint{0%,42%{transform:translateX(0);opacity:0}52%{opacity:1}72%,100%{transform:translateX(560%);opacity:0}}
+@media(max-width:600px){
+  body.b3ok #pc-body .player-profile-card{min-height:520px;padding:64px 24px 38px}
+  body.b3ok #pc-body .b3-pc-bg img{object-position:center}
+  body.b3ok #pc-body .pc-head{padding-inline:16px}
+  body.b3ok #pc-body .pc-sig{width:92%}
+  body.b3ok #pc-body .pc-stats{width:94%;gap:8px}
+  body.b3ok #pc-body .pc-trrow{gap:8px}
+  body.b3ok #pc-body .pc-tr1{min-width:88px;padding-inline:6px}
+  body.b3ok #lblist .lbrow{gap:7px;padding-inline:7px}
+  .lbrow>.lb-rank{flex-basis:30px;width:30px;height:30px}
+  .b3-arena-badge span:last-child{display:none}
+  body.b3ok .hall-art{width:34px;height:34px;flex-basis:34px}
+}
+@media(prefers-reduced-motion:reduce){
+  body.b3ok .feedrow::after{animation:none;display:none}
+  body.b3ok #lblist .lbrow{transition:none}body.b3ok #lblist .lbrow.clickable:hover{transform:none}
+}
 /* 命脉图钉 + 星芒内联图标(2026-07-14 去 emoji:图标系统 stat-vitality / state-halo) */
 .life-pips{display:inline-flex;align-items:center;gap:2px;vertical-align:middle}
 .life-pips .mi{width:15px;height:15px;color:var(--red2);filter:drop-shadow(0 0 4px rgba(213,96,96,.55))}
@@ -578,9 +663,11 @@ body.arok .av-reliquary-frame{display:block}
 .bond-chip[data-f=control]{background:rgba(111,214,255,.07)}
 .bond-chip[data-f=persist]{background:rgba(115,214,155,.07)}
 .bond-chip[data-f=edge]{background:rgba(255,138,91,.07)}
+.bond-chip[data-f=death]{background:rgba(225,163,90,.07)}
 .bond-chip[data-f=control] .fac-emblem,.bond-adv[data-f=control] .fac-emblem{color:var(--fac-control)}
 .bond-chip[data-f=persist] .fac-emblem,.bond-adv[data-f=persist] .fac-emblem{color:var(--fac-persist)}
 .bond-chip[data-f=edge] .fac-emblem,.bond-adv[data-f=edge] .fac-emblem{color:var(--fac-edge)}
+.bond-chip[data-f=death] .fac-emblem,.bond-adv[data-f=death] .fac-emblem{color:var(--fac-death)}
 .bond-chip.bond-t1{border-color:rgba(157,114,214,.55);color:var(--purple)}
 .bond-chip.bond-t2{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 9px rgba(201,166,74,.28)}
 #bounty-shelf .bond-chip .mi{width:1.12em;height:1.12em;color:var(--gold2);margin-right:1px}
@@ -1339,6 +1426,8 @@ const FAC_EMBLEM = {
   control:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25" stroke-width="1.5" opacity=".52"/><path d="M12 1.75v2M12 20.25v2M1.75 12h2M20.25 12h2" stroke-width="1.4"/><path d="M8.25 5.7h7.5M8.25 18.3h7.5" stroke-width="1.65"/><path d="M9 6.15c.12 2.55 1.17 3.9 3 5.25-1.83 1.35-2.88 2.7-3 5.25M15 6.15c-.12 2.55-1.17 3.9-3 5.25 1.83 1.35 2.88 2.7 3 5.25" stroke-width="1.45"/><path d="M12 9.35c-.9 1.12-1.4 1.83-1.4 2.55a1.4 1.4 0 0 0 2.8 0c0-.72-.5-1.43-1.4-2.55Z" fill="currentColor" stroke="none"/></svg>',
   persist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.25" stroke-width="1.45" opacity=".5"/><path d="M12 2.15v2.1M12 19.75v2.1M2.15 12h2.1M19.75 12h2.1" stroke-width="1.45"/><path d="M12 5.05 17.3 7.2v4.25c0 3.5-2.05 6.1-5.3 7.55-3.25-1.45-5.3-4.05-5.3-7.55V7.2L12 5.05Z" stroke-width="1.45"/><path d="M8.7 10c-1.3 0-2.3.9-2.3 2s1 2 2.3 2c2.7 0 3.9-4 6.6-4 1.3 0 2.3.9 2.3 2s-1 2-2.3 2c-2.7 0-3.9-4-6.6-4Z" stroke-width="1.35"/><circle cx="12" cy="12" r=".85" fill="currentColor" stroke="none"/></svg>',
   edge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.35 20.55 15.9 8" stroke-width="2.1"/><path d="m21 3-3.3 8.35-5-5L21 3Z" fill="currentColor" stroke="none"/><path d="m3.05 13.6 6.35-6.35M10.45 20.95l6.3-6.3" stroke-width="1.45" opacity=".68"/><path d="m19.15 12.35.82 2.18 2.18.82-2.18.82-.82 2.18-.82-2.18-2.18-.82 2.18-.82.82-2.18Z" fill="currentColor" stroke="none"/></svg>',
+  // 第三批补齐唯一缺形制的打法轴：亡语=余烬回环中续起的一点火。
+  death:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8a9.2 9.2 0 1 0 8.9 6.9" stroke-width="1.5" opacity=".55"/><path d="M19 4.2v5.5h-5.5" stroke-width="1.6"/><path d="M12 20.8c-3.7 0-6.4-2.2-6.4-5.4 0-2.5 1.7-4.1 3.8-6.6.1 1.9 1 2.8 1.9 3.3.3-3 1.9-4.4 3.4-5.5-.1 3.5 2.1 5 2.1 8.4 0 3.5-2.1 5.8-4.8 5.8Z" fill="currentColor" opacity=".12" stroke-width="1.35"/><path d="M12 19.1c-1.5 0-2.5-1-2.5-2.3 0-1.2.8-1.9 1.8-3.1.1 1 .5 1.4 1 1.8.1-1.3.7-1.9 1.3-2.5 0 1.6.9 2.3.9 3.7 0 1.5-1 2.4-2.5 2.4Z" fill="currentColor" stroke="none"/></svg>',
 };
 function facEmblem(f){const s=FAC_EMBLEM[f];return s?`<span class="fac-emblem fem-${f}">${s}</span>`:'';}
 
@@ -1877,6 +1966,25 @@ const BGM=(function(){
 const ART_DIR='assets/';
 const VISUAL_BATCH2_REL='visual-batch2-20260717/';
 const VISUAL_BATCH2_DIR=ART_DIR+VISUAL_BATCH2_REL;
+const VISUAL_BATCH3_REL='visual-batch3-20260717/';
+const VISUAL_BATCH3_DIR=ART_DIR+VISUAL_BATCH3_REL;
+const B3_PROFILE_DIR=VISUAL_BATCH3_DIR+'profile/';
+const B3_EMBLEM_DIR=VISUAL_BATCH3_DIR+'emblems/';
+let _b3ProbeStarted=false;
+function ensureVisualBatch3(){
+  if(_b3ProbeStarted)return;_b3ProbeStarted=true;
+  probeVisualSet([
+    B3_PROFILE_DIR+'profile-backplate.webp',B3_PROFILE_DIR+'profile-backplate-portrait.webp',
+    B3_PROFILE_DIR+'profile-frame.svg',B3_PROFILE_DIR+'profile-divider.svg',
+    B3_EMBLEM_DIR+'rank-1.svg',B3_EMBLEM_DIR+'arena-tier-4.svg',B3_EMBLEM_DIR+'emblem-death.svg'
+  ],'b3ok');
+}
+function profileBackplateHTML(){return `<picture class="b3-pc-bg" aria-hidden="true">
+  <source media="(max-width:600px)" srcset="${B3_PROFILE_DIR}profile-backplate-portrait.webp 1x, ${B3_PROFILE_DIR}profile-backplate-portrait@2x.webp 2x, ${B3_PROFILE_DIR}profile-backplate-portrait@3x.webp 3x">
+  <img src="${B3_PROFILE_DIR}profile-backplate.webp" srcset="${B3_PROFILE_DIR}profile-backplate.webp 1x, ${B3_PROFILE_DIR}profile-backplate@2x.webp 2x, ${B3_PROFILE_DIR}profile-backplate@3x.webp 3x" alt="" loading="lazy" decoding="async" onerror="this.closest('picture').remove()">
+</picture>`}
+function rankRowClass(i){return i===0?' b3-r1':i===1?' b3-r2':i===2?' b3-r3':''}
+function rankBadge(i){const n=i+1;return `<b class="lb-rank" data-rank="${n}" aria-label="第 ${n} 名"><span class="b3-rank-mark" aria-hidden="true"></span><span class="lb-rank-num">${n}</span></b>`}
 const ART={
   // 单位立绘（512×768 竖版）
   zi:'unit-zi.webp',     zeng:'unit-zeng.webp', // 初代双璧（S2E5·0710 交付）
@@ -5284,6 +5392,7 @@ function cardPush(cb){ if(typeof LB_ON==='undefined'||!LB_ON){if(cb)cb(false,'of
 }
 async function showPlayerCard(pid,fallbackName){ // 点榜行 → 拉名片
   if(typeof LB_ON==='undefined'||!LB_ON){toast('离线模式看不了名片');return}
+  ensureVisualBatch3();
   const mine=(pid===lbId());
   modal(`<h3>${mine?'我的名片':'玩家名片'}</h3><div id="pc-body" style="text-align:center;padding:18px;color:var(--ink3)">加载中……</div>`);
   let prof=null;
@@ -5298,7 +5407,8 @@ async function showPlayerCard(pid,fallbackName){ // 点榜行 → 拉名片
   const dp=((prof&&prof.depth)|0)||((_me&&_me.depth)|0);
   const lk=(prof&&prof.likes)|0;
   body.innerHTML=`
-    <div class="pcard">
+    <div class="pcard player-profile-card">
+      ${profileBackplateHTML()}
       <div class="pc-head"><div class="pc-name"></div><div class="pc-title"></div></div>
       <div class="pc-sig"></div>
       <div class="pc-stats">
@@ -5674,6 +5784,7 @@ function submitArena(){ if(typeof LB_ON==='undefined'||!LB_ON)return; const a=lo
 // 擂台段位(擂台第三件):本周擂台分→段位。独立于名册称号(名册=旅程/自鸣,段位=战力/群英擂台)
 const ARENA_TIERS=[[0,'初阵'],[60,'露锋'],[180,'骁勇'],[450,'名震'],[1000,'无双']]; // 阈值·段位名(MYSKME风格·非断云)
 function arenaTier(score){let t=ARENA_TIERS[0];for(const x of ARENA_TIERS){if((score|0)>=x[0])t=x}return {name:t[1],idx:ARENA_TIERS.indexOf(t)};}
+function arenaTierBadge(score,compact){const t=arenaTier(score);return `<span class="b3-arena-badge b3-tier-${t.idx}${compact?' compact':''}" aria-label="群英擂台段位 ${t.name}"><span class="b3-tier-mark" aria-hidden="true"></span><span>${t.name}</span></span>`}
 function fmtWeek(s){s=String(s);if(s.length<8)return s;const y=+s.slice(0,4),m=+s.slice(4,6),dd=+s.slice(6,8);const mon=new Date(y,m-1,dd),sun=new Date(y,m-1,dd+6);const p=x=>(x.getMonth()+1)+'.'+x.getDate();return p(mon)+'–'+p(sun)} // → "7.7–7.13"
 function getClassWeeks(){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');const t=weekKey();if(!a.includes(t))a.push(t);return a.slice().sort().reverse().slice(0,26)}catch(e){return[weekKey()]}} // 含本周，倒序，最多半年
 function addClassWeek(w){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks')||'[]');if(!a.includes(w)){a.push(w);localStorage.setItem('zmq_classweeks',JSON.stringify(a))}}catch(e){}}
@@ -5733,6 +5844,7 @@ function classUploadPrompt(roster){
 }
 async function showLbHall(){
   if(!LB_ON){toast('离线模式没有世界回廊');return}
+  ensureVisualBatch3();
   const tab=(d,label)=>`<button class="btn mini lbtab" data-d="${d}">${label}</button>`;
   modal(`<h3>世界回廊</h3>
     <p id="lb-cap" style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">单人试炼 · 通过关数 · 全球纪录</p>
@@ -5754,11 +5866,12 @@ async function showLbHall(){
   const CATS=[{k:'-0',fmt:FMT.glory,label:'荣耀榜',cap:'课堂·荣耀榜 · 皇冠优先·战力破平 · 按周结算'},
               {k:'-1',fmt:FMT.power,label:uiIcon('stat-attack')+'战力榜',cap:'课堂·战力榜 · 阵容强度 · 按周结算'},
               {k:'-2',fmt:FMT.wealth,label:uiIcon('currency-coin')+'财富榜',cap:'课堂·财富榜 · 金币·战绩 · 按周结算'}];
-  const render=(rows,fmt)=>{const el=$('#lblist');if(!el)return;
-    el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow clickable"><b>${i+1}</b><span></span><i>${fmt(e.score)}</i></div>`).join('')
+  const render=(rows,fmt,mode)=>{const el=$('#lblist');if(!el)return;
+    el.className='b3-list'+(mode==='arena'?' b3-arena-list':'');
+    el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow clickable${rankRowClass(i)}">${rankBadge(i)}<span class="lb-player"><span class="lb-player-name"></span>${mode==='arena'?arenaTierBadge(e.score,true):''}</span><i>${fmt(e.score)}</i></div>`).join('')
       :'<div style="color:var(--ink3);text-align:center;padding:24px">这个赛季还没有成绩</div>';
     el.querySelectorAll('.lbrow').forEach((row,i)=>{const e=rows[i];
-      row.querySelector('span').textContent=(e.name||'?'); // textContent 注入防 XSS
+      row.querySelector('.lb-player-name').textContent=(e.name||'?'); // textContent 注入防 XSS
       row.title='点击看 '+(e.name||'?')+' 的名片';
       row.onclick=()=>showPlayerCard(e.id,e.name);}); };
   // —— 名匠榜(人物/宝物)与绝品实录:后端存标签,前端按色阶上色 ——
@@ -5766,9 +5879,10 @@ async function showLbHall(){
     const c=TIER_COLOR[Math.max(0,Math.min(4,e.q|0))];
     const art=kind==='relic'?artTag('relic_'+e.item,'hall-art'):artTag(e.item,'hall-art');
     const sc=kind==='unit'?`${Math.floor((e.score|0)/100)} 战力`:(kind==='relic'?TIER_NAME[Math.max(0,Math.min(4,e.q|0))]:'');
-    return `<div class="lbrow hallrow"><b>${i+1}</b>${art}<span class="hall-lab" style="color:${c}">${''}</span><i>${sc}</i></div>`;
+    return `<div class="lbrow hallrow${rankRowClass(i)}">${rankBadge(i)}${art}<span class="hall-lab" style="color:${c}">${''}</span><i>${sc}</i></div>`;
   };
   const renderHall=(rows,kind)=>{const el=$('#lblist');if(!el)return;
+    el.className='b3-list b3-hall-list';
     if(!rows.length){el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">还没有人登临此榜——去打一局</div>';return}
     el.innerHTML=rows.map((e,i)=>hallRow(e,i,kind)).join('');
     el.querySelectorAll('.hallrow').forEach((row,i)=>{ // textContent 注入防 XSS
@@ -5777,9 +5891,10 @@ async function showLbHall(){
       row.classList.add('clickable');row.title='点击看 '+(e.name||'?')+' 的名片';
       row.onclick=()=>showPlayerCard(e.id,e.name);});};   // 点榜行 → 玩家名片
   const renderFeed=rows=>{const el=$('#lblist');if(!el)return;
+    el.className='b3-list b3-feed-list';
     if(!rows.length){el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">尚无绝品问世</div>';return}
     el.innerHTML=rows.map(e=>{const c=TIER_COLOR[Math.max(0,Math.min(4,e.q|0))];
-      return `<div class="lbrow feedrow">${artTag(e.item,'hall-art')}<span class="feed-lab" style="color:${c}"></span></div>`}).join('');
+      return `<div class="lbrow feedrow"><span class="b3-feed-mark" aria-hidden="true"></span>${artTag(e.item,'hall-art')}<span class="feed-lab" style="color:${c}"></span></div>`}).join('');
     el.querySelectorAll('.feedrow').forEach((row,i)=>{const e=rows[i];
       row.querySelector('.feed-lab').textContent=`${e.name||'?'} 抽到了 ${e.label||'?'}`;});};
   const fetchHall=async(kind)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
@@ -5787,8 +5902,8 @@ async function showLbHall(){
       const rows=(r&&r.top)||[];
       if(kind==='feed')renderFeed(rows);else renderHall(rows,kind);}
     catch(e){if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通,稍后再试</div>'}};
-  const fetchDay=async(day,fmt)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
-    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});render((r&&r.top)||[],fmt);}
+  const fetchDay=async(day,fmt,mode)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});render((r&&r.top)||[],fmt,mode);}
     catch(e){if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通，稍后再试</div>'} };
   // —— 课堂榜：周选择 + 三榜(荣耀/战力/财富)子选择；旧格式周回退纯皇冠 ——
   let curCat=0;
@@ -5828,7 +5943,7 @@ async function showLbHall(){
     }else if(d===7){ // 群英擂台:本周赛季·影军战胜场积分(day=纯周号)
       if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
       if(cap)cap.textContent='群英擂台 · 影军战胜场积分 · 本周赛季';
-      fetchDay(weekKey(),FMT.arena);
+      fetchDay(weekKey(),FMT.arena,'arena');
     }else{ if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
       if(cap)cap.textContent='单人试炼 · 通过关数 · 全球纪录'; fetchDay(d,FMT.solo); }
   };
@@ -6301,6 +6416,7 @@ function showMenu(){
 }
 /* 狼先生的名册 · 主界面(复用 modal/.bond-chip/codex-grid,零新美术) */
 function showRoster(){
+  ensureVisualBatch3();
   const L=levelOf(_meta.xp), tot=UNITS.length;
   const seenN=Object.keys(_meta.seen||{}).length, s3N=Object.keys(_meta.star3||{}).length, mvpN=Object.keys(_meta.mvp||{}).length;
   const achGot=Object.keys(_meta.ach||{}).length;
@@ -6321,7 +6437,7 @@ function showRoster(){
     <div style="font-size:12px;color:var(--ink2);margin-top:12px;line-height:1.9">
       对局 <b style="color:var(--gold2)">${_meta.runs}</b> · 胜 <b style="color:var(--gold2)">${_meta.wins}</b> · 斩影 <b style="color:var(--purple)">${_meta.slain}</b> · 悬赏 <b style="color:var(--gold2)">${_meta.bountyDone}</b><br>
       收集 <b style="color:var(--gold2)">${seenN}/${tot}</b> 学员 · 三星 <b style="color:var(--gold2)">${s3N}</b> · MVP <b style="color:var(--gold2)">${mvpN}</b> · 成就 <b style="color:var(--gold2)">${achGot}/${ACHIEVEMENTS.length}</b>
-    </div>${(()=>{const a=loadArena();if(!a.score)return '';const t=arenaTier(a.score);return `<div style="margin-top:8px;font-size:12.5px;letter-spacing:.06em">${uiIcon('state-shadow-echo')}群英擂台 · <b style="color:var(--gold2)">${t.name}</b> · 本周 <b style="color:var(--purple)">${a.score}</b> 擂台分</div>`;})()}</div>`;
+    </div>${(()=>{const a=loadArena();if(!a.score)return '';return `<div style="margin-top:8px;font-size:12.5px;letter-spacing:.06em"><span class="b3-arena-inline">${uiIcon('state-shadow-echo')}群英擂台 · ${arenaTierBadge(a.score)} · 本周 <b style="color:var(--purple)">${a.score}</b> 擂台分</span></div>`;})()}</div>`;
   const grid=`<h4 style="text-align:center;margin:18px 0 4px">学员收集</h4>
     <p style="text-align:center;color:var(--ink3);font-size:11.5px;margin-bottom:6px">用过点亮 · <span style="color:var(--gold2)">${uiIcon('rank-star')}</span>=三星过 · <span style="color:var(--purple)">${uiIcon('score-throne')}</span>=当过 MVP</p>
     <div class="codex-grid">`+UNITS.map(u=>{
