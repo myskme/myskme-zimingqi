@@ -381,7 +381,7 @@ body.playing #hud{display:flex}
 .feedrow{padding:7px 10px}
 /* 世界回廊·名望仪式（视觉全权第三批 20260717c）。
    资产探针成功才挂 body.b3ok；失败时完整保留上方原名片/榜行/数字名次。 */
-.b3-pc-bg,.b3-rank-mark,.b3-feed-mark,.b3-tier-mark{display:none}
+.b3-pc-bg,.b3-rank-mark,.b3-feed-mark,.b3-tier-mark,.b3-hall-laurel{display:none}
 body.b3ok #pc-body{padding:0!important;color:var(--ink3)!important}
 body.b3ok #pc-body .player-profile-card{isolation:isolate;min-height:388px;padding:48px 48px 34px;
   border-color:rgba(232,199,104,.68);background:rgba(5,9,14,.94);box-shadow:0 18px 46px rgba(0,0,0,.5),inset 0 0 40px rgba(201,166,74,.05)}
@@ -420,7 +420,9 @@ body.b3ok #lblist .lbrow.clickable:hover{transform:translateX(2px);border-color:
 body.b3ok .lb-rank[data-rank="1"],body.b3ok .lbrow.b3-r1{color:#ffd166}
 body.b3ok .lb-rank[data-rank="2"],body.b3ok .lbrow.b3-r2{color:#c4c8d0}
 body.b3ok .lb-rank[data-rank="3"],body.b3ok .lbrow.b3-r3{color:#c88f5e}
-body.b3ok .lbrow .b3-rank-mark{display:block;position:absolute;inset:2px;flex:0 0 auto;background:currentColor;opacity:.94;-webkit-mask:var(--b3-rank) center/contain no-repeat;mask:var(--b3-rank) center/contain no-repeat}
+body.b3ok .lb-rank[data-rank="1"] .b3-rank-mark,
+body.b3ok .lb-rank[data-rank="2"] .b3-rank-mark,
+body.b3ok .lb-rank[data-rank="3"] .b3-rank-mark{display:block;position:absolute;inset:2px;flex:0 0 auto;background:currentColor;opacity:.94;-webkit-mask:var(--b3-rank) center/contain no-repeat;mask:var(--b3-rank) center/contain no-repeat}
 body.b3ok .lb-rank[data-rank="1"]{--b3-rank:url(assets/visual-batch3-20260717/emblems/rank-1.svg)}
 body.b3ok .lb-rank[data-rank="2"]{--b3-rank:url(assets/visual-batch3-20260717/emblems/rank-2.svg)}
 body.b3ok .lb-rank[data-rank="3"]{--b3-rank:url(assets/visual-batch3-20260717/emblems/rank-3.svg)}
@@ -429,6 +431,9 @@ body.b3ok .lbrow.b3-r1{background:linear-gradient(90deg,rgba(255,209,102,.13),rg
 body.b3ok .lbrow.b3-r2{background:linear-gradient(90deg,rgba(196,200,208,.1),transparent);box-shadow:inset 2px 0 #c4c8d0}
 body.b3ok .lbrow.b3-r3{background:linear-gradient(90deg,rgba(200,143,94,.1),transparent);box-shadow:inset 2px 0 #c88f5e}
 body.b3ok .hall-art{width:38px;height:38px;flex-basis:38px;border-color:rgba(201,166,74,.3);box-shadow:0 5px 12px rgba(0,0,0,.38)}
+body.b3ok .b3-hall-list>.b3-hall-laurel{display:block;position:absolute;left:50%;top:8px;z-index:0;width:76px;height:76px;pointer-events:none;
+  color:var(--gold2);background:currentColor;opacity:.075;transform:translateX(-50%);-webkit-mask:url(assets/visual-batch3-20260717/emblems/hall-laurel.svg) center/contain no-repeat;mask:url(assets/visual-batch3-20260717/emblems/hall-laurel.svg) center/contain no-repeat}
+body.b3ok .b3-hall-list>.hallrow{z-index:1}
 .lbrow .lb-player{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
 .lbrow .lb-player-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lbrow .b3-arena-badge{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;font-size:10px;letter-spacing:.08em;color:var(--ink3)}
@@ -5884,7 +5889,7 @@ async function showLbHall(){
   const renderHall=(rows,kind)=>{const el=$('#lblist');if(!el)return;
     el.className='b3-list b3-hall-list';
     if(!rows.length){el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">还没有人登临此榜——去打一局</div>';return}
-    el.innerHTML=rows.map((e,i)=>hallRow(e,i,kind)).join('');
+    el.innerHTML='<span class="b3-hall-laurel" aria-hidden="true"></span>'+rows.map((e,i)=>hallRow(e,i,kind)).join('');
     el.querySelectorAll('.hallrow').forEach((row,i)=>{ // textContent 注入防 XSS
       const e=rows[i], lab=row.querySelector('.hall-lab');
       lab.textContent=(e.label||'?')+' — '+(e.name||'?');

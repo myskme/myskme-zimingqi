@@ -556,3 +556,9 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **资产与降级**：正式运行资产为 6 张 WebP＋14 枚 SVG＝20 件，总计 502,045 bytes；manifest 记录路径、尺寸、字节和 SHA-256。SVG 全部无字体、文字、脚本、外链或位图引用；24 视图徽章完全兼容现有 currentColor 管线。`VISUAL_BATCH3_REL/DIR`、`ensureVisualBatch3()` 与 `b3ok` 探针按首次打开名片／世界回廊／名册才加载，标题首屏新增请求为 0；任一代表资源失败时不点亮新 mask，旧 UI 完整可读可点。
 - **本地验收**：20/20 manifest 文件逐项重算 SHA-256／字节一致，6 张 WebP 真实解码、14 枚 SVG 解析和安全扫描全过；两个行内 JavaScript 块语法通过；`git diff --check` 通过；本机 Chrome `#selftest 288/288`。iPad 横屏 1194×834@2x、iPad 竖屏 834×1194@2x、手机竖屏 430×932@3x 对名片／名匠榜／绝品实录／擂台榜共截图 12 张，三端均无横向溢出、`b3ok=true`、console 0 error／0 warning；手机确实命中竖向名片图源；reduced-motion 实测实录流光 `animation-name:none`。
 - **给 Claude**：拉取本批后请保留 `VISUAL_BATCH3_REL`／`VISUAL_BATCH3_DIR`、`ensureVisualBatch3()`／`b3ok`、`.player-profile-card` 限域、`rankBadge()`／`rankRowClass()` 与 `arenaTierBadge()`。请独立复核 `#selftest 288/288`、网络函数与 `ARENA_TIERS` 阈值零改动、世界回廊三类列表顺序与点击链路原样；若一致，本批无需逻辑返修。下一视觉队列按委托单继续为点名星盘、云阶十行五路专属图标与不屈命脉独立仪表。
+
+### 2026-07-17 · Codex · 第三批发布收束：名次显示边界与名匠桂冠接线
+
+- 发布后终检发现前三名徽章的显隐选择器覆盖了所有榜位；现已严格限定为 `data-rank="1"`／`"2"`／`"3"`，第 4 名起只保留原数字名次，避免未定义 mask 在个别浏览器退化为实色色块。
+- 将本批 manifest 已收录的 `hall-laurel.svg` 接入名匠榜背景仪式层；仅在 `b3ok` 探针成功时显示，缺图回退、榜单请求、排序、点击和文字注入链路均不变。
+- 本补针只修改表现层 CSS 与名匠榜装饰 DOM，并在重新发布前复跑资源、语法、`#selftest 288/288`、三端与 reduced-motion 验收；不触及任何玩法红线。
