@@ -1,0 +1,34 @@
+{
+  "version": "20260718a",
+  "title": "MYSKME 自鸣棋视觉侧收官 · 星轨已移事件插图",
+  "source": "OpenAI Image2, curated and runtime-mastered by Codex",
+  "delivery": {
+    "format": "WebP",
+    "colorMode": "RGB",
+    "textBakedIntoArt": false,
+    "runtimeRoot": "assets/visual-closing-20260718/",
+    "probe": "none; event image uses the existing per-image onerror glyph fallback"
+  },
+  "files": [
+    {
+      "path": "events/event-void.webp",
+      "logicalId": "ev_void",
+      "role": "retired-event visual fallback",
+      "width": 768,
+      "height": 512,
+      "mode": "RGB",
+      "bytes": 43566,
+      "sha256": "229bd10b9d23f551d8b01c495dde057e658b8ad2c11b194db879aa4d46f37d7a"
+    }
+  ],
+  "longTermOnly": [
+    {
+      "path": "masters/event-void-image2-master-1536x1024.png",
+      "width": 1536,
+      "height": 1024,
+      "bytes": 2066448,
+      "sha256": "7065a8bd409fa3be59b3bd696074a381a467669866c658ada9446f3163e47cd9",
+      "entersGitHubPages": false
+    }
+  ]
+}

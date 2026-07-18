@@ -271,11 +271,11 @@ body.playing #hud{display:flex}
 .badge .beast{position:absolute;font-size:56px;opacity:.13;filter:grayscale(1)}
 .offer:hover .badge::before{opacity:.85;transform:rotate(45deg) scale(1.08)}
 .offer:hover .badge .glyph{transform:scale(1.12)}
-/* UR 旋转虚线金环已移除：四角戳出立绘=「上方金色截一段」拉垮观感。UR 改由更亮金边+更强光晕表达（见 .badge.r-UR） */
-.r-N .glyph{color:var(--ink2)} .r-R .glyph{color:#8fb8e8}
-.r-SR .glyph{color:var(--purple);text-shadow:0 0 14px rgba(157,114,214,.5)}
-.r-SSR .glyph{color:var(--gold);text-shadow:0 0 12px rgba(201,166,74,.55)}
-.r-UR .glyph{color:#fff;text-shadow:0 0 12px var(--gold),0 0 34px var(--gold)}
+/* UR 旋转虚线环已移除：四角戳出立绘=「顶部截一段」拉垮观感。UR 改由秘藏橙边+更强光晕表达（见 .badge.r-UR） */
+.r-N .glyph{color:#9a9686} .r-R .glyph{color:#7fc4d8}
+.r-SR .glyph{color:#c77dff;text-shadow:0 0 14px rgba(199,125,255,.5)}
+.r-SSR .glyph{color:#ffd166;text-shadow:0 0 12px rgba(255,209,102,.55)}
+.r-UR .glyph{color:#ff8c42;text-shadow:0 0 12px rgba(255,140,66,.7),0 0 34px rgba(255,140,66,.4)}
 /* UR 呼吸感改由虚线环旋转承担（text-shadow 逐帧动画在投影设备上代价过高，已移除） */
 /* ── 透明立绘/宝物图漏底字修复（20260715c · 王老师报「锚」字浮层，同「荣」字病根）──
    历来模式：占位字(.glyph/.beast/.g)垫底 + artTag 的 <img> 覆盖。图不透明时盖住，但多数立绘/宝物是透明PNG，
@@ -285,16 +285,16 @@ body.playing #hud{display:flex}
 .badge:has(> img.art) > .beast,
 .u .face:has(> img.art) > .g{visibility:hidden}
 /* —— 稀有度边框：靠边框颜色+粗细+外发光在投屏/偏色/后排下可辨；只在边缘，不遮挡立绘 —— */
-.badge.r-N{border-color:rgba(120,116,104,.4);background:radial-gradient(ellipse at center,rgba(120,116,104,.08),transparent 70%)} /* N 降为无彩灰：不再比 R 的蓝边显贵，五阶单调递增 */
-.badge.r-R{border-color:rgba(143,184,232,.6);box-shadow:inset 0 0 0 1px rgba(143,184,232,.32)}
-.badge.r-SR{border-color:rgba(157,114,214,.72);
-  box-shadow:inset 0 0 0 2px rgba(157,114,214,.4),0 0 14px rgba(157,114,214,.2)}
-.badge.r-SSR{border-color:var(--gold);
-  box-shadow:inset 0 0 0 2px rgba(201,166,74,.62),0 0 22px rgba(201,166,74,.34)}
-.badge.r-UR{border-color:var(--gold2);
-  box-shadow:inset 0 0 0 2px rgba(232,199,104,.74),0 0 32px rgba(201,166,74,.6)}
+.badge.r-N{border-color:rgba(154,150,134,.4);background:radial-gradient(ellipse at center,rgba(154,150,134,.08),transparent 70%)} /* 五档语义色精确同 TIER_COLOR */
+.badge.r-R{border-color:rgba(127,196,216,.6);box-shadow:inset 0 0 0 1px rgba(127,196,216,.32)}
+.badge.r-SR{border-color:rgba(199,125,255,.72);
+  box-shadow:inset 0 0 0 2px rgba(199,125,255,.4),0 0 14px rgba(199,125,255,.2)}
+.badge.r-SSR{border-color:#ffd166;
+  box-shadow:inset 0 0 0 2px rgba(255,209,102,.62),0 0 22px rgba(255,209,102,.34)}
+.badge.r-UR{border-color:#ff8c42;
+  box-shadow:inset 0 0 0 2px rgba(255,140,66,.74),0 0 32px rgba(255,140,66,.48)}
 /* UR 结构性阶差：徽章外一圈静止细描边（框外不遮立绘、不旋转不裁切；投影泛白下"形制差">"亮度差"） */
-.badge.r-UR::after{content:'';position:absolute;inset:-6px;border:1px solid rgba(232,199,104,.5);pointer-events:none}
+.badge.r-UR::after{content:'';position:absolute;inset:-6px;border:1px solid rgba(255,140,66,.5);pointer-events:none}
 /* —— 六系阵营统一视觉语言：程序化纹章 + 阵营色氛围（军规四徽章构图 · 军规七统一发光）——
    稀有度管边框/光晕(上方)，阵营管纹章+色调(这里)，两条正交视觉轴各自可读 */
 .fac-emblem{display:inline-block;line-height:0;color:currentColor}
@@ -315,9 +315,9 @@ body.playing #hud{display:flex}
 .badge[data-fac=swing]{background:radial-gradient(ellipse at 50% 46%,rgba(195,189,168,.14),transparent 72%)}
 .badge[data-fac=dark]{background:radial-gradient(ellipse at 50% 46%,rgba(180,140,230,.17),transparent 72%)}
 .badge[data-fac=novice]{background:radial-gradient(ellipse at 50% 46%,rgba(159,212,159,.15),transparent 72%)}
-/* 征募卡整卡光晕：SSR 金晕 / UR 白金晕（投屏一眼看出这是稀有卡） */
-.offer.rare-SSR{box-shadow:0 0 0 1px rgba(201,166,74,.4),0 14px 40px rgba(201,166,74,.14)}
-.offer.rare-UR{box-shadow:0 0 0 1px rgba(232,199,104,.6),0 14px 46px rgba(201,166,74,.24)}
+/* 征募卡整卡光晕：SSR 传世金 / UR 秘藏橙，精确对应全局五档色阶。 */
+.offer.rare-SSR{box-shadow:0 0 0 1px rgba(255,209,102,.4),0 14px 40px rgba(255,209,102,.14)}
+.offer.rare-UR{box-shadow:0 0 0 1px rgba(255,140,66,.6),0 14px 46px rgba(255,140,66,.24)}
 /* 发现时刻：新 offers 首次亮相翻牌（backwards=收尾不锁 transform，悬停位移不受影响）；全程不锁输入 */
 .offer.deal{animation:dealFlip .45s cubic-bezier(.2,.7,.25,1) backwards}
 @keyframes dealFlip{0%{transform:perspective(900px) rotateY(88deg)}100%{transform:perspective(900px) rotateY(0deg)}}
@@ -439,7 +439,7 @@ body.b3ok .b3-hall-list>.hallrow{z-index:1}
 .lbrow .b3-arena-badge{display:inline-flex;align-items:center;gap:4px;flex:0 0 auto;font-size:10px;letter-spacing:.08em;color:var(--ink3)}
 body.b3ok .b3-tier-mark{display:inline-block;width:25px;height:25px;background:currentColor;-webkit-mask:var(--b3-tier) center/contain no-repeat;mask:var(--b3-tier) center/contain no-repeat}
 body.b3ok .lbrow .b3-tier-mark{flex:0 0 25px}
-.b3-tier-0{color:#8f918f;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-0.svg)}
+.b3-tier-0{color:#9a9686;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-0.svg)}
 .b3-tier-1{color:#7fc4d8;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-1.svg)}
 .b3-tier-2{color:#c77dff;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-2.svg)}
 .b3-tier-3{color:#ffd166;--b3-tier:url(assets/visual-batch3-20260717/emblems/arena-tier-3.svg)}
@@ -947,8 +947,8 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 .rec-card .bond-advrow{margin:8px 0 6px;min-height:20px;display:flex;justify-content:center;gap:5px;flex-wrap:wrap}
 .rec-card .cost-btn{width:100%}
 /* 稀有卡光晕挪到卡框上（.offer 已无边框） */
-.offer.rec-card.rare-SSR .rec-frame{box-shadow:0 0 0 1px rgba(201,166,74,.5),0 12px 34px rgba(201,166,74,.18)}
-.offer.rec-card.rare-UR .rec-frame{box-shadow:0 0 0 1px rgba(232,199,104,.7),0 12px 40px rgba(201,166,74,.3)}
+.offer.rec-card.rare-SSR .rec-frame{box-shadow:0 0 0 1px rgba(255,209,102,.5),0 12px 34px rgba(255,209,102,.18)}
+.offer.rec-card.rare-UR .rec-frame{box-shadow:0 0 0 1px rgba(255,140,66,.7),0 12px 40px rgba(255,140,66,.3)}
 .rec-card.sold .rec-frame{filter:grayscale(.85)}
 @media(max-width:760px){.rec-frame{max-width:320px;margin:0 auto}.rec-plate .skill{font-size:12.5px}}
 /* 跨单位联动提示(20260717·搭配可见性):on=金亮可触发 / off=灰待伙伴。只在有联动的卡显示,大多数卡不显不挤 */
@@ -1190,6 +1190,26 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 #scr-title .btn.gold.big{animation:ctaBreath 3.2s ease-in-out infinite}
 @keyframes ctaBreath{50%{box-shadow:0 0 20px rgba(201,166,74,.38);border-color:var(--gold2)}}
 .title-mark img{width:54px;height:54px;display:block;filter:drop-shadow(0 0 10px rgba(201,166,74,.4))}
+/* 视觉侧收官：减少动态效果覆盖所有主表面。短暂的无位移淡显型 VFX 继续走各自 rm 分支。 */
+@media (prefers-reduced-motion:reduce){
+  body,#clouds::after,#scene img,#event-inner,.bar i,.u,.u .hpb i,#life-vignette,#toast,
+  .offer,.badge::before,.badge .glyph,.badge .fac-emblem,.wp,.btn,.entry,.strat-card,
+  .ornate::before,.ornate::after{transition:none!important;scroll-behavior:auto!important}
+  #clouds i,.title-mark::before,.title-hero,#scr-title .btn.gold.big,section.scr,.stag,
+  .offer.deal,.offer .cardback,.bar.warn i,#rage-bar.life.warn,
+  #rage-bar.life.warn~#rage-num .life-pips .mi,.life-pips.last .mi:first-child,
+  #title-kv.show,#boss-art.show,#final-art.show,.result-banner,.result-banner h1,.result-banner .hint,
+  #boss-veil.on,#boss-veil h1,#boss-veil .snake,#boss-veil .boss-tr,.stamp.show,#strat-veil,
+  .u.acting,.u.hit,.u.hit.hit-hard,.u.final-blow,.u .hpb.low i,.float-num{animation:none!important}
+  .offer .cardback{display:none!important}
+  .stamp.show{opacity:1!important;transform:none!important}
+  .float-num{opacity:1!important;transform:translate(-50%,-14px)!important}
+  .offer:hover,.offer.rec-card:hover,.offer.spell-card:hover,.btn:hover,.entry:hover,.strat-card:hover{
+    transform:none!important}
+  .ornate:hover::before,.ornate:hover::after{width:13px;height:13px}
+  .u.acting{transform:none!important}
+  body.shaking{animation:none!important}
+}
 </style>
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2317140f%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%228%22%20fill%3D%22none%22%20stroke%3D%22%23c9a24d%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%222.6%22%20fill%3D%22%23c9a24d%22/%3E%3C/svg%3E">
@@ -1430,7 +1450,7 @@ const FAC_EMBLEM = {
   // 第二批打法纹章：制御=滴漏约束环 / 坚韧=盾环连续结 / 锋锐=箭簇突破星芒。
   control:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.25" stroke-width="1.5" opacity=".52"/><path d="M12 1.75v2M12 20.25v2M1.75 12h2M20.25 12h2" stroke-width="1.4"/><path d="M8.25 5.7h7.5M8.25 18.3h7.5" stroke-width="1.65"/><path d="M9 6.15c.12 2.55 1.17 3.9 3 5.25-1.83 1.35-2.88 2.7-3 5.25M15 6.15c-.12 2.55-1.17 3.9-3 5.25 1.83 1.35 2.88 2.7 3 5.25" stroke-width="1.45"/><path d="M12 9.35c-.9 1.12-1.4 1.83-1.4 2.55a1.4 1.4 0 0 0 2.8 0c0-.72-.5-1.43-1.4-2.55Z" fill="currentColor" stroke="none"/></svg>',
   persist:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9.25" stroke-width="1.45" opacity=".5"/><path d="M12 2.15v2.1M12 19.75v2.1M2.15 12h2.1M19.75 12h2.1" stroke-width="1.45"/><path d="M12 5.05 17.3 7.2v4.25c0 3.5-2.05 6.1-5.3 7.55-3.25-1.45-5.3-4.05-5.3-7.55V7.2L12 5.05Z" stroke-width="1.45"/><path d="M8.7 10c-1.3 0-2.3.9-2.3 2s1 2 2.3 2c2.7 0 3.9-4 6.6-4 1.3 0 2.3.9 2.3 2s-1 2-2.3 2c-2.7 0-3.9-4-6.6-4Z" stroke-width="1.35"/><circle cx="12" cy="12" r=".85" fill="currentColor" stroke="none"/></svg>',
-  edge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.35 20.55 15.9 8" stroke-width="2.1"/><path d="m21 3-3.3 8.35-5-5L21 3Z" fill="currentColor" stroke="none"/><path d="m3.05 13.6 6.35-6.35M10.45 20.95l6.3-6.3" stroke-width="1.45" opacity=".68"/><path d="m19.15 12.35.82 2.18 2.18.82-2.18.82-.82 2.18-.82-2.18-2.18-.82 2.18-.82.82-2.18Z" fill="currentColor" stroke="none"/></svg>',
+  edge:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.35 20.55 15.9 8" stroke-width="1.7"/><path d="m21 3-3.3 8.35-5-5L21 3Z" fill="currentColor" stroke="none"/><path d="m3.05 13.6 6.35-6.35M10.45 20.95l6.3-6.3" stroke-width="1.45" opacity=".68"/><path d="m19.15 12.35.82 2.18 2.18.82-2.18.82-.82 2.18-.82-2.18-2.18-.82 2.18-.82.82-2.18Z" fill="currentColor" stroke="none"/></svg>',
   // 第三批补齐唯一缺形制的打法轴：亡语=余烬回环中续起的一点火。
   death:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8a9.2 9.2 0 1 0 8.9 6.9" stroke-width="1.5" opacity=".55"/><path d="M19 4.2v5.5h-5.5" stroke-width="1.6"/><path d="M12 20.8c-3.7 0-6.4-2.2-6.4-5.4 0-2.5 1.7-4.1 3.8-6.6.1 1.9 1 2.8 1.9 3.3.3-3 1.9-4.4 3.4-5.5-.1 3.5 2.1 5 2.1 8.4 0 3.5-2.1 5.8-4.8 5.8Z" fill="currentColor" opacity=".12" stroke-width="1.35"/><path d="M12 19.1c-1.5 0-2.5-1-2.5-2.3 0-1.2.8-1.9 1.8-3.1.1 1 .5 1.4 1 1.8.1-1.3.7-1.9 1.3-2.5 0 1.6.9 2.3.9 3.7 0 1.5-1 2.4-2.5 2.4Z" fill="currentColor" stroke="none"/></svg>',
 };
@@ -1738,7 +1758,7 @@ function applySpellFlags(flags,pend){
 }
 function toast(msg,ms=2200){const t=$('#toast');t.textContent=msg;t.classList.add('show');
   clearTimeout(t._tm);t._tm=setTimeout(()=>t.classList.remove('show'),ms)}
-function shake(){document.body.classList.remove('shaking');void document.body.offsetWidth;document.body.classList.add('shaking')}
+function shake(){if(vfxReduced())return;document.body.classList.remove('shaking');void document.body.offsetWidth;document.body.classList.add('shaking')}
 function flash(red){const f=$('#flash');f.className=red?'red':'';void f.offsetWidth;f.classList.add('go');
   setTimeout(()=>f.classList.remove('go'),500)}
 function floatNum(host,txt,color,crit){const f=document.createElement('div');
@@ -1746,6 +1766,7 @@ function floatNum(host,txt,color,crit){const f=document.createElement('div');
   host.appendChild(f);setTimeout(()=>f.remove(),950)}
 // 金色火星流光（取代彩纸屑烟花）：细长发光、朝速度方向、减速消散 + 一道冲击波环
 function burst(x,y,_colors,n=24){
+  if(vfxReduced())return;
   const pal=['#e8c768','#f3dd8f','#fff6d8','#c9a64a'];
   const parts=[];
   for(let i=0;i<n;i++){
@@ -1973,6 +1994,7 @@ const VISUAL_BATCH2_REL='visual-batch2-20260717/';
 const VISUAL_BATCH2_DIR=ART_DIR+VISUAL_BATCH2_REL;
 const VISUAL_BATCH3_REL='visual-batch3-20260717/';
 const VISUAL_BATCH3_DIR=ART_DIR+VISUAL_BATCH3_REL;
+const VISUAL_CLOSING_REL='visual-closing-20260718/';
 const B3_PROFILE_DIR=VISUAL_BATCH3_DIR+'profile/';
 const B3_EMBLEM_DIR=VISUAL_BATCH3_DIR+'emblems/';
 let _b3ProbeStarted=false;
@@ -1981,7 +2003,11 @@ function ensureVisualBatch3(){
   probeVisualSet([
     B3_PROFILE_DIR+'profile-backplate.webp',B3_PROFILE_DIR+'profile-backplate-portrait.webp',
     B3_PROFILE_DIR+'profile-frame.svg',B3_PROFILE_DIR+'profile-divider.svg',
-    B3_EMBLEM_DIR+'rank-1.svg',B3_EMBLEM_DIR+'arena-tier-4.svg',B3_EMBLEM_DIR+'emblem-death.svg'
+    B3_EMBLEM_DIR+'rank-1.svg',B3_EMBLEM_DIR+'rank-2.svg',B3_EMBLEM_DIR+'rank-3.svg',
+    B3_EMBLEM_DIR+'arena-tier-0.svg',B3_EMBLEM_DIR+'arena-tier-1.svg',B3_EMBLEM_DIR+'arena-tier-2.svg',
+    B3_EMBLEM_DIR+'arena-tier-3.svg',B3_EMBLEM_DIR+'arena-tier-4.svg',
+    B3_EMBLEM_DIR+'corridor-pattern.svg',B3_EMBLEM_DIR+'hall-laurel.svg',B3_EMBLEM_DIR+'feed-ribbon.svg',
+    B3_EMBLEM_DIR+'emblem-death.svg'
   ],'b3ok');
 }
 function profileBackplateHTML(){return `<picture class="b3-pc-bg" aria-hidden="true">
@@ -2031,6 +2057,7 @@ const ART={
   ev_forge:'event-forge.webp', ev_bulwark:'event-bulwark.webp',
   ev_desk:'event-desk.webp', ev_thorn:'event-thorn.webp', ev_lantern:'event-lantern.webp',
   ev_rift:VISUAL_BATCH2_REL+'events/event-rift.webp', ev_mourn:VISUAL_BATCH2_REL+'events/event-mourn.webp',
+  ev_void:VISUAL_CLOSING_REL+'events/event-void.webp', // 旧档命中已退池事件时的纯展示回退，不进入事件池或结算
   // 场景（1600×900 横版）
   title:'image2-system-20260713/title-kv-1600.webp', titleSmall:'image2-system-20260713/title-kv-800.webp',
   ending:'image2-system-20260713/ending-coronation-1600.webp', endingSmall:'image2-system-20260713/ending-coronation-800.webp',
@@ -2042,7 +2069,7 @@ const ART_DPR=new Set([
   'relic_shuttle','relic_urn','ev_rift','ev_mourn'
 ]);
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260717b'; // Codex Image 2：视觉全权第二批
+const ART_VER='20260718a'; // Codex Image 2：视觉侧收官，补齐 ev_void
 function artURLAt(key,suffix){
   suffix=suffix||'';
   const base=ART[key];if(!base)return null;
@@ -2242,7 +2269,7 @@ function elemMult(srcId,tgtId){
 function go(id){document.querySelectorAll('.result-banner').forEach(x=>x.remove()); // 清跳屏后残留的胜利横幅
   if(id==='title'||id==='setup'||id==='final')document.body.classList.remove('last-life'); // 局外不留红晕
   $$('.scr').forEach(s=>s.classList.remove('on'));$('#scr-'+id).classList.add('on');
-  window.scrollTo({top:0,behavior:'smooth'});
+  window.scrollTo({top:0,behavior:vfxReduced()?'auto':'smooth'});
   if(typeof BGM!=='undefined')BGM.scene(id==='title'||id==='setup'?'title':'play')} // 标题/设置=宁静曲，进入游戏=主循环
 function setAct(a){document.body.dataset.act=a;setScene(a)}
 function setPhase(txt){$('#hud-phase').textContent=txt}
@@ -3253,7 +3280,8 @@ function startEvent(){
 }
 function renderEvent(){
   setPhase('命运事件');
-  const ev=EVENTS.find(e=>e.id===S.actEvent)||EVENTS[0];
+  // 旧档可能仍保存已退池事件 ID：展示层使用专属空转卡，不借用星尘雨造成视觉误读；事件池与结算不变。
+  const ev=EVENTS.find(e=>e.id===S.actEvent)||{id:'ev_void',n:'星轨已移',icon:'移',d:'旧星图已经退场，本幕照常推进。'};
   $('#event-card').classList.remove('flip');
   $('#btn-event-done').disabled=S.eventResolved?false:true;
   $('#ev-icon').textContent=ev.icon;$('#ev-name').textContent=ev.n;$('#ev-desc').textContent=ev.d;
