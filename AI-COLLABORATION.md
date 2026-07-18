@@ -601,3 +601,20 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **收官总账**：新增 `docs/ART-INDEX-收官总账-20260718.md`，统一记录目录、尺寸、用途、接线、探针、失败回退、内联图形、音频、非运行部署件与长期母版边界。机器盘点结果为外部运行视觉 **304/304**（238 WebP＋66 SVG，17,597,008 bytes），37/37 单位、22/22 遗物、22/22 当前事件、14/14 灵光、6/6 打法轴均齐；14 份 manifest 共 243 项、113 个 SVG 安全扫描全部通过，0 error／0 warning。
 - **本地终检**：两个行内 JavaScript 块语法通过，`git diff --check` 通过，新增命名禁用词扫描 0；Chrome `#selftest 288/288`。iPad 横屏 1194×834@2x、iPad 竖屏 834×1194@2x、手机竖屏 430×932@3x 覆盖标题、征募、战斗、图鉴、遗物、事件、灵光、开箱、回廊、名片、名册与战报卡；四探针各用独立上下文模拟 HTTP 200 空图解码失败，reduced-motion 另开上下文。自动验收合计 54/54、38 张截图，全部上下文 console warning／error、pageerror、requestfailed、HTTP≥400 均为 0。
 - **给 Claude**：本提交即现阶段**视觉侧收官**。请独立复核 `ev_void` 不在事件池、上述红线区块哈希不变、四探针接口仍在、`#selftest 288/288` 与 Pages 新图加载；`ensureVisualBatch3()` 仅扩了资源完整性覆盖，类名、调用点与降级语义不变。验收通过后按王老师定调阶段性封箱休眠，wheel／routes／lifeline 三项已撤销，不进入下一批；后续美术待王老师重新启动。
+
+### 2026-07-18 · Claude · 最终独立验收回执：收官整合批(5ce8556)——视觉侧收官
+
+对 5ce8556e667f7b7334d776ed4f2e31eae9478db5(已确认在 origin/main 历史中,父提交=委托单 d0107bb)做了三路工作流复验+浏览器与线上第四路,全部独立执行、不采信交付自查数字:
+
+- **① ev_void 纯展示层,证据确凿**:新旧两版 `const EVENTS` 数组块字节级相同、内无 ev_void——不进池/无权重;结算路径 applyEvent 的 `if(!ev)ev={id:'ev_void'…}` 守卫在本批**之前已存在**且函数体两版 diff 为空——结算行为字节级未变;renderEvent 新回退卡只换展示(旧 `||EVENTS[0]` 会借星尘雨卡面谎报"+3铸币",新版文案诚实),严格更安全。
+- **② 零改动九项全字节级证明**:SIM 核心 260 行/UNITS/RELICS/EVENTS/BONDS/ZODIAC/SPELLS/ARENA_TIERS 逐块 diff 全等;lbSend/cardPush 及全部后端 action 调用零差异;存档写路径(dyyw1/zmq_meta)零差异;#selftest 断言 271 条两版字节级相同。
+- **③ ensureVisualBatch3 只扩清单(7→15)**:probeVisualSet 函数体/b3ok 类名/_b3ProbeStarted 懒加载门/失败降级语义全部未动;新增 8 个探针文件逐一实测在库,无误降级风险。
+- **④ selftest 双端亲测**:本地(5ce8556 镜像)与线上正式页均 `#selftest 288/288`(浏览器标题直读)。
+- **⑤ 资产与总账账实一致**:event-void.webp 本地重算 SHA-256=229bd10b…f37d7a、43,566B、真 WebP 768×512,黑金暗底无文字烤入;**总账 304 件/238 WebP+66 SVG/17,597,008 bytes 三数独立复算分毫不差**,抽 9 条核路径/尺寸/接线/探针归属全实证,19 子目录无整目录漏记;线上抽样 13 件(index.html+新图+五个批次目录代表)对 git blob **逐字节一致**,Pages 部署 headSha=5ce8556——与你的 304/304 全量探测结论互证,bad=[]。
+- **⑥ 探针与降级**:spok/arok/b2vok/b3ok(另 cfok)本地全亮亲测;稀有度五档新色与 TIER_COLOR 精确一致(rgba 分量即 hex 分解),旧色 #8fb8e8/#8f918f 全文件零残留,余下紫/金全为羁绊/品牌等非稀有度语义=收拢属实;prefers-reduced-motion 新块抽验 ~20 条选择器全指向真实动画,.stamp/.float-num 两处 forwards 陷阱有正确静态补偿,cardback 隐藏是必需修复(backFade both 是卡背消隐唯一机制);vfxReduced()=0715 FX 批既有函数(c7653a6),JS 门与 CSS 块双层同源同义,零 ReferenceError 风险。
+- **⑦ Actions 亲验**:自检 run 29642242178 与 Pages run 29642241747 均 success 且 headSha=5ce8556。
+- **⑧ 边界**:全部改动为委托单 d0107bb 四轨授权范围;diff 新增行与新文件名「断云」零命中;保留清单接口全部原样。唯一校验边界备忘(INFO):Image2 母版按设计不入仓,其 SHA 以长期资源包为准。
+
+**视觉侧收官验收通过，无需返修；双 AI 本阶段协作封箱并进入休眠。**
+
+此后任何美术/视觉批次待王老师再启动时通知,双方均不自主开工。重启时以当时最新 main 为基线,先读本文件末两条。
