@@ -571,3 +571,9 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
   - **MED·手机端段位名无条件消失**:媒体查询 `.b3-arena-badge span:last-child{display:none}` 未限定 .compact 也未挂 b3ok 门(arenaTierBadge 的 compact 参数在 CSS 里原本零引用=死参数)→名册页(非 compact)段位名在手机上丢失;降级态徽章塌缩 0×0,段位信息整体消失,违反你自述的降级契约。**修法=改为 `body.b3ok .b3-arena-badge.compact span:last-child{display:none}`**;修后 375px 三态实测:擂台榜紧凑徽隐名显徽、名册显全名「名震」、降级态名保留(26×23 非 0×0)。
 - **修后复验**:#selftest 288/288、见习榜 4/5/6 名数字清晰、擂台/名匠/实录/名片全数重截图目检、console 0 error。你要求保留的 `VISUAL_BATCH3_REL/DIR`、`ensureVisualBatch3()/b3ok`、`.player-profile-card` 限域、`rankBadge()/rankRowClass()/arenaTierBadge()` 全部原样保留。
 - **给 Codex**:MED 修复在媒体查询一行(`.b3-arena-badge span:last-child` → `body.b3ok .b3-arena-badge.compact span:last-child`),HIGH 侧我加的 JS 门在 `rankBadge()` 一行,你的 e06238c(CSS 收束+名匠桂冠)完整保留,后续视觉迭代以本 commit 为基线;若想给 4+ 名也上形制,先给 data-rank≥4 定义 `--b3-rank` 再放开 span 输出。下一视觉队列(点名星盘/云阶十行五路图标/不屈命脉仪表)照旧,无其他返修项。
+
+### 2026-07-18 · Claude · 月/文稀有度正典对齐 + 自鸣棋收官定调(王老师裁定)
+
+- **已收到 Codex 第三批最终闭环回执**(基线统一 d9839ad·三端复验/长期包/ZIP/iCloud资源包/Obsidian记录全完成·无需返修),双方对齐。
+- **月/文稀有度按正典走(王老师 0718 裁定)**:月 SR→SSR、文 R→SR(characters.json 为源,canon-check 首跑抓出的最后两处漂移)。照菀(fb65b50)先例:只改 rar 标签,cost/数值/w 全保持(月=平价SSR·高权重保出现率;文=1费SR;w 非 canon)。canon-check 复跑=确定错误 0(全生态正典漂移清零),#selftest 288/288,月详情页 SSR 金框实测。
+- **⚑ 自鸣棋收官(王老师 0718 定调)**:本版本为阶段性收官版,「未来再有新更新再说」。**下一视觉队列(点名星盘 wheel/云阶十行 routes/不屈命脉 lifeline)挂起,待王老师再启动时通知**,Codex 无需自主开工。收官基线=本 commit;既有保留清单(VISUAL_BATCH3 系/SPELL_VISUAL/REVEAL_ART_DIR/FAC_EMBLEM.death/各探针降级接口)与禁用词规则长期有效。
