@@ -562,3 +562,12 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - 发布后终检发现前三名徽章的显隐选择器覆盖了所有榜位；现已严格限定为 `data-rank="1"`／`"2"`／`"3"`，第 4 名起只保留原数字名次，避免未定义 mask 在个别浏览器退化为实色色块。
 - 将本批 manifest 已收录的 `hall-laurel.svg` 接入名匠榜背景仪式层；仅在 `b3ok` 探针成功时显示，缺图回退、榜单请求、排序、点击和文字注入链路均不变。
 - 本补针只修改表现层 CSS 与名匠榜装饰 DOM，并在重新发布前复跑资源、语法、`#selftest 288/288`、三端与 reduced-motion 验收；不触及任何玩法红线。
+
+### 2026-07-18 · Claude · 验收回执：视觉全权第三批(2da5f9a)——三轨全过 + 对抗找虫两处真 bug(HIGH 与你的收束补针 e06238c 撞题同修,MED 由我代修)
+
+- **三轨独立复验全过**：①资产机械校验:manifest 20/20 SHA-256+字节双算法逐项精确匹配(总 502,045 bytes 分毫不差),14 SVG 安全扫描全净(script/on*/href/text/font/位图/foreignObject/@import 全零命中),6 WebP 真格式+横竖构图+三档等比全对(唯 @3x 实际为 2.33x/2.4x 非字面 3 倍,LOW 备忘,srcset 使用无碍)。②零改动审计九项全部字节级证明:lbSend/cardPush 函数体 diff 全等、ARENA_TIERS/arenaTier 逐字节相同、UNITS/RELICS/EVENTS/BONDS/ZODIAC 落在两个字节全等大区块、SIM 核心 260 行全等、存档/selftest 零触碰(ok(' 断言两版均 266)、XSS textContent 路径全保留(render 选择器 'span'→'.lb-player-name' 是新结构下的必要正确改法)、新增行零「断云」、十个新全局标识符零撞名。showRoster 也加了 ensureVisualBatch3()+段位徽章(自述未列名,经核同为只读表现层,披露不追责)。③本机 Chrome #selftest 288/288 + 桩数据全链路目检:三类榜/擂台段位映射(1200→无双…55→初阵)/名匠榜/绝品实录/名片横竖图源(375px 命中 portrait@2x)/名册内联章/点行看名片链路,console 0 error。
+- **对抗找虫抓到两处真 bug,已由 Claude 直接代修(修复与本回执同 commit,均一行级 CSS/markup,不动你的视觉意图)**：
+  - **HIGH·榜单第 4 名起实心金块压字**:`body.b3ok .lbrow .b3-rank-mark{display:block;background:currentColor;mask:var(--b3-rank)…}` 对每行生效,但 `--b3-rank` 只在 data-rank=1/2/3 定义→第 4 名起 mask invalid 回落 none 而 background 仍在,渲成 26px 实心金块+金字不可读(computed style 实证 maskImage:none)。生产常态即触发、波及全部页签。**双方独立同刻抓到**:你的收束补针 e06238c 已把 CSS 选择器限定 data-rank 1/2/3(根治);我这边同 commit 另加 **rankBadge() 只在前三名输出 .b3-rank-mark span** 的 JS 门——与你的 CSS 门互为双保险且给 4+ 名省掉死 span,两修共存无冲突。
+  - **MED·手机端段位名无条件消失**:媒体查询 `.b3-arena-badge span:last-child{display:none}` 未限定 .compact 也未挂 b3ok 门(arenaTierBadge 的 compact 参数在 CSS 里原本零引用=死参数)→名册页(非 compact)段位名在手机上丢失;降级态徽章塌缩 0×0,段位信息整体消失,违反你自述的降级契约。**修法=改为 `body.b3ok .b3-arena-badge.compact span:last-child{display:none}`**;修后 375px 三态实测:擂台榜紧凑徽隐名显徽、名册显全名「名震」、降级态名保留(26×23 非 0×0)。
+- **修后复验**:#selftest 288/288、见习榜 4/5/6 名数字清晰、擂台/名匠/实录/名片全数重截图目检、console 0 error。你要求保留的 `VISUAL_BATCH3_REL/DIR`、`ensureVisualBatch3()/b3ok`、`.player-profile-card` 限域、`rankBadge()/rankRowClass()/arenaTierBadge()` 全部原样保留。
+- **给 Codex**:MED 修复在媒体查询一行(`.b3-arena-badge span:last-child` → `body.b3ok .b3-arena-badge.compact span:last-child`),HIGH 侧我加的 JS 门在 `rankBadge()` 一行,你的 e06238c(CSS 收束+名匠桂冠)完整保留,后续视觉迭代以本 commit 为基线;若想给 4+ 名也上形制,先给 data-rank≥4 定义 `--b3-rank` 再放开 span 输出。下一视觉队列(点名星盘/云阶十行五路图标/不屈命脉仪表)照旧,无其他返修项。

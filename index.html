@@ -462,7 +462,7 @@ body.b3ok .feedrow:nth-child(3n+2)::after{animation-delay:1.8s}body.b3ok .feedro
   body.b3ok #pc-body .pc-tr1{min-width:88px;padding-inline:6px}
   body.b3ok #lblist .lbrow{gap:7px;padding-inline:7px}
   .lbrow>.lb-rank{flex-basis:30px;width:30px;height:30px}
-  .b3-arena-badge span:last-child{display:none}
+  body.b3ok .b3-arena-badge.compact span:last-child{display:none} /* 只收窄榜行紧凑徽章;名册全徽与降级态保留段位名 */
   body.b3ok .hall-art{width:34px;height:34px;flex-basis:34px}
 }
 @media(prefers-reduced-motion:reduce){
@@ -1989,7 +1989,7 @@ function profileBackplateHTML(){return `<picture class="b3-pc-bg" aria-hidden="t
   <img src="${B3_PROFILE_DIR}profile-backplate.webp" srcset="${B3_PROFILE_DIR}profile-backplate.webp 1x, ${B3_PROFILE_DIR}profile-backplate@2x.webp 2x, ${B3_PROFILE_DIR}profile-backplate@3x.webp 3x" alt="" loading="lazy" decoding="async" onerror="this.closest('picture').remove()">
 </picture>`}
 function rankRowClass(i){return i===0?' b3-r1':i===1?' b3-r2':i===2?' b3-r3':''}
-function rankBadge(i){const n=i+1;return `<b class="lb-rank" data-rank="${n}" aria-label="第 ${n} 名"><span class="b3-rank-mark" aria-hidden="true"></span><span class="lb-rank-num">${n}</span></b>`}
+function rankBadge(i){const n=i+1;return `<b class="lb-rank" data-rank="${n}" aria-label="第 ${n} 名">${n<=3?'<span class="b3-rank-mark" aria-hidden="true"></span>':''}<span class="lb-rank-num">${n}</span></b>`} // 徽章mark只给前三:--b3-rank仅1/2/3有定义,第4名起mask失效会剩实心金块压字
 const ART={
   // 单位立绘（512×768 竖版）
   zi:'unit-zi.webp',     zeng:'unit-zeng.webp', // 初代双璧（S2E5·0710 交付）
