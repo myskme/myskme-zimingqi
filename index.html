@@ -642,6 +642,21 @@ body.arok .av-reliquary-frame{display:block}
 #foe-intel .fi-hint{color:var(--gold2);font-size:12px;letter-spacing:.05em}
 #foe-intel .mini-army{display:flex;gap:5px;flex-wrap:wrap}
 /* 赛后伤害复盘条（谁是carry一目了然，反哺下一幕征募决策） */
+/* —— 演武押注面板(20260719):对峙屏下注条 + 结算行 —— */
+#bet-panel{width:min(560px,92vw);margin:14px auto 0;border:1px solid var(--line2);background:rgba(6,10,14,.72);padding:10px 12px 12px;text-align:left}
+#bet-panel .bet-head{text-align:center;color:var(--gold2);letter-spacing:.3em;font-size:14px;text-indent:.3em}
+#bet-panel .bet-sub{display:block;color:var(--ink3);letter-spacing:.06em;font-size:11px;text-indent:0;margin-top:4px}
+#bet-panel .bet-pows{display:flex;justify-content:space-between;gap:8px;margin:8px 2px 6px;font-size:12px;color:var(--ink2);letter-spacing:.06em}
+#bet-panel .bet-und{font-style:normal;color:var(--teal);border:1px dashed rgba(95,184,165,.5);padding:0 5px;font-size:10.5px;margin-left:4px}
+#bet-panel .bet-rows{max-height:34vh;overflow:auto;display:flex;flex-direction:column;gap:5px}
+#bet-panel .bet-row{display:flex;align-items:center;gap:7px}
+#bet-panel .bet-nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px;letter-spacing:.08em;color:var(--ink)}
+#bet-panel .bet-fi{font-style:normal;font-size:10px;color:var(--red2);border:1px solid rgba(213,96,96,.4);padding:0 4px;margin-left:5px;letter-spacing:.1em}
+#bet-panel .bet-coin{font-style:normal;font-size:11px;color:var(--ink3);margin-left:7px}
+#bet-panel .bet-coin .mi{width:11px;height:11px;vertical-align:-1px}
+#bet-panel .bet-side{min-width:96px;font-size:12px;letter-spacing:.05em}
+.bet-settle{margin-top:10px;color:var(--gold2);font-size:13.5px;letter-spacing:.08em}
+@media(max-width:600px){#bet-panel .bet-side{min-width:78px;padding-inline:8px}#bet-panel .bet-nm{font-size:12.5px}}
 .dmg-recap{width:min(380px,82vw);margin:22px auto 0;display:flex;flex-direction:column;gap:7px}
 .dmg-recap .dr-row{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--ink2)}
 .dmg-recap .dr-n{min-width:64px;text-align:right;letter-spacing:.08em}
@@ -4133,6 +4148,8 @@ function runSelftest(){
   ok('weightedPick r=0 取首个', weightedPick([3,1,1],0)===0);
   ok('weightedPick r=0.99 落末段', weightedPick([1,1,2],0.99)===2);
   ok('weightedPick 单人恒 0（1对1课堂安全）', weightedPick([1],0.5)===0&&weightedPick([0],0.5)===0);
+  ok('演武押注:常规猜中+n·冷门×2·猜错-n·0注恒0', betPayout(2,true,false)===2&&betPayout(2,true,true)===4&&betPayout(3,false,true)===-3&&betPayout(0,true,true)===0);
+  ok('演武押注:面额钳制0-3·战力合计式', betPayout(9,true,false)===3&&betPayout(-2,true,false)===0&&fighterPower([{atk:3,maxhp:10},{atk:2,maxhp:6}])===21&&fighterPower([])===0);
   ok('加时幕文案齐备 ACT_CN/NAMES[4][5]', !!ACT_CN[4]&&!!ACT_CN[5]&&!!ACT_NAMES[4]&&!!ACT_NAMES[5]);
   // —— 批⑨ 蛇蜕多阶段 Boss ——
   ok('BOSS_WAVE 三幕数值锚(减血换蜕 hp=5+3a)·蛇缠不被顶', [1,2,3].every(a=>{const u=BOSS_WAVE(a).units[0];
@@ -4741,6 +4758,47 @@ function unitEl(f){
     showUnitDetail(f.id,_inst||{star:f.star,gAtk:0,gHp:0})});
   return d;
 }
+/* —— 演武押注(20260719 王老师灵感)：对峙屏全班下注胜方——观战有事做,铸币有去处,战力对比第一次有了阅读价值 ——
+   押1-3铸币(不超现有);猜中赢同额,押冷门(开战前战力低的一方)猜中翻倍;猜错失去押注;平局退回。
+   净额结算制:下注时不扣币,finishBattle 一次性入账且 S.bets 结算即清——断电/复读天然安全(0714重复发钱教训)。 */
+function betPayout(amt,hit,und){amt=Math.max(0,Math.min(3,amt|0));if(!amt)return 0;return hit?(und?amt*2:amt):-amt} // 纯函数,#selftest 可测
+function fighterPower(fs){return (fs||[]).reduce((s,f)=>s+(f.atk||0)+(f.maxhp||0),0)} // 开战前战力=攻+血合计(含事件/羁绊加成,幽灵军同式)
+function betPanelHTML(pa,pb,powA,powB){
+  const bn=pb?pb.name:'幽灵军';
+  const und=powA===powB?['','']:(powA<powB?[' <i class="bet-und">冷门×2</i>','']:['',' <i class="bet-und">冷门×2</i>']);
+  const rows=S.players.map(p=>{
+    const fi=(p===pa||p===pb)?'<i class="bet-fi">对战中</i>':'';
+    return `<div class="bet-row" data-pi="${p.i}"><span class="bet-nm">${p.name}${fi}<i class="bet-coin">${uiIcon('currency-coin')}<span>${p.coins}</span></i></span>
+      <button type="button" class="btn mini bet-side" data-s="0" data-n="${pa.name}">押 ${pa.name}</button>
+      <button type="button" class="btn mini bet-side" data-s="1" data-n="${bn}">押 ${bn}</button></div>`}).join('');
+  return `<div id="bet-panel"><div class="bet-head">押 注 · 谁 会 赢<span class="bet-sub">点自己那行下注 · 连点加注(1→2→3→取消) · 押冷门猜中翻倍 · 猜错失去押注</span></div>
+    <div class="bet-pows"><span>${pa.name} 战力 ${powA}${und[0]}</span><span>${bn} 战力 ${powB}${und[1]}</span></div>
+    <div class="bet-rows">${rows}</div></div>`;
+}
+function bindBetPanel(powA,powB){
+  const panel=$('#bet-panel');if(!panel||S.solo)return;
+  const key=S.act+':'+S.battleIdx;
+  if(!S.bets||S.bets.k!==key)S.bets={k:key,pow:[powA,powB],list:{}}; // 续局同场=恢复已下的注(净额制,换场作废零成本)
+  const paint=()=>{panel.querySelectorAll('.bet-row').forEach(row=>{
+    const b=S.bets.list[+row.dataset.pi];
+    row.querySelectorAll('.bet-side').forEach(btn=>{
+      const on=b&&b.side===+btn.dataset.s&&b.amt>0;
+      btn.classList.toggle('gold',!!on);
+      btn.textContent='押 '+btn.dataset.n+(on?' · '+b.amt:'');
+    })})};
+  panel.querySelectorAll('.bet-row').forEach(row=>{
+    const pi=+row.dataset.pi,pl=S.players[pi];if(!pl)return;
+    row.querySelectorAll('.bet-side').forEach(btn=>btn.onclick=()=>{
+      const s=+btn.dataset.s,cap=Math.min(3,pl.coins|0);
+      if(cap<1){toast(pl.name+' 没有铸币可押——先攒一点');return}
+      const b=S.bets.list[pi];
+      if(b&&b.side===s){b.amt=b.amt>=cap?0:b.amt+1;if(!b.amt)delete S.bets.list[pi]}
+      else S.bets.list[pi]={side:s,amt:1};
+      SFX.play('click');paint();save();
+    });
+  });
+  paint();
+}
 function playBattle(pr){
   const pa=S.players[pr.a];
   const pb=pr.b===-1?null:S.players[pr.b];
@@ -4757,10 +4815,13 @@ function playBattle(pr){
     const bs=Object.keys(BONDS).map(f=>({f,t:bondTier(p,f)})).filter(x=>x.t>0)
       .map(x=>bondName(x.f)+(x.t>=2?'·满档':'')); // 第二轴无 FACS 条目 → 必须走 bondName
     return bs.length?bs.join(' / '):'无羁绊'};
+  const powA=fighterPower(A),powB=fighterPower(B);
+  if(S.bets&&S.bets.k!==S.act+':'+S.battleIdx)S.bets=null; // 换场旧注作废(净额制未扣币,零损)
   const faceoff=`<b>${pa.name}</b> <span style="color:var(--ink3)">${bondLine(pa)}</span>
-    　<span style="color:var(--red2)">VS</span>　<b>${bn}</b> <span style="color:var(--ink3)">${bondLine(pb)}</span>
-    <br><span style="color:var(--gold2);letter-spacing:.2em">立下你的预测——谁会赢？</span>`;
+    　<span style="color:var(--red2)">VS</span>　<b>${bn}</b> <span style="color:var(--ink3)">${bondLine(pb)}</span>`
+    +betPanelHTML(pa,pb,powA,powB);
   runPlayback(A,B,fA,fB,`<b>${pa.name}</b> 对阵 <b>${bn}</b>`,mods,battleRng,result=>finishBattle(pr,result,A,B),faceoff);
+  bindBetPanel(powA,powB);
 }
 /* ============================================================
    战斗 VFX（Codex 20260715a 交付：静态 WebP 精灵图集，非 animated webp）
@@ -5108,13 +5169,28 @@ function finishBattle(pr,result,A,B){
       }
     });
   });
+  // —— 演武押注结算(净额一次性入账,结算即清 S.bets——finishBattle 每场恰跑一次,复读安全) ——
+  let betLine='';
+  if(!S.solo&&S.bets&&S.bets.k===S.act+':'+S.battleIdx&&S.bets.list){
+    const parts=[];const draw=result.winner!==0&&result.winner!==1;
+    for(const pi in S.bets.list){const bt=S.bets.list[pi],pl=S.players[pi];
+      if(!pl||!bt||!bt.amt)continue;
+      if(draw){parts.push(pl.name+' 退回');continue} // 平局:净额制未扣币,退回=不动
+      const und=S.bets.pow[bt.side]<S.bets.pow[1-bt.side];
+      const d=betPayout(bt.amt,result.winner===bt.side,und);
+      pl.coins=Math.max(0,pl.coins+d); // max0保险:开战期间金币可能被战斗结算动过
+      parts.push(pl.name+(d>0?' +':' ')+d+(d>0&&und?'（冷门翻倍）':''));
+    }
+    if(parts.length){betLine=`<p class="bet-settle">押注结算 · ${parts.join(' · ')}</p>`;SFX.play('coin')}
+    S.bets=null;
+  }
   pr.done=true;pr.r=txt.split(' · ')[0];
   hud();save();
   // 绝地翻盘：1 打 N 守到最后
   const comeback=result.winner>=0&&(result.surv[result.winner]||[]).length===1&&[A,B][1-result.winner].length>=3;
   // 胜利横幅 + 伤害复盘
   const b=document.createElement('div');b.className='result-banner';
-  b.innerHTML=`${comeback?'<p style="color:var(--red2);letter-spacing:.3em;margin-bottom:6px">绝 地 翻 盘</p>':''}<h1>${winName?winName+' 胜':'平 局'}</h1><p>${txt}</p>${dmgRecap(result,A,B)}<p class="hint">点击任意处继续</p>`;
+  b.innerHTML=`${comeback?'<p style="color:var(--red2);letter-spacing:.3em;margin-bottom:6px">绝 地 翻 盘</p>':''}<h1>${winName?winName+' 胜':'平 局'}</h1><p>${txt}</p>${betLine}${dmgRecap(result,A,B)}<p class="hint">点击任意处继续</p>`;
   document.body.appendChild(b);
   flash(false);if(winName){burst(innerWidth/2,innerHeight/3,['#c9a64a','#e8c768','#fff','#9cc0e8'],32);SFX.play('win')}else{SFX.play('lose')}
   b.onclick=()=>{b.remove();renderPairings()};
@@ -6519,7 +6595,9 @@ function showHowto(){
   <b>全员参与</b>——点立绘看每人的星座与象。羁绊与相克同看星象——凑人看象、对位克制也看象；阵营（学院／黑域…）只是剧情归属，不管数值。`)
   +sec('演武（自动对战）',`
   邻位配对，军团自动演算：速度定出手，前排先承伤，技能分「开战时 / 阵亡时 / 每回合」三类。
-  胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。
+  胜者 +1 王座分（终幕 +2）。<b>败者拿复仇火种</b>：下幕征募 +2 铸币 + 免费刷新——没人会一直垫底。<br>
+  <b style="color:var(--gold2)">演武押注</b>：开战前的对峙屏上，全班（含对战双方）都可押 1–3 铸币赌谁赢——
+  猜中赢同额，<b>押冷门（战力低的一方）猜中翻倍</b>，猜错失去押注，平局退回。观战也有身家在场。
   <i style="color:var(--ink3)">（30 回合仍未分：先看存活多的、再看总输出高的——龟缩不再稳赢。）</i>`)
   +sec('羁绊 · 两条轴（星象 × 打法）',`
   <b style="color:var(--gold2)">一句话</b>：<b>星象</b>是「你是什么象」，<b>打法</b>是「你怎么打」——同象的人星轨相连，同打法的人互相呼应。阵营（学院/黑域…）是剧情归属，不再管数值。<br>
