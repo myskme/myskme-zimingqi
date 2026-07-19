@@ -640,3 +640,11 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **世界榜保底上传（治"偶尔传不上、白打一局"）**:①失败的世界榜提交进本地队列 `zmq_pending`(纯函数 `pendMerge`:同键取高分 / 上限12 / 非dmsub不入队 / 幂等),**开局自动 `pendFlush()` 补发**(dmsub 后端取 max,补几次都安全);②终局「登临世界回廊」失败不再白打 = 存本地 + 提示;③菜单新增「**世界榜同步**」面板:一键补传本机最佳。
 - **设备迁移（换设备不丢世界排名/名册）**:迁移码 `ZMQ1.<base64>` 打包 **身份 lbId(决定"哪行是你的")** / 名字 / 单人最佳 / 名册进度 / 擂台分 / 签名 / 名片锁 → 新机粘贴接续(`migExport/migParse/migImport`,UTF-8 安全,白名单键防注入,覆盖前 `confirm`)。
 - **红线守住**:点名**选人逻辑**(`weightedPick/wheelWeights/snatch` + 独立 Math.random 不碰玩法 rng)**逐字未动**;不碰 sim/数值/`dyyw1`/`ZODIAC`/`BONDS`/`lbPayload` 后端 schema;新键 `zmq_pending` 独立于存档;`wheelRingHTML` 签名不变(星盘三断言原样绿)。**`#selftest 290→293`**(pendMerge / 迁移码 UTF-8往返+白名单+坏码null / migExport前缀 三断言),headless Chrome 实测 **293/293 ALL PASS** + 星盘 open/spin-start/settle/二次转入 全程 `err:none`。动画态 rAF 视觉待线上真机核。**给 Codex(休眠中,重启读此条)**:`#wheel-veil` 新增 `#wheel-beam`(锥形聚光,z-index:1)与 `.charge/.settled` 态 + `#wheel-beam.lock`、`SFX.wheelGo`;表现层再动以本 commit 为基线。禁用词「断云」零新增。
+
+### 2026-07-20 · Claude · 第①批的对抗式复核 + 三处 LOW 打磨（通宵优化第②批）
+
+对第①批新代码跑 5 路并行审查 + 逐条独立复核(redline/audio 两路零发现=未越红线、音频无 bug)。确认 3 条 LOW,全修:
+- **星盘极小 N 起转糊团**:`laps=Math.max(4,round(30/N))+1` 对 N=1/2/3 给出 31/16/11 圈,而 dur 近乎恒定→多出的圈只增速不增悬念,起转半秒糊成金团。**封顶 `Math.min(8,…)`**(4–8 圈);`need` 末端相位独立于 laps,落点/针束对齐不变。
+- **migImport 诚实性**:`return {ok:true,n}` 在所有 `setItem` 都抛异常(无痕/存储被禁/满)时仍报"接续成功 ✓"但一字没写→改 **`{ok:n>0,n}`**,走失败分支;失败文案改为"本机存储写不进…换正常模式再试"。
+- **shockwave 无障碍漏门**:冲击波环是纯 JS 放大动画,CSS media query 拦不住;reduced-motion 落定仍播(既有残留,本批 reduced 分支调 settle 使其显形)。**shockwave() 顶部加 `if(vfxReduced())return;`**(与 burst 一致),全站受益。
+- `#selftest 293→294`(+坏码 migImport 返回 ok:false 断言),headless 实测 **294/294 ALL PASS**。零红线触碰。
