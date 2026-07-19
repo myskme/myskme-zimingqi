@@ -659,3 +659,15 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **[LOW 丢档] 叶王二次全灭覆盖 `S.captured`**:前一件未赎回的被押单位永久消失。**修:`if(best&&!S.captured)`**（同时刻最多押一件）。
 - **[LOW 显示] 财富榜 wins≥10 溢出**:`wealthScore` 给 wins 两位空间但解码只读一位→满局10胜污染金币位。**修:`Math.min(9,wins)`**（+wins=10 往返断言）。
 - headless 实测 **295/295 ALL PASS**。**给 Codex(休眠中)**:modal()/closeModal() 新增焦点管理与 Tab-trap keydown、#modal-box 现带 role=dialog;#toast 现为 live region——表现层再动以本 commit 为基线。
+
+### 2026-07-20 · Claude · 找虫第三轮 6 修（灵光/名册/复仇/多人课堂/防御式；通宵优化第④批）
+
+5 路 high-effort 对抗式找虫(未深覆盖子系统)+ 逐条独立复核。确认并全修 6 条(均红线外):
+- **[MED 名册] 战败但过≥1关被记成「胜场」+误触「首战告捷」成就**:soloEnd 传 `win:!!victory||cleared>0`→战败页弹「赢下第一场」且 `_meta.wins++`。**修:调用点改 `win:!!victory`**(不动 metaCommit 本体,多人 finale 记胜不受影响;战败仍拿 cleared XP)。
+- **[MED 课堂] 暴走槽满后每次答错重播「叶王乱入」全屏闪震鸣 + 假「暴走+1」**:`if(S.rage>=S.rageMax)` 判的是绝对状态。**修:改判 `rageInc>0`(本次真涨)才给警报/浮字;满槽后答错走中性「已满」**。撤销逻辑不动。
+- **[MED 图鉴] 续无尽新单位记 star3 却未记 seen**→灰暗未收集却挂三星徽章 + a_seen* 漏计。**修:`if(!ctx.cont||!_meta.seen[a.id])` 也点亮**(已记不重复累加)。
+- **[MED 复仇] 影军池脏数据(army 含 null)→败后 addRival/rivalKey 崩→战斗屏软锁**:ghostToFoe 只净化 foe,S.ghostFoe.army 存了原始脏数据。**修:injectGhost 存 army 时按 UMAP 净化 + rivalKey filter 防御**。合法数据行为不变。
+- **[LOW 灵光] 「贯穿」在「穿云」之前买时静默失效**:applySpells 按 push 顺序施放,sp_pcrit 依赖 tg==='pierce' 但 sp_pierce 后施。**修:稳定排序把 sp_pierce 提前**(+顺序无关断言)。
+- **[防御] loadMeta 对 present-但-null 的对象字段挡不住**(typeof null==='object')→结算 TypeError。**修:`m[k]==null||typeof…` 兼收 null**。
+- headless 实测 **295/295 ALL PASS**(spell-order 断言并入既有灵光块)。**给 Codex(休眠中)**:judge() 满槽反馈门控改为 rageInc>0;逻辑侧改动,表现层不受影响。
+> ⚙ 基建:iCloud 里的 `myskme-repos/myskme-zimingqi` 本地仓 .git 被 iCloud「优化储存」驱逐损坏(objects/refs 变 .icloud 占位),已从 GitHub 重新克隆干净仓到 `~/myskme-zimingqi`(非 iCloud)作为工作区。本批及前三批均从该干净仓提交推送。
