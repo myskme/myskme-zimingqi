@@ -843,36 +843,67 @@ body.arok .av-reliquary-frame{display:block}
 #report-wrap{margin:26px auto 0;max-width:520px}
 #report-canvas{width:100%;border:1px solid var(--line);box-shadow:0 12px 44px rgba(0,0,0,.5)}
 
-/* ============ 点名星盘（20260716 升级:文字闪烁→巡光星盘,王老师「太简陋」） ============
-   全班名牌围成星盘环(带 答N/未答 章=加权透明化),金色巡光绕环减速巡游,落定者金光绽放。 */
-#wheel-veil{position:fixed;inset:0;background:rgba(4,8,12,.82);z-index:65;display:none;
-  align-items:center;justify-content:center;flex-direction:column}
+/* ============ 点名星盘 v3（20260719 重做:罗盘刻度环+星屑双层+印章水印+金针巡指+光晕落定,黑金编年史） ============
+   全班名牌围成星盘环(带 答N/未答 章=加权透明化),金针随巡光转动减速,落定者金光绽放+冲击波+印章编钟。
+   抢答位可开关(zmq_wheel_all,默认开):关=每次只点一人。装饰全程序化零资产。 */
+#wheel-veil{position:fixed;inset:0;z-index:65;display:none;align-items:center;justify-content:center;flex-direction:column;
+  background:radial-gradient(ellipse at 50% 42%,rgba(22,30,40,.42),rgba(3,6,10,.95) 72%),rgba(4,8,12,.88)}
 #wheel-veil.on{display:flex}
+#wheel-veil .tag{color:var(--ink3);letter-spacing:.44em;font-size:12px;margin-bottom:2px}
+#wheel-title{font-weight:300;letter-spacing:.32em;font-size:clamp(20px,4vmin,30px);color:var(--ink);margin:0 0 12px;text-indent:.32em}
+#wheel-title em{font-style:normal;color:var(--gold2);text-shadow:0 0 18px rgba(201,166,74,.35)}
 #wheel-stage{position:relative;width:min(78vmin,540px);aspect-ratio:1;--wr:calc(min(78vmin,540px)/2 - 3.4em)}
-#wheel-stage::before,#wheel-stage::after{content:'';position:absolute;border-radius:50%;pointer-events:none}
-#wheel-stage::before{inset:3.5%;border:1px dashed rgba(201,166,74,.3);animation:wheelSpin 80s linear infinite}
-#wheel-stage::after{inset:12%;border:1px solid rgba(201,166,74,.13)}
+#wheel-stage::before{content:'';position:absolute;inset:6.5%;border-radius:50%;pointer-events:none;
+  border:1px dashed rgba(201,166,74,.26);animation:wheelSpinR 70s linear infinite}
+#wheel-compass{position:absolute;inset:0;width:100%;height:100%;color:var(--gold3);opacity:.6;pointer-events:none;animation:wheelSpin 130s linear infinite}
 @keyframes wheelSpin{to{transform:rotate(360deg)}}
+@keyframes wheelSpinR{to{transform:rotate(-360deg)}}
+#wheel-star,#wheel-star i{position:absolute;pointer-events:none}
+#wheel-star{inset:0}
+#wheel-star i{left:50%;top:50%;width:2px;height:2px;border-radius:50%;background:transparent}
+#wheel-star .s1{animation:wheelSpin 150s linear infinite}
+#wheel-star .s2{animation:wheelSpinR 100s linear infinite}
+#wheel-seal{position:absolute;left:50%;top:50%;width:32%;aspect-ratio:1;transform:translate(-50%,-50%);opacity:.085;pointer-events:none}
+#wheel-seal img{width:100%;height:100%;display:block}
+#wheel-needle{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:3;transition:transform .3s cubic-bezier(.2,.7,.3,1)}
+#wheel-needle::before{content:'';position:absolute;left:-1.5px;bottom:-6px;width:3px;height:calc(var(--wr) - 1.1em);transform-origin:bottom center;
+  background:linear-gradient(to top,transparent 12%,rgba(201,166,74,.14) 30%,var(--gold2) 92%)}
+#wheel-needle::after{content:'';position:absolute;left:-4.5px;bottom:calc(var(--wr) - 1.1em - 10px);width:9px;height:9px;
+  background:var(--gold2);transform:rotate(45deg);box-shadow:0 0 12px rgba(232,199,104,.85)}
+#wheel-hub{position:absolute;left:50%;top:50%;width:13px;height:13px;transform:translate(-50%,-50%) rotate(45deg);z-index:4;pointer-events:none;
+  border:1px solid var(--gold);background:var(--panel2);box-shadow:0 0 10px rgba(201,166,74,.5)}
+#wheel-halo{position:absolute;left:50%;top:50%;width:12%;height:12%;border-radius:50%;border:2px solid rgba(232,199,104,.85);
+  transform:translate(-50%,-50%);opacity:0;pointer-events:none;z-index:2}
+#wheel-halo.go{animation:wheelHalo .9s ease-out}
+@keyframes wheelHalo{0%{opacity:.9;width:12%;height:12%}100%{opacity:0;width:88%;height:88%}}
 #wheel-ring{position:absolute;inset:0}
 .wp{position:absolute;left:50%;top:50%;white-space:nowrap;text-align:center;
   transform:translate(-50%,-50%) rotate(var(--wa)) translate(var(--wr)) rotate(calc(-1*var(--wa)));
   font-size:clamp(13px,2.7vmin,19px);letter-spacing:.14em;color:var(--ink2);
-  padding:.34em .8em;border:1px solid var(--line2);background:rgba(6,10,14,.84);
-  transition:box-shadow .15s,border-color .15s,opacity .4s,transform .3s}
+  padding:.38em .85em;border:1px solid var(--line2);
+  background:linear-gradient(160deg,rgba(15,21,28,.93),rgba(6,10,14,.88));
+  box-shadow:inset 0 0 0 1px rgba(201,166,74,.06),0 2px 10px rgba(0,0,0,.35);
+  transition:box-shadow .3s,border-color .3s,opacity .45s,transform .3s,color .3s}
 .wp .wc{display:block;font-style:normal;font-size:.6em;letter-spacing:.12em;color:var(--ink3);margin-top:2px}
-.wp.lit{border-color:var(--gold);color:var(--gold2);box-shadow:0 0 16px rgba(201,166,74,.6)}
+.wp.lit{border-color:var(--gold);color:#fff;text-shadow:0 0 10px rgba(232,199,104,.7);
+  box-shadow:0 0 20px rgba(201,166,74,.7),inset 0 0 9px rgba(201,166,74,.28);transition-duration:.05s}
+.wp.trail{border-color:rgba(201,166,74,.45);box-shadow:0 0 10px rgba(201,166,74,.28)} /* 巡光拖尾:上一格余晖渐熄 */
 .wp.won{border-color:var(--gold);color:var(--gold2);background:rgba(201,166,74,.16);z-index:2;
   transform:translate(-50%,-50%) rotate(var(--wa)) translate(var(--wr)) rotate(calc(-1*var(--wa))) scale(1.22);
-  box-shadow:0 0 30px rgba(201,166,74,.8)}
-.wp.dim{opacity:.26}
+  box-shadow:0 0 30px rgba(201,166,74,.8);animation:wonPulse 1.8s ease-in-out .5s infinite}
+@keyframes wonPulse{50%{box-shadow:0 0 46px rgba(232,199,104,.95)}}
+.wp.dim{opacity:.22}
 .wp.wp-all{border-style:dashed;color:var(--teal)}
-#wheel-name{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;
-  font-size:clamp(30px,7.5vmin,64px);font-weight:300;letter-spacing:.18em;color:var(--ink);text-align:center}
-#wheel-name.locked{color:var(--gold2);text-shadow:0 0 40px rgba(201,166,74,.6);animation:stampIn .3s both}
-#wheel-veil .tag{color:var(--ink3);letter-spacing:.3em;font-size:13px;margin-bottom:14px}
+#wheel-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-align:center;z-index:5}
+#wheel-name{font-size:clamp(30px,7.5vmin,64px);font-weight:300;letter-spacing:.18em;color:var(--ink)}
+#wheel-name.locked{color:var(--gold2);text-shadow:0 0 40px rgba(201,166,74,.65);animation:stampIn .3s both}
+#wheel-sub{min-height:1.5em;font-size:clamp(11px,2.1vmin,14px);letter-spacing:.34em;color:var(--ink3);margin-top:7px;text-indent:.34em}
+#wheel-sub.on{color:var(--gold2)}
 #wheel-hint{margin-top:12px;color:var(--ink3);font-size:12px;letter-spacing:.1em}
-#wheel-veil .btnrow{margin-top:20px}
-@media(prefers-reduced-motion:reduce){#wheel-stage::before{animation:none}}
+#wheel-veil .btnrow{margin-top:12px}
+#btn-wheel-all{font-size:11.5px;letter-spacing:.06em;color:var(--ink3)}
+@media(prefers-reduced-motion:reduce){#wheel-stage::before,#wheel-compass,#wheel-star .s1,#wheel-star .s2{animation:none}
+  .wp.won{animation:none}#wheel-halo.go{animation:none}#wheel-needle{transition:none}}
 
 /* ============ 弹层 / 提示 ============ */
 #modal-veil{position:fixed;inset:0;background:rgba(4,8,12,.72);z-index:95;display:none; /* 高于烟花粒子(90)/胜利横幅(70)：弹窗打开时特效不再穿透 */
@@ -1414,13 +1445,17 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 <!-- 点名转盘 -->
 <div id="wheel-veil">
   <p class="tag">谁 来 答 题</p>
+  <h2 id="wheel-title">点 名 <em>星 盘</em></h2>
   <div id="wheel-stage">
     <div id="wheel-ring"></div>
-    <div id="wheel-name" aria-live="polite">?</div>
+    <div id="wheel-center"><div id="wheel-name" aria-live="polite">?</div><div id="wheel-sub"></div></div>
   </div>
   <p id="wheel-hint">答得少的，更容易被点到</p>
   <div class="btnrow">
-    <button class="btn gold" id="btn-wheel-go">转！</button>
+    <button class="btn mini" id="btn-wheel-all"></button>
+  </div>
+  <div class="btnrow" style="margin-top:8px">
+    <button class="btn gold big" id="btn-wheel-go">转 动 星 盘</button>
     <button class="btn" id="btn-wheel-close">收起</button>
   </div>
 </div>
@@ -1899,6 +1934,10 @@ const SFX=(function(){
     crown(){ chord([P.C5,P.E5,P.G5,P.C6],{dur:0.5,type:'sine',vol:0.10,stagger:0.14,send:0.7}); voice({f:P.C6,dur:1.9,type:'sine',vol:0.12,when:0.6,send:1}); voice({f:P.G5,dur:1.7,type:'triangle',vol:0.06,when:0.62,send:0.9}) },
     // 失利：柔和下行二音
     lose(){ voice({f:P.E4,dur:0.3,type:'triangle',vol:0.10,cut:1600,send:0.5}); voice({f:P.C4,dur:0.5,type:'triangle',vol:0.10,when:0.12,cut:1400,send:0.6}) },
+    // 点名星盘落定(20260719 重做)：低频印章闷响 + 编钟三音渐次上行长余韵——庄重的"就是你了"
+    wland(){ noise({dur:0.14,vol:0.16,cut:420,shape:3,send:0.25}); voice({f:P.C5,dur:0.5,type:'triangle',vol:0.11,when:0.03,send:0.7}); voice({f:P.G5,dur:0.9,type:'sine',vol:0.11,when:0.10,send:0.85}); voice({f:P.C6,dur:1.4,type:'sine',vol:0.09,when:0.20,send:1}) },
+    // 全员抢答：五声六连上行齐鸣 + 光尘噪声涌起——比落定更热闹,号令全班
+    wall(){ chord([P.C5,P.D5,P.E5,P.G5,P.A5,P.C6],{dur:0.42,type:'sine',vol:0.10,stagger:0.055,send:0.75}); noise({dur:0.5,vol:0.06,cut:2400,shape:2,when:0.10,send:0.5}); voice({f:P.C6,dur:1.1,type:'triangle',vol:0.07,when:0.42,send:0.9}) },
   };
   /* —— 真实录音层(Kenney CC0 · 详见 assets/sfx/kenney-20260714/LICENSE-音效授权.txt) —— */
   const REAL_DIR='assets/sfx/kenney-20260714/';
@@ -1932,6 +1971,10 @@ const SFX=(function(){
   }
   return {
     play(n){ try{ if(muted)return; const real=REAL_FILES[n]?playReal(n):false; if(!real||REAL_LAYER[n]){ if(lib[n])lib[n]() } }catch(e){} },
+    // 点名星盘巡光步进:短木笃,音高/亮度随进度 t∈[0,1] 收紧(末段自然攒悬念,治"click连打太廉价")
+    wheelTick(t){ try{ if(muted)return; const tt=Math.max(0,Math.min(1,t||0));
+      voice({f:470+tt*tt*620,dur:0.045,type:'sine',vol:0.06+tt*0.05,cut:1800+tt*2600,send:0.15});
+      if(tt>0.85)voice({f:P.C6,dur:0.05,type:'sine',vol:0.03,send:0.3}) }catch(e){} },
     unlock,
     toggle(){ muted=!muted; localStorage.setItem('zmq_mute',muted?'1':'0'); if(!muted)unlock(); return muted },
     isMuted(){ return muted },
@@ -2548,45 +2591,92 @@ $('#btn-pace').onclick=()=>{
   };
 };
 
-/* —— 随机点名转盘 —— */
+/* —— 随机点名 · 点名星盘 v3（20260719 重做:罗盘/金针/拖尾/印章编钟,抢答位可开关） —— */
 // 加权点名（纯函数，#selftest 可测）：本幕答得少权重高 w=max-count+1；全员相同=均权
 function wheelWeights(counts){const mx=Math.max(0,...counts);return counts.map(c=>mx-c+1)}
 function weightedPick(ws,r){const tot=ws.reduce((a,b)=>a+b,0)||1;let x=r*tot,acc=0;
   for(let i=0;i<ws.length;i++){acc+=ws[i];if(x<acc)return i}return ws.length-1}
-function wheelRingHTML(players){ // 纯函数(#selftest 可测):全班名牌+抢答位,带 答N/未答 章(加权透明化)
-  const plates=[...players.map(p=>({n:p.name,c:p.waveN||0,all:0})),{n:'全员抢答！',all:1}];
+function wheelRingHTML(players,noAll){ // 纯函数(#selftest 可测):全班名牌+抢答位,带 答N/未答 章;noAll=关掉抢答位(默认含,老师可设)
+  const plates=[...players.map(p=>({n:p.name,c:p.waveN||0,all:0}))];
+  if(!noAll)plates.push({n:'全员抢答！',all:1});
   const N=plates.length;
   return plates.map((pl,i)=>`<div class="wp${pl.all?' wp-all':''}" data-n="${pl.n}" style="--wa:${Math.round(i*3600/N)/10}deg">${pl.n}${pl.all?'':`<i class="wc">${pl.c?'答 '+pl.c:'未答'}</i>`}</div>`).join('');
 }
-let wheelTimer=null;
+function wheelAllOn(){try{return localStorage.getItem('zmq_wheel_all')!=='0'}catch(e){return true}} // 抢答位开关,默认开
+let wheelTimer=null,wheelSpinning=false,_wheelNA=0;
+function wheelDecor(){ // 首开注入罗盘刻度/星屑/印章/金针(一次,纯程序化零资产;装饰随机用 Math.random 不碰玩法 rng)
+  const st=$('#wheel-stage'); if(!st||st.dataset.decor)return; st.dataset.decor='1';
+  let ticks='';
+  for(let i=0;i<60;i++){const L=i%15===0?4.6:(i%5===0?3.2:1.7);
+    ticks+=`<line x1="50" y1="2.2" x2="50" y2="${2.2+L}" stroke="currentColor" stroke-width="${i%5===0?0.5:0.28}" opacity="${i%5===0?0.8:0.45}" transform="rotate(${i*6} 50 50)"/>`}
+  const svg=`<svg id="wheel-compass" viewBox="0 0 100 100" aria-hidden="true"><circle cx="50" cy="50" r="47.8" fill="none" stroke="currentColor" stroke-width="0.3" opacity=".6"/><circle cx="50" cy="50" r="41.5" fill="none" stroke="currentColor" stroke-width="0.22" opacity=".35"/>${ticks}${[0,90,180,270].map(a=>`<path d="M50 1.2 l2.1 3.4 -2.1 3.4 -2.1 -3.4 Z" fill="currentColor" opacity=".85" transform="rotate(${a} 50 50)"/>`).join('')}</svg>`;
+  const dots=(n,rmin,rmax)=>{let s=[];for(let i=0;i<n;i++){const a=Math.random()*Math.PI*2,r=rmin+Math.random()*(rmax-rmin);
+    s.push(`${(Math.cos(a)*r).toFixed(0)}px ${(Math.sin(a)*r).toFixed(0)}px 0 ${Math.random()<0.3?'1px':'0'} rgba(232,199,104,${(0.14+Math.random()*0.3).toFixed(2)})`)}return s.join(',')};
+  const R=(st.clientWidth||480)/2;
+  st.insertAdjacentHTML('afterbegin',svg
+    +`<div id="wheel-star" aria-hidden="true"><i class="s1" style="box-shadow:${dots(26,R*0.3,R*0.86)}"></i><i class="s2" style="box-shadow:${dots(18,R*0.24,R*0.8)}"></i></div>`
+    +'<div id="wheel-halo" aria-hidden="true"></div><div id="wheel-needle" aria-hidden="true"></div><div id="wheel-hub" aria-hidden="true"></div>');
+  try{const im=new Image();im.alt='';im.src=sealCanvas().toDataURL();
+    const sl=document.createElement('div');sl.id='wheel-seal';sl.setAttribute('aria-hidden','true');sl.appendChild(im);
+    st.insertBefore(sl,$('#wheel-ring'))}catch(e){} // 印章画不出=没水印,星盘照转
+}
+function wheelSyncAllBtn(){const b=$('#btn-wheel-all');if(b)b.textContent=wheelAllOn()?'抢答位：开 —— 有机会转出「全员抢答」，全班一起答':'抢答位：关 —— 每次只点一人（点击开启）'}
 $('#btn-wheel').onclick=()=>{
-  $('#wheel-ring').innerHTML=wheelRingHTML(S.players); // 每次打开重建(答题数会变)
+  wheelDecor();
+  $('#wheel-ring').innerHTML=wheelRingHTML(S.players,!wheelAllOn()); // 每次打开重建(答题数/开关会变)
   $('#wheel-veil').classList.add('on');
   const el=$('#wheel-name');el.textContent='?';el.classList.remove('locked');
+  const sub=$('#wheel-sub');if(sub){sub.textContent='';sub.classList.remove('on')}
+  wheelSyncAllBtn();
 };
-$('#btn-wheel-close').onclick=()=>{clearTimeout(wheelTimer);$('#wheel-veil').classList.remove('on')};
+$('#btn-wheel-all').onclick=()=>{ if(wheelSpinning)return; // 转动中不许改规则
+  try{localStorage.setItem('zmq_wheel_all',wheelAllOn()?'0':'1')}catch(e){}
+  $('#wheel-ring').innerHTML=wheelRingHTML(S.players,!wheelAllOn());
+  const el=$('#wheel-name');el.textContent='?';el.classList.remove('locked');
+  wheelSyncAllBtn();SFX.play('click');
+};
+$('#btn-wheel-close').onclick=()=>{clearTimeout(wheelTimer);wheelSpinning=false;$('#btn-wheel-go').disabled=false;$('#wheel-veil').classList.remove('on')};
 $('#btn-wheel-go').onclick=()=>{
+  if(wheelSpinning)return; // 防连点重开
   clearTimeout(wheelTimer);
   // 点名星盘用独立随机（Math.random），不消费玩法 rng 流——否则摇星盘会推进征募抽卡序列，破坏保底/公平的确定性
   const plates=[...$('#wheel-ring').children];const N=plates.length;if(!N)return;
-  plates.forEach(p=>p.classList.remove('lit','won','dim'));
+  wheelSpinning=true;const goBtn=$('#btn-wheel-go');goBtn.disabled=true;
+  plates.forEach(p=>p.classList.remove('lit','won','dim','trail'));
   const el=$('#wheel-name');el.textContent='?';el.classList.remove('locked');
-  const snatch=Math.random()<0.16; // 概率与旧版一致
+  const sub=$('#wheel-sub');if(sub){sub.textContent='星 盘 转 动';sub.classList.remove('on')}
+  const hasAll=plates[N-1]&&plates[N-1].classList.contains('wp-all');
+  const snatch=hasAll&&Math.random()<0.16; // 概率与旧版一致;抢答位关掉=纯点名
   const finalIdx=snatch?N-1:weightedPick(wheelWeights(S.players.map(p=>p.waveN||0)),Math.random()); // 加权：本幕答得少的更容易被点到
   const laps=Math.max(3,Math.round(26/N)); // 人少多转几圈,总巡光步数≈恒定
-  const total=laps*N+finalIdx;let step=0,cur=-1;
+  const total=laps*N+finalIdx;let step=0,cur=-1,prev=-1;
+  const needle=$('#wheel-needle');
+  // 金针相位对齐:针 0°=正上,名牌 0°=正右(相差90°)。校到"下一步正指第0张牌",此后每步+360/N 恒指亮牌
+  _wheelNA+=((90-360/N-_wheelNA)%360+360)%360;
   const tick=()=>{
-    if(cur>=0)plates[cur].classList.remove('lit');
-    cur=(cur+1)%N;plates[cur].classList.add('lit');SFX.play('click');
+    if(prev>=0)plates[prev].classList.remove('trail');
+    if(cur>=0){plates[cur].classList.remove('lit');plates[cur].classList.add('trail');prev=cur} // 拖尾:上一格余晖
+    cur=(cur+1)%N;plates[cur].classList.add('lit');
+    const t=step/total, delay=46+Math.pow(t,2.6)*330; // 巡光减速:快起步,末段拉满悬念
+    _wheelNA+=360/N; // 金针累计角度(不回跳)
+    if(needle){needle.style.transitionDuration=Math.min(delay/1000,0.4)+'s';needle.style.transform=`rotate(${_wheelNA}deg)`}
+    SFX.wheelTick(t); // 木笃步进:音高随进度收紧
     if(step>=total){ // 巡光落定(此刻 cur===finalIdx)
-      if(snatch){plates.forEach(p=>p.classList.add('won'));el.textContent='全员抢答！';flash(false);SFX.play('win')}
-      else{plates.forEach((p,i)=>p.classList.add(i===cur?'won':'dim'));
+      wheelSpinning=false;goBtn.disabled=false;
+      const halo=$('#wheel-halo');if(halo){halo.classList.remove('go');void halo.offsetWidth;halo.classList.add('go')} // 中心光晕扩散
+      if(snatch){plates.forEach(p=>{p.classList.remove('trail');p.classList.add('won')});el.textContent='全员抢答！';
+        if(sub){sub.textContent='先 举 手 者 得';sub.classList.add('on')}
+        flash(false);SFX.play('wall')}
+      else{plates.forEach((p,i)=>{p.classList.remove('trail');p.classList.add(i===cur?'won':'dim')});
         el.textContent=plates[cur].dataset.n;
+        if(sub){sub.textContent='请 作 答';sub.classList.add('on')}
         const r=plates[cur].getBoundingClientRect();
-        burst(r.left+r.width/2,r.top+r.height/2,['#c9a64a','#e8c768','#fff'],22);SFX.play('crown')}
+        burst(r.left+r.width/2,r.top+r.height/2,['#c9a64a','#e8c768','#fff'],26);
+        try{shockwave(r.left+r.width/2,r.top+r.height/2)}catch(e){}
+        SFX.play('wland')} // 印章闷响+编钟余韵
       el.classList.add('locked');return;
     }
-    step++;wheelTimer=setTimeout(tick,46+Math.pow(step/total,2.6)*330); // 巡光减速:快起步,末段拉满悬念
+    step++;wheelTimer=setTimeout(tick,delay);
   };
   tick();
 };
@@ -2767,7 +2857,7 @@ function draftUndo(){
   SFX.play('click');renderDraft();hud();save();toast('已撤销上一步');
 }
 
-// 断云牌力：花铸币升级，驱动征募稀有度。幕数免费保底 + 花钱买超前 = 金币消耗出口 + 高稀有门控
+// 牌力：花铸币升级，驱动征募稀有度。幕数免费保底 + 花钱买超前 = 金币消耗出口 + 高稀有门控
 const TIER_MULT={
   1:{N:1.3,R:1.2,SR:.9, SSR:.6, UR:.35},
   2:{N:1.1,R:1.15,SR:1, SSR:.85,UR:.6},
@@ -3023,7 +3113,7 @@ function renderDraft(fresh){
         <h3>${r.n}</h3><div class="rar-tag" style="color:${TIER_COLOR[relicTier(r.id)]}">遗物 · ${TIER_NAME[relicTier(r.id)]}</div>
         <div class="stats" style="color:var(--ink3)">军团级 · 永久生效</div>
         <div class="skill">${r.t}</div>
-        <div class="lore">断云的馈赠</div>
+        <div class="lore">云上的馈赠</div>
         <button class="btn mini gold cost-btn">收下 · 3 铸币</button>`;
       d.style.setProperty('--rtc',TIER_COLOR[relicTier(r.id)]);d.classList.add('relic-tiered'); // 遗物也进全局色阶
       d.querySelector('.cost-btn').onclick=()=>buyRelic(idx,r);
@@ -3259,7 +3349,7 @@ $('#btn-tier').onclick=()=>{
   if(p.coins<cost){toast(`升级牌力需 ${cost} 铸币（现有 ${p.coins}）——牌力越高，征募越容易出高稀有`,3000);return}
   snapDraft();
   p.coins-=cost; p.tier=effTier(p)+1; // 提到当前有效牌力之上一级
-  flash(false);shake();SFX.play('merge');toast(`断云牌力 → ${p.tier} 级！征募出高稀有更容易`,2600);
+  flash(false);shake();SFX.play('merge');toast(`牌力 → ${p.tier} 级！征募出高稀有更容易`,2600); // 0719王老师裁定:清"断云"UI文案(与玩法说明"牌力等级"统一)
   // 升级后立刻刷新一次当前三选一，体现变化（不额外扣费）；重生成=放弃锁
   p._lockOn=false;
   S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true;
@@ -3940,7 +4030,7 @@ function runSelftest(){
   ok('火象t1: 火象单位+1攻·非火不加', (()=>{const F=buildFighters(parmy('lin','yin','guard'),{});return F.find(f=>f.id==='lin').atk===UMAP['lin'].atk+1&&F.find(f=>f.id==='guard').atk===UMAP['guard'].atk})());
   ok('土象t1: 全队+3命(含非土成员)', (()=>{const F=buildFighters(parmy('lu','guard','lin'),{});return F.every(f=>f.hp===UMAP[f.id].hp+3)})());
   ok('残片接线在 sideFlags(防注释吞字段回归)', sideFlags({army:[],relics:['shards']}).shards===true);
-  // —— 断云牌力（金币消耗出口 + 高稀有门控）——
+  // —— 牌力（金币消耗出口 + 高稀有门控）——
   S={act:3};
   ok('牌力保底封顶2级（act3→2级，升牌力才解锁tier3+）', tierFloor()===2);
   ok('effTier 取 max(付费,保底)：act3+付费1=2', effTier({tier:1})===2);
@@ -5048,7 +5138,7 @@ function soloFoeName(round){
   if(S&&S.ghostFoe&&S.ghostFoe.r===round)return '影军 · '+S.ghostFoe.name;
   if(round===SOLO_FINAL&&!S.endless)return '叶王 · 亲临';
   if(round>SOLO_FINAL)return '无尽回廊 · 第 '+(round-SOLO_FINAL)+' 层';
-  const tiers=['谷地游兵','断云宿敌','黑域斥候','蛇纹战团','鹦鹉亲卫','紫光军阵','叶王余党'];
+  const tiers=['谷地游兵','云上宿敌','黑域斥候','蛇纹战团','鹦鹉亲卫','紫光军阵','叶王余党']; // 0719王老师裁定:清"断云"UI文案
   return tiers[Math.min(tiers.length-1,Math.floor((round-1)/2))];
 }
 /* ============================================================
