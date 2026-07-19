@@ -1493,7 +1493,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 </div>
 <!-- 通用弹层 -->
 <div id="modal-veil"><div id="modal-box" class="ornate"></div></div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
 'use strict';
@@ -1875,11 +1875,24 @@ function shockwave(x,y){
   (function tick(){ t++; r.style.transform=`scale(${1+t*0.72})`; r.style.opacity=Math.max(0,1-t/26);
     t<26?requestAnimationFrame(tick):r.remove(); })();
 }
-function modal(html){$('#modal-box').innerHTML='<button class="modal-x" aria-label="关闭" onclick="closeModal()">'+uiIcon('nav-close')+'</button>'+html+'<div class="btnrow"><button class="btn gold" onclick="closeModal()">'+uiIcon('nav-close')+'关 闭</button></div>'; // 吸顶关闭钮:长弹窗(说明/图鉴)手机上不用滚到底才能退
-  $('#modal-veil').classList.add('on');const mb=$('#btn-menu');if(mb)mb.setAttribute('aria-expanded','true')}
-function closeModal(){$('#modal-veil').classList.remove('on');const mb=$('#btn-menu');if(mb)mb.setAttribute('aria-expanded','false')}
+let _modalPrevFocus=null;
+function modal(html){const mbx=$('#modal-box');
+  mbx.innerHTML='<button class="modal-x" aria-label="关闭" onclick="closeModal()">'+uiIcon('nav-close')+'</button>'+html+'<div class="btnrow"><button class="btn gold" onclick="closeModal()">'+uiIcon('nav-close')+'关 闭</button></div>'; // 吸顶关闭钮:长弹窗(说明/图鉴)手机上不用滚到底才能退
+  mbx.setAttribute('role','dialog');mbx.setAttribute('aria-modal','true');mbx.setAttribute('tabindex','-1');
+  $('#modal-veil').classList.add('on');const mb=$('#btn-menu');if(mb)mb.setAttribute('aria-expanded','true');
+  _modalPrevFocus=document.activeElement;try{mbx.focus()}catch(e){}} // 无障碍:开窗即把焦点移入弹窗,记住来处
+function closeModal(){$('#modal-veil').classList.remove('on');const mb=$('#btn-menu');if(mb)mb.setAttribute('aria-expanded','false');
+  try{const p=_modalPrevFocus;_modalPrevFocus=null;if(p&&p.focus)p.focus()}catch(e){}} // 关窗把焦点还给来处
 $('#modal-veil').addEventListener('click',e=>{if(e.target.id==='modal-veil')closeModal()});
-window.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#modal-veil').classList.contains('on'))closeModal()}); // 投屏一体机接键盘:Esc 关弹窗
+window.addEventListener('keydown',e=>{ if(!$('#modal-veil').classList.contains('on'))return;
+  if(e.key==='Escape'){closeModal();return} // 投屏一体机接键盘:Esc 关弹窗
+  if(e.key==='Tab'){ // 焦点陷阱:Tab 只在弹窗内循环,不落到遮罩后的背景控件(WCAG 2.4.3;一体机 inert 支持不稳,故用 Tab-trap)
+    const f=[...$('#modal-box').querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(el=>!el.disabled&&el.offsetParent!==null);
+    if(!f.length)return; const first=f[0],last=f[f.length-1],a=document.activeElement;
+    if(e.shiftKey){ if(a===first||a===$('#modal-box')){e.preventDefault();last.focus()} }
+    else if(a===last){e.preventDefault();first.focus()}
+  }
+});
 
 /* ============================================================
    音效层 · 混合架构（2026-07-14 升级）
@@ -2503,7 +2516,7 @@ function resumePhase(){
     event:()=>{ if(S.eventResolved){ S.bossPending?startBossSequence():startBattlePhase() } else if(S.actEvent){ S.phase='event'; renderEvent() } else startEvent() },
     battle:()=>{ if(S.solo){soloPreBattle()} else {setPhase('演武');renderPairings();go('battle')} },
     boss:()=>{ if(S.bossResolved){$('#boss-veil').classList.remove('on');actEnd()} else startBossSequence() },
-    final:()=>finale(),
+    final:()=>{ if(S.solo)soloEnd(true); else finale() }, // 单人终战胜利续局:直接加冕结算,不重打Boss(防成长/铸币二次入账)
   };
   (map[S.phase]||(S.solo?soloRound:startWave))(); // 坏档兜底分模式:单人回 soloRound,不落课堂答题屏
 }
@@ -4483,6 +4496,8 @@ function runSelftest(){
     return armyPower({army:[{id:'guard',star:1,gAtk:0,gHp:0},{id:'guard',star:1,gAtk:0,gHp:0}]})===2*(b.atk+b.hp);})());
   ok('财富分解码：金币=⌊s/1000⌋、胜=⌊s/100⌋%10', (()=>{const s=wealthScore({coins:12,wins:3,relics:2});
     return Math.floor(s/1000)===12 && Math.floor(s/100)%10===3;})());
+  ok('财富分：wins≥10 钳到9不进位污染金币位', (()=>{const s=wealthScore({coins:5,wins:10,relics:3});
+    return Math.floor(s/1000)===5 && Math.floor(s/100)%10===9;})()); // 修:满局10胜不再把金币显示成+1
   ok('淬炼走 gAtk/gHp·instBase 生效', (()=>{const b=instBase({id:'guard',star:1,gAtk:1,gHp:2});
     return b.atk===2&&b.hp===10})());
   {const _S3=S;
@@ -5991,6 +6006,7 @@ function soloResolve(result,A,B){
   const banner=document.createElement('div');banner.className='result-banner';
   if(win&&soloIsBoss()){ // 十关全破——试炼通关
     you.wins++;you.crowns++;S.soloWins=(S.soloWins||0)+1;soloWinPerks(result,A);
+    S.phase='final'; // 胜果落档前置终态:横幅期断电续局直接结算(resumePhase.final→soloEnd),不再重打Boss二次结算成长/铸币(与非Boss胜利的 phase='pick' 同源保护)
     banner.innerHTML=`<h1>${uiIcon('state-win')}十关全破 · 试炼通关</h1><p>叶王退走——群星为你加冕</p>${dmgRecap(result,A,B)}<p class="hint">点击加冕</p>`;
     document.body.appendChild(banner);flash(false);shake();
     burst(innerWidth/2,innerHeight/3,null,44);SFX.play('crown');
@@ -6020,6 +6036,7 @@ function soloResolve(result,A,B){
       banner.onclick=()=>{banner.remove();soloEnd()};
     }else{
       const sev=loss>=3?'惨败':(loss>=2?'败退':'惜败');
+      S.pathTaken='calm';S.ghostFoe=null; // 落档前就重置(不再只在 onclick)：断电续局经 soloPreBattle 重打与点横幅重打进同一干净态，险道+6币/免重铸/斩影奖励都不再二次发（修:续局绕过 onclick 重置=凭空发奖+污染名册/擂台榜）
       const _lifeHint=(S.life===1&&hintFirst('lastlife'))?'<p class="hint" style="color:var(--red2)">最后一颗命脉——再输一场就终局；下次选路留意「星尘泉」可回命</p>'
         :(hintFirst('life1')?'<p class="hint">命脉扣光才算终局——每 5 关喘息回 1 颗</p>':'');
       banner.innerHTML=`<h1>${sev} · 命脉 −${loss}</h1><p>命脉未绝 —— 剩余命脉 <span class="life-pips banner-pips">${Array.from({length:S.lifeMax},(_,i)=>i<S.life?uiIcon('stat-vitality'):uiIcon('stat-vitality-empty')).join('')}</span> ${S.life}/${S.lifeMax}</p>${dmgRecap(result,A,B)}${_lifeHint}<p class="hint">点击重整旗鼓 · 再战本关</p>`;
@@ -6128,7 +6145,7 @@ function addClassWeekV2(w){try{const a=JSON.parse(localStorage.getItem('zmq_clas
 function getClassWeeksV2(){try{const a=JSON.parse(localStorage.getItem('zmq_classweeks_v2')||'[]');return Array.isArray(a)?a:[]}catch(e){return[]}}
 // 三榜上传：主榜=荣耀分(day 后缀 -0)决定「已上传N人」；战力(-1)/财富(-2)为特色榜补发。
 // 都同 board='zmq'、day 带后缀→仍走老师密码门；同一周同学生 id 稳定→取本周最高。
-function wealthScore(p){return Math.max(0,Math.min(999,(p.coins|0)))*1000+Math.max(0,Math.min(99,(p.wins|0)))*100+Math.max(0,Math.min(99,(p.relics|0)));}
+function wealthScore(p){return Math.max(0,Math.min(999,(p.coins|0)))*1000+Math.max(0,Math.min(9,(p.wins|0)))*100+Math.max(0,Math.min(99,(p.relics|0)));} // wins 钳到9(1位)与解码 ⌊s/100⌋%10 对齐:防 wins≥10 进位污染金币位
 async function classUpload(roster,pass,onProg){
   let sent=0,bad=false; const failed=[]; const wk=weekKey();  // 按本周分赛季榜
   const occ={};                                          // 同名去重：同名学生分配不同 id，避免合并成一个
@@ -6419,7 +6436,7 @@ function resolveBoss(){
         S.players.forEach(p=>p.army.forEach(inst=>{
           const a=instBase(inst).atk;
           if(a>bestAtk){bestAtk=a;best=inst;bestP=p}}));
-        if(best){bestP.army=bestP.army.filter(x=>x!==best);
+        if(best&&!S.captured){bestP.army=bestP.army.filter(x=>x!==best); // 同一时刻最多押一件:已有未赎回单位则本幕不再抢(否则 S.captured 单槽被覆盖=前一件永久丢失)
           S.captured={pi:bestP.i,inst:best};
           capTxt=`<p style="color:var(--red2);margin-top:18px">全线失守。叶王把 <b>${UMAP[best.id].n}</b>（${bestP.name} 的单位）带走了——下一幕征募时可花 3 铸币赎回。</p>`;}
       }

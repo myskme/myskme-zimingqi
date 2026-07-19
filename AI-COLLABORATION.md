@@ -648,3 +648,14 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **migImport 诚实性**:`return {ok:true,n}` 在所有 `setItem` 都抛异常(无痕/存储被禁/满)时仍报"接续成功 ✓"但一字没写→改 **`{ok:n>0,n}`**,走失败分支;失败文案改为"本机存储写不进…换正常模式再试"。
 - **shockwave 无障碍漏门**:冲击波环是纯 JS 放大动画,CSS media query 拦不住;reduced-motion 落定仍播(既有残留,本批 reduced 分支调 settle 使其显形)。**shockwave() 顶部加 `if(vfxReduced())return;`**(与 burst 一致),全站受益。
 - `#selftest 293→294`(+坏码 migImport 返回 ok:false 断言),headless 实测 **294/294 ALL PASS**。零红线触碰。
+
+### 2026-07-20 · Claude · 全局深度找虫 6 修（存档/结算/无障碍/丢档/显示；通宵优化第③批）
+
+5 路 high-effort 对抗式找虫 + 逐条独立复核(默认否决,须可复现),否掉 1 条误报(不屈复起面板不刷=与全体 buff 一致的既有设计),确认并全修 6 条真 bug（全部红线外·selftest 294→295 全绿）:
+- **[MED 存档] 败战续局二次发奖**:soloResolve 失败-未死分支只在 `banner.onclick` 里清 `ghostFoe/pathTaken`,断电经 `soloPreBattle` 续局绕过→重打赢了再发一次斩影(污染名册 `_meta.slain`)/险道(+6币+免重铸)+提交线上擂台榜。**修:把 `S.pathTaken='calm';S.ghostFoe=null` 提到 6032 save() 之前**(与非Boss胜利 6001 提前推进 phase 同源)。
+- **[MED 存档] 终战胜利续局重打Boss二次结算**:Boss胜利分支不推进 phase,`save()` 落 phase='battle'+已施加的永久成长/铸币→续局重打再施加一次。**修:胜利分支置 `S.phase='final'` + resumePhase.final 单人走 `soloEnd(true)` 不重打**。
+- **[MED 无障碍] `#toast` 无 aria-live**:读屏听不到任何瞬时反馈(含"存档已损坏")。**修:`role="status" aria-live="polite" aria-atomic`**。
+- **[MED 无障碍] 通用 modal 无焦点陷阱**:键盘 Tab 可穿透遮罩激活背景控件(投屏一体机接键盘真实场景)。**修:modal 加 `role=dialog/aria-modal`+移入焦点+记来处、closeModal 还焦点、keydown 加 Tab 循环陷阱**(inert 一体机支持不稳故用 trap)。
+- **[LOW 丢档] 叶王二次全灭覆盖 `S.captured`**:前一件未赎回的被押单位永久消失。**修:`if(best&&!S.captured)`**（同时刻最多押一件）。
+- **[LOW 显示] 财富榜 wins≥10 溢出**:`wealthScore` 给 wins 两位空间但解码只读一位→满局10胜污染金币位。**修:`Math.min(9,wins)`**（+wins=10 往返断言）。
+- headless 实测 **295/295 ALL PASS**。**给 Codex(休眠中)**:modal()/closeModal() 新增焦点管理与 Tab-trap keydown、#modal-box 现带 role=dialog;#toast 现为 live region——表现层再动以本 commit 为基线。
