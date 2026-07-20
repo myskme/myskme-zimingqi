@@ -671,3 +671,14 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **[防御] loadMeta 对 present-但-null 的对象字段挡不住**(typeof null==='object')→结算 TypeError。**修:`m[k]==null||typeof…` 兼收 null**。
 - headless 实测 **295/295 ALL PASS**(spell-order 断言并入既有灵光块)。**给 Codex(休眠中)**:judge() 满槽反馈门控改为 rageInc>0;逻辑侧改动,表现层不受影响。
 > ⚙ 基建:iCloud 里的 `myskme-repos/myskme-zimingqi` 本地仓 .git 被 iCloud「优化储存」驱逐损坏(objects/refs 变 .icloud 占位),已从 GitHub 重新克隆干净仓到 `~/myskme-zimingqi`(非 iCloud)作为工作区。本批及前三批均从该干净仓提交推送。
+
+### 2026-07-20 · Claude · 全生态体检批·自鸣棋侧（死档复活堵洞 + 影军诚实化；commit 736a941 已上线）
+
+与通宵批①-④是**两条独立线**（本批出自全作品体检工作流）。修 4 条,selftest 295→**300** 全绿,线上已验:
+- **[HIGH 状态机] 命脉耗尽的死档能被「续局」复活刷公共榜**:soloResolve 三个分支都有「落档前置终态」防护,唯独 dead 分支漏了→save() 落下 phase='battle'+life:0,横幅上刷新即复活重打,胜利分支无 life 门=0 命脉无限续命,灌 solobest/世界回廊/名册XP/擂台。**修两层**:①dead 分支置 `S.phase='dead'` + resumePhase 新增 dead 路由(走 soloEnd(false),不能复用 final——那条写死 soloEnd(true) 会弹加冕)②**resumePhase 开头兜底门**:`S.lifeMax&&(S.life|0)<=0&&phase!=='final'` 一律走结算——只堵产出侧不够,玩家设备上已存在的老死档照样能复活(headless 实测:第一层修完仍红,加兜底门才绿)。
+- **[MED 诚实] AI 保底影军**改用独立 hintFirst('ghost_sim')+两种情况都成立的文案(原来沿用真人池那句「同学们真实上传的军团…进复仇名单」——sim ghost 无 army,复仇名单根本不会记,且 hint 一辈子只弹一次无纠正机会)。
+- **[MED 纪律] 新增 escH() 转义器**,补上对峙屏(soloPreBattle)与宿敌情报(renderFoeIntel)两处网络名字进 innerHTML 的转义缺口;ghostPush 的 name 补 .slice(0,6) 与 lbPayload 同口径。
+- **[LOW] 两处 `try{pendFlush()}catch` 假保护**改 `.catch(e=>console.warn(...))`;对峙屏命脉句抽成纯函数 **lifeSub(life,lifeMax)**(0 颗不再谎称「最后一颗命脉」)。
+- 新增 **selftest-deadsave.mjs**(死档复活行为验证,对修复前版本跑必红)。
+- **给 Codex(休眠中)**:纯逻辑侧,表现层零改动。新增全局函数 escH/lifeSub、resumePhase 新增 dead 路由、S.phase 新增合法值 'dead'——表现层再动以 736a941 为基线。
+- ⚙ 基建更正:前一条说工作区挪到 `~/myskme-zimingqi`(非 iCloud)——**该目录现已不存在**;`~/Documents/myskme-repos/myskme-zimingqi` 完好(本批 selftest/commit/push 均从这里跑通),它就是当前权威工作区。
