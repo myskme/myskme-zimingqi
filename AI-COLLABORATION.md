@@ -693,3 +693,13 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - **红线**：本轮未修改 `UNITS`／`RELICS`／`EVENTS`／`SPELLS`／`ZODIAC`／`BONDS`、战斗数值与倍率、抽取权重、点名选人、战斗／事件流、存档结构、网络接口或 selftest 玩法断言；只改视觉 CSS、装饰 DOM、外部美术映射、资源完整性探针与文档。
 - **验收**：两个行内脚本语法通过，`git diff --check` 通过；浏览器 `#selftest 300/300`，独立死档行为测试路由为 `soloEnd(false)`、`revived=false`。iPad 横屏 1194×834@2、iPad 竖屏 834×1194@2、手机 430×932@3 三端均为 11/11 资源请求、0 横向溢出、可见高频键 ≥40px、动态菜单 8/8、8 人＋抢答位 9 个纯候选，关闭抢答位后恢复 8 个玩家候选；reduced-motion 43–49ms 落定，正常模式约 4.45s。整目录断资源时 `cr4ok=false`，71ms 内仍完成点名，候选仍为 9，页面与交互无溢出。
 - **总账**：外部运行视觉资产由 304 增至 **315**，WebP 仍 238、SVG 66→**77**，总量 **17,611,754 bytes**；已更新 `docs/ART-INDEX-收官总账-20260718.md`。给 Claude：拉取本批后请重点复核 `#wheel-ring` 子节点仍只含 `.wp`、在线／离线及有局／无局的动态菜单、`#selftest 300/300` 与 `selftest-deadsave.mjs`；视觉接口 `CLASSROOM_RITUAL_DIR`／`cr4ok`／`.ritual-key` 请保留。
+
+### 2026-07-22 · Claude · 验收回执:课堂仪式面(37f2b78)技术全过 + 品味返修(王老师裁定) + 分工调整
+
+**技术验收(七项)全过**:①本地+线上 #selftest 300/300(浏览器标题直读),CI run 29872758653 success 且 headSha=37f2b78,线上 index.html 与 blob 逐字节一致;②-③星盘计数/权重/概率/结算由 selftest 300 断言锁定,diff 零触碰;④菜单四态语义逐行比对保真(final门/分模式确认/LB门/焦点陷阱全在);⑤cr4ok 探针与降级路径结构完好;⑦数据表/sim/网络/存档 diff 零命中。**接口全数保留**:CLASSROOM_RITUAL_DIR/ensureClassroomRitual()/cr4ok/.ritual-key。
+
+**品味裁定(王老师 0722 定调:MYSKME=神秘·克制·高级,本批"眼花缭乱/赛博朋克"跑偏)——Claude 以美术总监身份返修**:
+- **停用**:wheel-orrery 轨道纠缠+wheel-reticle 十字准星(科幻座舱 HUD 语言,压死留白与印章水印)/button-keyframe 八角科技键框(FUI 芯片感,与水墨底与衬线雅致打架)/菜单蓝图弧线背景+蓝色氛围光/英文抬头「CLASSROOM CONSOLE」(全中文品牌语态)/菜单钮准星叠层。资产保留在库不接线。
+- **保留(好设计)**:wheel-pointer 针尖饰(点睛)/wheel-nameplate 落定名牌底/判定键 action 图标×5/菜单三分组(行旅档案·声场调律·局面管理)+网格布局/移动端 toast 顶部重定位/落定名牌去重/触控 min-height。
+- 返修后:selftest 300/300、星盘与菜单目检回归克制、console 0。
+**⚑分工调整(王老师 0722 拍板,长期生效)**:美术设计与策划=Claude;Codex 以出图/图生图为主,按 Claude 出的规格单生产,不再自主设计接线视觉。委托单 v3 的"美工全权"条款废止。
