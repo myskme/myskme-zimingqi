@@ -682,3 +682,14 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - 新增 **selftest-deadsave.mjs**(死档复活行为验证,对修复前版本跑必红)。
 - **给 Codex(休眠中)**:纯逻辑侧,表现层零改动。新增全局函数 escH/lifeSub、resumePhase 新增 dead 路由、S.phase 新增合法值 'dead'——表现层再动以 736a941 为基线。
 - ⚙ 基建更正:前一条说工作区挪到 `~/myskme-zimingqi`(非 iCloud)——**该目录现已不存在**;`~/Documents/myskme-repos/myskme-zimingqi` 完好(本批 selftest/commit/push 均从这里跑通),它就是当前权威工作区。
+
+### 2026-07-21 · Codex · 课堂仪式面：点名浑天仪、课堂操作台与高频操作键 20260721d
+
+- **同步与重放**：本批由王老师重新启动视觉工作。初审工作树位于旧基线 `5ce8556`，但推送前刷新远端发现 Claude 已新增 11 个提交；因此没有覆盖旧 `index.html`，而是从最新 `origin/main` `ea930f1f851dbd61d5f9638b9797369c887f5a4e` 新建干净工作树后重新接线。完整保留点名星盘 v4、抢答位开关、连续针束转动与棘轮音、世界榜补传／设备迁移、演武押注、modal 焦点管理、存档修复和死档防复活逻辑。
+- **11 枚确定性 SVG**：新增版本化目录 `assets/classroom-ritual-20260721/`，含浑天仪外圈、中心准星、结果名牌、正式针尖、菜单面板、通用操作键框，以及答对／难题／抢答／答错／课堂节奏 5 枚语义图标；全部 `currentColor`、无字体／脚本／文字／外链，共 14,746 bytes，manifest 记录尺寸、字节与 SHA-256。
+- **星盘只换皮，不接管随机**：新外圈与准星是 `#wheel-ring` 的兄弟装饰；正式针尖直接挂在既有 `#wheel-needle::after`，天然继承 v4 的 rAF 角度、光束与 reduced-motion 最终落点。候选数组仍只含玩家名牌与可选 `.wp-all`；`wheelWeights()`、`weightedPick()`、0.16 抢答概率、`90+finalIdx*perPlate` 相位、开关存储键、音效与 settle 状态机均未改。手机落定后只隐去外围获选牌正文，金框／针束／中央 DOM 姓名仍完整，避免长组名叠压。
+- **课堂操作台与高频键**：菜单改为“行旅档案／声场调律／局面管理”三组，保留 `LB_ON` 条件下的世界榜同步／迁移入口与仅 `S` 存在时出现的回标题／放弃动作；原 onclick、单人／多人确认文案、终局不重存、顶部吸附关闭、Escape、Tab 焦点陷阱和关闭回焦全部保留。答题判定、撤销、节奏、征募、事件、演武、终局与转盘按钮统一接星仪键框，按钮 ID、`data-a`、disabled、二次确认和运行时 `innerHTML` 更新不变。
+- **降级与无障碍**：新增 `CLASSROOM_RITUAL_REL`／`CLASSROOM_RITUAL_DIR`、幂等 `ensureClassroomRitual()` 与 `cr4ok` 整组探针；答题波／菜单／星盘按需触发，标题首屏 0 新请求。任一新资源失败即回退 Claude 原 v4 程序化星盘、普通菜单与文字按钮，点名和计分仍可用。`prefers-reduced-motion` 下转盘继续走原 `settle()` 直落，课堂判定浮字隐藏而战斗伤害读数不受影响；手机 toast 移至 HUD 下方，不再遮挡底部主推进键。
+- **红线**：本轮未修改 `UNITS`／`RELICS`／`EVENTS`／`SPELLS`／`ZODIAC`／`BONDS`、战斗数值与倍率、抽取权重、点名选人、战斗／事件流、存档结构、网络接口或 selftest 玩法断言；只改视觉 CSS、装饰 DOM、外部美术映射、资源完整性探针与文档。
+- **验收**：两个行内脚本语法通过，`git diff --check` 通过；浏览器 `#selftest 300/300`，独立死档行为测试路由为 `soloEnd(false)`、`revived=false`。iPad 横屏 1194×834@2、iPad 竖屏 834×1194@2、手机 430×932@3 三端均为 11/11 资源请求、0 横向溢出、可见高频键 ≥40px、动态菜单 8/8、8 人＋抢答位 9 个纯候选，关闭抢答位后恢复 8 个玩家候选；reduced-motion 43–49ms 落定，正常模式约 4.45s。整目录断资源时 `cr4ok=false`，71ms 内仍完成点名，候选仍为 9，页面与交互无溢出。
+- **总账**：外部运行视觉资产由 304 增至 **315**，WebP 仍 238、SVG 66→**77**，总量 **17,611,754 bytes**；已更新 `docs/ART-INDEX-收官总账-20260718.md`。给 Claude：拉取本批后请重点复核 `#wheel-ring` 子节点仍只含 `.wp`、在线／离线及有局／无局的动态菜单、`#selftest 300/300` 与 `selftest-deadsave.mjs`；视觉接口 `CLASSROOM_RITUAL_DIR`／`cr4ok`／`.ritual-key` 请保留。

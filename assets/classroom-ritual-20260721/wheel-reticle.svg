@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+  <circle cx="128" cy="128" r="118" stroke-width="1.65" opacity=".62"/>
+  <circle cx="128" cy="128" r="108" stroke-width="1.35" stroke-dasharray="1 6" opacity=".5"/>
+  <circle cx="128" cy="128" r="91" stroke-width="1.55" opacity=".45"/>
+  <circle cx="128" cy="128" r="50" stroke-width="1.45" opacity=".7"/>
+  <circle cx="128" cy="128" r="18" stroke-width="1.55"/>
+  <path d="M128 6v26M128 224v26M6 128h26M224 128h26" stroke-width="1.7"/>
+  <path d="M128 47v38M128 171v38M47 128h38M171 128h38" stroke-width="1.45" opacity=".78"/>
+  <path d="m128 103 6.5 18.5L153 128l-18.5 6.5L128 153l-6.5-18.5L103 128l18.5-6.5L128 103Z" stroke-width="1.55"/>
+  <circle cx="128" cy="128" r="3.2" fill="currentColor" stroke="none"/>
+  <g stroke-width="1.45" opacity=".72">
+    <path d="M20 68V36a16 16 0 0 1 16-16h32M188 20h32a16 16 0 0 1 16 16v32M236 188v32a16 16 0 0 1-16 16h-32M68 236H36a16 16 0 0 1-16-16v-32"/>
+    <path d="M28 57h13l16-16V28M228 57h-13l-16-16V28M228 199h-13l-16 16v13M28 199h13l16 16v13"/>
+  </g>
+  <g stroke-width="1.35" opacity=".58">
+    <path d="M76.5 25.5 83 41M179.5 25.5 173 41M230.5 76.5 215 83M230.5 179.5 215 173M179.5 230.5 173 215M76.5 230.5 83 215M25.5 179.5 41 173M25.5 76.5 41 83"/>
+    <circle cx="128" cy="128" r="76" stroke-dasharray="12 8"/>
+  </g>
+</svg>

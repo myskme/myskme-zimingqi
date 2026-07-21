@@ -1,0 +1,110 @@
+{
+  "asset_root": "assets/classroom-ritual-20260721/",
+  "version": "20260721",
+  "summary": {
+    "runtime_files": 11,
+    "runtime_bytes": 14746,
+    "format": "SVG/currentColor"
+  },
+  "files": [
+    {
+      "path": "action-correct.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 570,
+      "sha256": "a25ab60aea463bfe4d0e0d925468baffb30f35d1d455b84b1be3ac8e906db9c4",
+      "dimensions": [24, 24],
+      "svg": {"viewBox": "0 0 24 24", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "action-hard.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 581,
+      "sha256": "3482f5bce9f6fdf2433418d2ffc8da1f115af4db1c434ddf0407367cfc0cef5e",
+      "dimensions": [24, 24],
+      "svg": {"viewBox": "0 0 24 24", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "action-pace.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 661,
+      "sha256": "0b0f56d896e8aeb5849106900cf0f4b292c46e6e4d7ee36f092f8102fd801f8d",
+      "dimensions": [24, 24],
+      "svg": {"viewBox": "0 0 24 24", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "action-quick.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 567,
+      "sha256": "47cd79d3672b12837c3547300a1bb935f47dbc8022072d782c9b3f012dbfa006",
+      "dimensions": [24, 24],
+      "svg": {"viewBox": "0 0 24 24", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "action-wrong.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 548,
+      "sha256": "2c8f000cc82be6b42011ebebb02bc1443bee3ad5ad9c13fe02ba2ac59f31ca60",
+      "dimensions": [24, 24],
+      "svg": {"viewBox": "0 0 24 24", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "button-keyframe.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 1080,
+      "sha256": "61e331f3cfc2ab73f12c663bf6311589ddf91518fc55fe2dce11fb73f9736281",
+      "dimensions": [256, 72],
+      "svg": {"viewBox": "0 0 256 72", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "menu-panel.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 2366,
+      "sha256": "c79f62b2182bd14f90c4aff8a1dbca280d3e9303ef00270b2c6e7ba4b9caac60",
+      "dimensions": [512, 512],
+      "svg": {"viewBox": "0 0 512 512", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "wheel-nameplate.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 1076,
+      "sha256": "30975155bf1efe410c5bf49a9b9252d19b37896b85d04f2fbe5f3a274070773d",
+      "dimensions": [256, 72],
+      "svg": {"viewBox": "0 0 256 72", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "wheel-orrery.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 4838,
+      "sha256": "1d866487cd859b55e8dcd876dda3ecf9197dc0932b3d3cd54c8a12551cf3ded1",
+      "dimensions": [512, 512],
+      "svg": {"viewBox": "0 0 512 512", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "wheel-pointer.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 959,
+      "sha256": "bde665d7b3a62b94892b789d810f4a6562e176fe7c15038c055c8c6fbcbd9433",
+      "dimensions": [64, 96],
+      "svg": {"viewBox": "0 0 64 96", "uses_currentColor": true, "forbidden_content": []}
+    },
+    {
+      "path": "wheel-reticle.svg",
+      "kind": "svg",
+      "mode": "SVG/currentColor",
+      "bytes": 1500,
+      "sha256": "e126510bb6c22af3f9ed5e9c40480356b55233fc8557a92c28f06c327f5ed0ed",
+      "dimensions": [256, 256],
+      "svg": {"viewBox": "0 0 256 256", "uses_currentColor": true, "forbidden_content": []}
+    }
+  ]
+}
