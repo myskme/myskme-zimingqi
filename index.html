@@ -4091,13 +4091,18 @@ function runSelftest(){
      return pf.indexOf('S.revengeTargetKey')>0                            // 指定目标优先
        && sr.indexOf('S.revengeTargetKey=rivalKey')>0 && sr.indexOf('startOriginDraft')>0  // 锁定+开局
        && sv.indexOf('textContent')>0})());                              // 名字 textContent 注入防 XSS
-   ok('群英擂台:胜分加权(深关×高难×复仇1.5)· dmsub day=纯周号(无老师密码门,同单人榜)· 斩影/提交/页签 接线', (()=>{
+   ok('群英擂台:胜分加权(深关×高难×复仇1.5)· 走独立 board=arena(不撞课堂榜密码门)· 斩影/提交/页签 接线', (()=>{
      if(arenaWinScore(4,0,false)!==4||arenaWinScore(7,2,false)!==21||arenaWinScore(4,0,true)!==6)return false; // 加权公式
-     if(/-/.test(weekKey()))return false;                                    // 周号纯数字→无短横线→不触发密码门
+     // ⚠ 这条断言原来钉的是错的后端契约(「纯周号→免密」),于是擂台上传一路 403 却全绿半年。
+     //   现在钉的是真契约:board 必须是 arena,day 是纯周号,读写两侧同一个 board。
+     if(ARENA_BOARD!=='arena')return false;
+     if(/-/.test(weekKey()))return false;                                    // 周号纯数字(课堂榜的 day 一定带 -N 后缀)
      const wp=soloWinPerks.toString(), sa=submitArena.toString(), sh=showLbHall.toString();
      return wp.indexOf('addArenaWin')>0 && wp.indexOf('submitArena')>0       // 斩影胜利累加+提交
-       && sa.indexOf("action:'dmsub'")>0 && sa.indexOf('weekKey()')>0 && sa.indexOf('pass')<0 // 无密码提交
-       && sh.indexOf('d===7')>0 && sh.indexOf('FMT.arena')>0})());           // 世界回廊擂台榜页签
+       && sa.indexOf("action:'dmsub'")>0 && sa.indexOf('ARENA_BOARD')>0 && sa.indexOf('weekKey()')>0 && sa.indexOf('pass')<0
+       && sa.indexOf('.catch(()=>{})')<0                                     // 失败不再静默吞掉(这正是它藏了半年的原因)
+       && sh.indexOf('d===7')>0 && sh.indexOf('FMT.arena')>0
+       && sh.indexOf('ARENA_BOARD')>0})());                                  // 读榜也走同一个 board,不然写进去也看不见
    ok('影军保底+段位:injectGhost 第3级 AI 影卫(池空也有影军战·round>=3) · 段位阶梯单调', (()=>{
      const ig=injectGhost.toString();
      if(ig.indexOf('SIM_GHOST_NAMES')<0||ig.indexOf('sim:true')<0||ig.indexOf('round>=3')<0)return false; // AI 保底第3级
@@ -4580,6 +4585,9 @@ function runSelftest(){
     q=pendMerge(q,{action:'dmsub',board:'zmq',day:'0',id:'a',score:9}); if(q[0].score!==9)return false;             // 高分更新
     q=pendMerge(q,{action:'dmsub',board:'zmq',day:'1',id:'a',score:2}); if(q.length!==2)return false;               // 不同难度并存
     return pendMerge([],{action:'other'}).length===0; })());                                                       // 非 dmsub 不入队
+  ok('保底队列 pendFlush：单飞门+收尾按当前存储重建(并发不互相覆盖·期间新入队不丢)', (()=>{
+    const src=pendFlush.toString();
+    return src.indexOf('_pendFlushing')>0 && src.indexOf('pendLoad().filter')>0 && src.indexOf('sentMax')>0; })());
   ok('设备迁移码：UTF-8往返·白名单键·中文名不乱码·坏码/版本不符=null', (()=>{
     const code='ZMQ1.'+_b64e(JSON.stringify({v:1,d:{zmq_lbid:'z_test9',zmq_lbname:'狼先生甲乙',evil:'x'}}));
     const p=migParse(code); if(!p||p.d.zmq_lbid!=='z_test9'||p.d.zmq_lbname!=='狼先生甲乙'||('evil' in p.d))return false; // 白名单外键被丢
@@ -4728,6 +4736,14 @@ function runSelftest(){
        const r1={runs:_meta.runs,wins:_meta.wins,slain:_meta.slain};
        metaCommitRun({win:true,cleared:14,slain:3,bounty:1,army:[]}); // 同一局续无尽到第14层
        return r1.runs===1&&_meta.runs===1&&_meta.wins===1&&_meta.slain===3; // 局数/胜场不翻倍,斩影只 +1
+     }finally{ S=_S2;_meta=_m }})());
+   ok('验收: 深渊回响读绝对关数(先通十关再续无尽,门槛仍是20不翻倍成30)', (()=>{const _S2=S,_m=_meta;
+     try{ S=newState(['x'],3,0,false);S.solo=true;
+       _meta=metaDefault();
+       metaCommitRun({win:true,cleared:10,slain:0,bounty:0,army:[]});                          // 先通关十关(写 metaBase)
+       if(_meta.ach.a_deep20)return false;                                                     // 还没深入,不该解锁
+       metaCommitRun({win:true,endless:true,cleared:21,slain:0,bounty:0,army:[]});             // 续无尽到第21层(增量只 11)
+       return !!_meta.ach.a_deep20;                                                            // 绝对 21≥20 → 应解锁(旧 bug 会要到 30)
      }finally{ S=_S2;_meta=_m }})());
    ok('验收: 不败之姿要"全程未掉命脉"(回血不洗白)', (()=>{const _S2=S;
      try{ S=newState(['x'],3,0,false);S.solo=true;lifeInit();
@@ -5465,7 +5481,7 @@ function metaUnlocked(k){const lv=levelOf(_meta.xp).lv;
 const ACHIEVEMENTS=[
  {id:'a_first',  n:'首战告捷', d:'赢下第一场对局',            chk:m=>m.wins>=1},
  {id:'a_clear',  n:'十关全破', d:'经典征程通关(击败叶王)',     chk:(m,c)=>!!c.victory&&!c.endless},
- {id:'a_deep20', n:'深渊回响', d:'无尽回廊深入 20 层以上',     chk:(m,c)=>!!c.endless&&c.cleared>=20},
+ {id:'a_deep20', n:'深渊回响', d:'无尽回廊深入 20 层以上',     chk:(m,c)=>!!c.endless&&((c.clearedAbs!=null?c.clearedAbs:c.cleared)|0)>=20},
  {id:'a_slay1',  n:'初斩影军', d:'战胜一支同窗影军',           chk:m=>m.slain>=1},
  {id:'a_slay10', n:'斩影十连', d:'累计斩影 10 支',            chk:m=>m.slain>=10},
  {id:'a_bounty10',n:'赏金猎手',d:'累计达成悬赏 10 次',         chk:m=>m.bountyDone>=10},
@@ -5502,6 +5518,9 @@ function metaCommitRun(ctx){ // 同一局可能结算两次(通关领奖 → 续
     d.slain  =Math.max(0,(ctx.slain|0) -(base.slain|0));
     d.bounty =Math.max(0,(ctx.bounty|0)-(base.bounty|0));
   }
+  // 增量化只为 XP/局数不重复入账;「状态型」成就(如深渊回响读绝对关数)必须看真实到达关数,
+  // 否则先通关十关再续无尽的这条路,门槛会凭空从 20 翻成 30。给成就单独带一份绝对值。
+  d.clearedAbs=ctx.cleared|0;
   if(S)S.metaBase={cleared:ctx.cleared|0,slain:ctx.slain|0,bounty:ctx.bounty|0}; // 落 S 随存档走:关掉浏览器再回来续无尽也不会重复计
   return metaCommit(d);
 }
@@ -6235,12 +6254,21 @@ function pendMerge(list,pay){
   return out.slice(-PEND_MAX);
 }
 function pendPush(pay){pendSave(pendMerge(pendLoad(),pay))} // 记一笔"待上传",失败也不丢
+const _pendKey=x=>[x.board,x.day,x.id].join('|');
+let _pendFlushing=null; // 单飞门:开局自动补传与手动「立即上传」若同时在飞,旧写法各自 pendSave(keep) 会互相覆盖→期间新入队的成绩被静默吞掉(与 0713 榜单读改写竞态同类)
 async function pendFlush(){ // 队列里的世界榜提交逐条补发;成功即出队,失败保留待下次(幂等,联网自愈)
-  if(typeof LB_ON==='undefined'||!LB_ON)return {sent:0,left:pendLoad().length};
-  const q=pendLoad(); if(!q.length)return {sent:0,left:0};
-  let sent=0; const keep=[];
-  for(const pay of q){ try{const r=await lbSendRetry(pay,2); if(r&&r.ok)sent++; else keep.push(pay);}catch(e){keep.push(pay)} }
-  pendSave(keep); return {sent,left:keep.length};
+  if(_pendFlushing)return _pendFlushing;                 // 已有一趟在跑就复用它,不并发
+  _pendFlushing=(async()=>{
+    if(typeof LB_ON==='undefined'||!LB_ON)return {sent:0,left:pendLoad().length};
+    const q=pendLoad(); if(!q.length)return {sent:0,left:0};
+    let sent=0; const sentMax={};                        // 记每个键成功送达的最高分
+    for(const pay of q){ try{const r=await lbSendRetry(pay,2); if(r&&r.ok){sent++;const k=_pendKey(pay);sentMax[k]=Math.max(sentMax[k]|0,pay.score|0);} }catch(e){} }
+    // ⚠ 收尾不能盲写 keep 覆盖整键——这~十几秒里玩家可能又入队了新成绩。
+    //   改成读「当前存储」重建:只丢掉已被更高或等分送达的那些键,新分/未送达的一律保留。
+    const now=pendLoad().filter(x=>{const k=_pendKey(x);return !(k in sentMax)||(x.score|0)>sentMax[k];});
+    pendSave(now); return {sent,left:now.length};
+  })().finally(()=>{_pendFlushing=null;});
+  return _pendFlushing;
 }
 /* —— 设备迁移码:身份+纪录打成一段 UTF-8 安全 base64 —— */
 function _b64e(s){try{return btoa(unescape(encodeURIComponent(s)))}catch(e){return ''}}
@@ -6268,13 +6296,21 @@ function nameKey(name){let h=5381;for(const c of String(name||''))h=((h*33)^c.ch
 function weekKey(){const d=new Date();const off=(d.getDay()+6)%7;d.setDate(d.getDate()-off);return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')} // 本周周一为赛季首（周一→周日一个赛季）
 /* ============ 群英擂台(20260717·擂台第二件·零后端复用 dmsub)============
    影军战每胜=擂台分(按关数×难度加权防刷·复仇×1.5),本地按周累加(单调递增)。
-   提交 dmsub board='zmq' day=纯周号(不带短横线→无老师密码门,同单人榜)· 后端取max=当前累加值。 */
+   提交 dmsub board='arena' day=纯周号 · 免密(与需老师密码的 zmq 课堂榜分属不同键空间)· 后端取max=当前累加值。 */
 const ARENA_KEY='zmq_arena';
+const ARENA_BOARD='arena'; // ⚠ 不可改回 'zmq':那会撞上「旧格式课堂周(纯皇冠)」的键并被密码门拦死
 function loadArena(){try{const a=JSON.parse(localStorage.getItem(ARENA_KEY)||'null');return (a&&a.week===weekKey())?a:{week:weekKey(),score:0}}catch(e){return {week:weekKey(),score:0}}} // 跨周自动归零(新周新赛季)
 function arenaWinScore(round,diff,revenge){return Math.round(Math.max(1,round|0)*((diff|0)+1)*(revenge?1.5:1))} // 纯函数:深关/高难多分(防刷弱鸡),复仇×1.5
 function addArenaWin(round,diff,revenge){const a=loadArena();a.score=Math.min(999999,a.score+arenaWinScore(round,diff,revenge));try{localStorage.setItem(ARENA_KEY,JSON.stringify(a))}catch(e){}return a.score}
-function submitArena(){ if(typeof LB_ON==='undefined'||!LB_ON)return; const a=loadArena(); // fire-and-forget:无密码(day=纯周号),弱网自动重试
-  try{lbSendRetry({action:'dmsub',board:'zmq',day:weekKey(),id:lbId(),name:(localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),score:a.score},2).catch(()=>{})}catch(e){} }
+function submitArena(){ if(typeof LB_ON==='undefined'||!LB_ON)return; const a=loadArena();
+  // ⚠ 历史坑(0717→0723):这里原本发 board='zmq',而后端对 zmq 的「非难度位 day」一律要老师口令
+  //   → 学生上传全被后端 403 拒绝,又被空回调吞掉,擂台榜半年一条数据没有(参见 AI-COLLABORATION)。
+  //   改走独立的 board='arena'(免口令,与课堂榜键空间彻底隔离);失败也不再静默,记一笔待重交。
+  try{lbSendRetry({action:'dmsub',board:ARENA_BOARD,day:weekKey(),id:lbId(),name:(localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),score:a.score},2)
+    .then(r=>{ if(!(r&&r.ok)) arenaPendSave(r); })
+    .catch(e=>{ arenaPendSave({error:String(e&&e.message||e)}); });}catch(e){console.warn('submitArena',e);} }
+// 提交没成功就记一笔,下次看榜/终局会再交(幂等,后端取 max);顺带留个能被 #selftest 与人肉排查看见的痕迹
+function arenaPendSave(r){ try{ console.warn('群英擂台分暂时没传上去,会自动重交:', r&&r.error||r); localStorage.setItem('zmq_arena_pend',weekKey()); }catch(e){} }
 // 擂台段位(擂台第三件):本周擂台分→段位。独立于名册称号(名册=旅程/自鸣,段位=战力/群英擂台)
 const ARENA_TIERS=[[0,'初阵'],[60,'露锋'],[180,'骁勇'],[450,'名震'],[1000,'无双']]; // 阈值·段位名(MYSKME风格·非断云)
 function arenaTier(score){let t=ARENA_TIERS[0];for(const x of ARENA_TIERS){if((score|0)>=x[0])t=x}return {name:t[1],idx:ARENA_TIERS.indexOf(t)};}
@@ -6399,11 +6435,11 @@ async function showLbHall(){
       if(!r||!Array.isArray(r.top))throw 0;
       if(kind==='feed')renderFeed(r.top);else renderHall(r.top,kind);}
     catch(e){netFail($('#lblist'),()=>fetchHall(kind))}};
-  const fetchDay=async(day,fmt,mode)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
-    try{const r=await lbSend({action:'dmtop',board:'zmq',day:String(day)});
+  const fetchDay=async(day,fmt,mode,board)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+    try{const r=await lbSend({action:'dmtop',board:board||'zmq',day:String(day)});
       if(!r||!Array.isArray(r.top))throw 0;
       render(r.top,fmt,mode);}
-    catch(e){netFail($('#lblist'),()=>fetchDay(day,fmt,mode))} };
+    catch(e){netFail($('#lblist'),()=>fetchDay(day,fmt,mode,board))} };
   // —— 课堂榜：周选择 + 三榜(荣耀/战力/财富)子选择；旧格式周回退纯皇冠 ——
   let curCat=0;
   const v2has=w=>getClassWeeksV2().indexOf(w)>=0;
@@ -6443,7 +6479,7 @@ async function showLbHall(){
       if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
       if(cap)cap.textContent='群英擂台 · 影军战胜场积分 · 本周赛季';
       try{if(loadArena().score>0)submitArena()}catch(e){} // 看榜顺手补交本周分:治"最后一胜提交失败=周界丢分"(幂等,后端取max)
-      fetchDay(weekKey(),FMT.arena,'arena');
+      fetchDay(weekKey(),FMT.arena,'arena',ARENA_BOARD);
     }else{ if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
       if(cap)cap.textContent='单人试炼 · 通过关数 · 全球纪录'; fetchDay(d,FMT.solo); }
   };
