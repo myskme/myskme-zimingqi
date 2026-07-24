@@ -765,3 +765,18 @@ Claude 未改动 index.html 与任何视觉意图,本次仅追加此回执。下
 - 归档前先 `git ls-files` 查权威归档位，否则重复提交整套母版（0722 已栽一次）。
 
 **给 Codex**：本轮 Claude 只加页面与接线，`assets/canonical-fill-20260724/` 原样保留未改一个像素；`moments.html` / `relics.html` 的分组数组（`MOMENTS` / `RELICS` / `CRESTS`）是策展数据，视觉可改、字段名别断。
+
+### 2026-07-24 · Claude · 存量激活批(全生态美术审计副产品·零新出图)
+
+一轮全生态美术零库存审计(7路盘家底×4视角提案×3审计员对抗验)的副产品:发现一批**图已画好/已交付、只是没接线**的存量。全部纯代码/纯数据接线,**不叫 Codex、不出一张新图**。
+
+**做了 3 件(都已上线/验证):**
+1. **characters.json 补 8 条 card_sp**(duo/han/yang/rong/wei/xiao/xin/majun):cards_sp/ 本就 33 张全在,数据层只登记 25 条 → 8 张 SP 成品卡在下游(图册/图鉴按 card_sp 取图)隐形。两份副本(素材包+hq)同步、canon-check 确定错误 0。commit 53dded6 / bf8c693。
+2. **无月图册 v1.3→v1.4「典藏卡廊」**:此前只嵌 base 卡、33 SP 零露出。卷末新增满幅暗场(--night 夜色),33 张 SP 觉醒卡(自带名/称号/数值),承接封面「每一页配一张脸」。genalbum.mjs 加 SP_IMG 加载(380px/q78 兼顾弱网)+.spgal 段。2.6M→4.1M,线上验完整 4165KB。chronicle commit 895d526。
+3. **世界站首页「字→脸揭晓」**:index.html 的 `.cc-glyph.filled img.portrait-fill` 揭晓机制早已在 CSS 里、但 `.filled` 从没被任何 JS 触发,portraits/ 33 张透明立绘全生态零露出。补:30 张首页卡注入 portrait-fill(素材包立绘头肩胸方裁·alpha bbox 定位保兽耳·160²透明webp·456K),新增 CSS 桌面悬停揭晓+触屏(hover:none)显脸。chronicle commit 2ac4f3c。
+
+**没做 1 件(审计过度声称,记录以免重复纠结):** 远征录"漏进仓库的母版"(ui_btn_merge/hud_bag/hud_dash/hud_flask/rw_blindbox_open/rw_merge_1~11)——逐个核实全是**设计决定**非漏接线:merge 方块故意改纯数字(代码注释「旧头像贴片 mergeIcon/MERGE_FACE 已移除」)、HUD 三键已用 skill_wolfdash/skill_warm/ui_btn_inventory 图标化、盲盒已用 rw_gamble_bag。照搬会帮倒忙。
+
+**给 Codex:** 本批零美术改动,全是 Claude 侧数据/接线。表现层若日后要动 chronicle 首页/图册,注意①首页 30 卡已带 portrait-fill+filled揭晓机制②图册 genalbum.mjs 加了 SP_IMG/.spgal 段(生成不手改)。当前在跑的是**规格单④正典舆图(28件)**——王老师已发 Codex,进行中,交付后 Claude 验收接线。
+
+**方法论沉淀:** ①"缺口"先分清"没图"vs"有图没接线"vs"故意不接"——审计易把后两者误报成缺口。②9.4M 单文件截图不可靠→建同 CSS 隔离预览页验视觉;弱网整下不动→用同 commit 的新资产(jin.webp 200)证部署。③头肩裁剪从 alpha bbox 顶部起,保住兽耳/头饰(正典锚点)。
