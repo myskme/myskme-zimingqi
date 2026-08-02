@@ -4734,7 +4734,7 @@ function runSelftest(){
    function stubUI(){const o={renderDraft,go,hud,save,toast,play:SFX.play};
      renderDraft=()=>{};go=()=>{};hud=()=>{};save=()=>{};toast=()=>{};SFX.play=()=>{};
      return ()=>{renderDraft=o.renderDraft;go=o.go;hud=o.hud;save=o.save;toast=o.toast;SFX.play=o.play};}
-   ok('验收: 影军网络用 LB_URL(不存在 LB_API)', typeof LB_URL==='string'&&LB_URL.indexOf('workers.dev')>0
+   ok('验收: 影军网络走品牌网关 LB_URL(不存在 LB_API)', LB_URL==='https://play.myskme.com/api/game'
      &&/fetch\(LB_URL,[^)]*gpull/.test(ghostPull.toString())&&/fetch\(LB_URL,[^)]*gpush/.test(ghostPush.toString()));
    ok('验收: 影军池是模块级(不进 S/不进存档,撤销抹不掉)', (()=>{const _s=newState(['x'],3,0,false);
      return _s.ghostPool===undefined&&/[^.]_ghostPool=/.test(ghostPull.toString())})());
@@ -6228,7 +6228,8 @@ function soloResolve(result,A,B){
   hud();save();
 }
 /* —— 世界回廊（单人试炼在线榜）：严格渐进增强——离线/file:// 一切照旧，fetch 全部只活在点击 handler 里 —— */
-const LB_URL='https://myskme-game-api.wzc1020.workers.dev'; // 2026-07-12 课堂榜后端迁 Cloudflare Worker+D1（原 Netlify 函数）
+// 品牌网关固定转发到原 game Worker+D1；不迁库、不双写，客户端不再直连 workers.dev。
+const LB_URL='https://play.myskme.com/api/game';
 const LB_ON=location.protocol==='http:'||location.protocol==='https:';
 function lbId(){try{let v=localStorage.getItem('zmq_lbid');
   if(!v){v='z_'+Math.random().toString(36).slice(2,10);localStorage.setItem('zmq_lbid',v)}return v}catch(e){return 'z_anon'}}
@@ -6374,7 +6375,7 @@ async function classUpload(roster,pass,onProg){
 function classUploadPrompt(roster){
   if(!LB_ON){toast('离线模式不能上传');return}
   modal(`<h3>上传课堂榜</h3>
-    <p style="text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.05em;line-height:1.65">本局 <b style="color:var(--gold2)">${roster.length}</b> 位学生的王座分将同步到「世界回廊 · 课堂榜」。<br>只有输入老师密码才能上传（防学生私自刷分）。</p>
+    <p style="text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.05em;line-height:1.65">本局 <b style="color:var(--gold2)">${roster.length}</b> 位学生的名称、王座分与军团摘要将经 play.myskme.com 加密转发到原「世界回廊 · 课堂榜」。<br>只有输入老师密码才能上传（防学生私自刷分）。</p>
     <input id="cls-pass" type="password" autocomplete="off" placeholder="老师密码" style="width:100%;box-sizing:border-box;margin:10px 0 4px;padding:11px 14px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-family:var(--serif);letter-spacing:.14em;font-size:15px;text-align:center">
     <div class="btnrow"><button class="btn gold" id="cls-go">上 传</button></div>
     <div id="cls-msg" style="text-align:center;font-size:12.5px;min-height:20px;margin-top:6px"></div>`);
@@ -6402,6 +6403,7 @@ async function showLbHall(){
   const tab=(d,label)=>`<button class="btn mini lbtab" data-d="${d}">${label}</button>`;
   modal(`<h3>世界回廊</h3>
     <p id="lb-cap" style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">单人试炼 · 通过关数 · 全球纪录</p>
+    <p style="text-align:center;color:var(--ink3);font-size:11px;line-height:1.55;margin:4px 0 8px">化名、榜单身份、成绩与军团摘要经 play.myskme.com 加密转发到原榜单服务。</p>
     <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(7,uiIcon('state-shadow-echo')+'擂台榜')+tab(3,'课堂榜')+tab(4,'名匠·人物')+tab(5,'名匠·宝物')+tab(6,'绝品实录')}</div>
     <div id="lb-cats" class="btnrow" style="display:none;margin:0 0 6px;flex-wrap:wrap;gap:6px"></div>
     <div id="lb-days" class="btnrow" style="display:none;margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
@@ -6977,6 +6979,7 @@ function showLbSync(){ // 世界榜同步 + 设备迁移面板(菜单入口;仅�
   const ta='width:100%;box-sizing:border-box;background:rgba(6,10,14,.82);border:1px solid var(--line2);color:var(--ink2);font:11.5px ui-monospace,Menlo,monospace;padding:8px;letter-spacing:.02em;resize:none;border-radius:2px';
   modal(`<h3>世界榜同步 · 设备迁移</h3>
     <p style="text-align:center;color:var(--ink3);font-size:12.5px;line-height:1.75">本机单人最佳：${rows}${pend?`<br><span style="color:var(--gold2)">还有 ${pend} 条成绩没传上——联网后自动补</span>`:''}</p>
+    <p style="text-align:center;color:var(--ink3);font-size:11px;line-height:1.55">化名、榜单身份、成绩与军团摘要经 play.myskme.com 加密转发；原数据库不迁移、不双写。</p>
     <div class="btnrow" style="justify-content:center;margin:2px 0 6px"><button class="btn gold" id="lbs-up">立即上传世界榜 · 补传本机最佳</button></div>
     <p id="lbs-msg" style="text-align:center;font-size:12px;min-height:1.2em;letter-spacing:.03em"></p>
     <div style="width:80%;height:1px;background:var(--line2);margin:6px auto 12px"></div>
