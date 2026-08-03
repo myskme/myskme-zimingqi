@@ -4734,7 +4734,7 @@ function runSelftest(){
    function stubUI(){const o={renderDraft,go,hud,save,toast,play:SFX.play};
      renderDraft=()=>{};go=()=>{};hud=()=>{};save=()=>{};toast=()=>{};SFX.play=()=>{};
      return ()=>{renderDraft=o.renderDraft;go=o.go;hud=o.hud;save=o.save;toast=o.toast;SFX.play=o.play};}
-   ok('验收: 影军网络走品牌网关 LB_URL(不存在 LB_API)', LB_URL==='https://play.myskme.com/api/game'
+   ok('验收: 影军网络走品牌网关 LB_URL(不存在 LB_API)', LB_URL==='https://myskme.com/api/game'
      &&/fetch\(LB_URL,[^)]*gpull/.test(ghostPull.toString())&&/fetch\(LB_URL,[^)]*gpush/.test(ghostPush.toString()));
    ok('验收: 影军池是模块级(不进 S/不进存档,撤销抹不掉)', (()=>{const _s=newState(['x'],3,0,false);
      return _s.ghostPool===undefined&&/[^.]_ghostPool=/.test(ghostPull.toString())})());
@@ -6229,7 +6229,7 @@ function soloResolve(result,A,B){
 }
 /* —— 世界回廊（单人试炼在线榜）：严格渐进增强——离线/file:// 一切照旧，fetch 全部只活在点击 handler 里 —— */
 // 品牌网关固定转发到原 game Worker+D1；不迁库、不双写，客户端不再直连 workers.dev。
-const LB_URL='https://play.myskme.com/api/game';
+const LB_URL='https://myskme.com/api/game';
 const LB_ON=location.protocol==='http:'||location.protocol==='https:';
 function lbId(){try{let v=localStorage.getItem('zmq_lbid');
   if(!v){v='z_'+Math.random().toString(36).slice(2,10);localStorage.setItem('zmq_lbid',v)}return v}catch(e){return 'z_anon'}}

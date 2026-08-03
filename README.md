@@ -51,7 +51,7 @@ MYSKME × 英语王老师（Mr. Wang）· **课堂肉鸽自走棋** —— 单�
 ## 技术
 
 纯 HTML/CSS/JS、零依赖，核心课堂玩法可完全离线；只有世界回廊、影军与课堂榜在用户主动使用时联网。
-联网统一走 `https://play.myskme.com/api/game` 品牌网关，再固定转发到原
+联网统一走 `https://myskme.com/api/game` 品牌网关，再固定转发到原
 Cloudflare Worker + D1；不迁库、不双写。战斗演算核心为纯函数
 （`/*SIM-BEGIN*/`…`/*SIM-END*/` 标记段），可脱离 DOM 单测。
 
