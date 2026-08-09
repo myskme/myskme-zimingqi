@@ -6,6 +6,10 @@
     "playwright": "^1.48.0"
   },
   "scripts": {
-    "selftest": "node selftest.mjs"
+    "selftest": "node selftest.mjs",
+    "selftest:deadsave": "node selftest-deadsave.mjs",
+    "selftest:pwa": "node tools/selftest-pwa.mjs",
+    "verify:release": "node tools/verify-release.mjs",
+    "build:edgeone": "node tools/build-edgeone-package.mjs"
   }
 }

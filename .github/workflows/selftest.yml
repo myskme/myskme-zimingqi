@@ -8,6 +8,13 @@ on:
     paths:
       - 'index.html'
       - 'selftest.mjs'
+      - 'selftest-deadsave.mjs'
+      - 'manifest.webmanifest'
+      - 'sw.js'
+      - 'edgeone.json'
+      - 'tools/verify-release.mjs'
+      - 'tools/selftest-pwa.mjs'
+      - 'assets/pwa-20260809/**'
   workflow_dispatch: {}
 
 jobs:
@@ -22,3 +29,9 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - name: 跑 #selftest（自动读取总数 · 挂了就失败）
         run: node selftest.mjs
+      - name: 验证命脉耗尽旧档不能复活重打
+        run: node selftest-deadsave.mjs
+      - name: 验证 PWA 在线接管与离线重开
+        run: node tools/selftest-pwa.mjs
+      - name: 校验 PWA、域名与网络边界
+        run: node tools/verify-release.mjs

@@ -1,0 +1,61 @@
+name: 自鸣棋 · EdgeOne 发布包
+
+# 默认只打包，不自动上线。正式发布必须手动触发并明确选择 deploy=true。
+on:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: '确认发布到 zimingqi.myskme.com'
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-zimingqi-edgeone
+  cancel-in-progress: false
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 自检发布边界
+        run: node tools/verify-release.mjs
+      - name: 构建 EdgeOne 直传包
+        run: |
+          node tools/build-edgeone-package.mjs /tmp/zimingqi-edgeone.zip
+          unzip -tq /tmp/zimingqi-edgeone.zip
+      - name: 检查部署凭证
+        id: token
+        run: echo "have=${{ secrets.EDGEONE_API_TOKEN != '' }}" >> "$GITHUB_OUTPUT"
+      - name: 发布到 zimingqi.myskme.com
+        if: inputs.deploy && steps.token.outputs.have == 'true'
+        run: |
+          npm install -g edgeone
+          edgeone makers deploy /tmp/zimingqi-edgeone.zip -n myskme-zimingqi -t "$EDGEONE_API_TOKEN"
+        env:
+          EDGEONE_API_TOKEN: ${{ secrets.EDGEONE_API_TOKEN }}
+      - name: 线上冒烟
+        if: inputs.deploy && steps.token.outputs.have == 'true'
+        run: |
+          sleep 20
+          code=$(curl -s -o /dev/null -w '%{http_code}' -m 30 https://zimingqi.myskme.com/)
+          echo "首页 HTTP $code"
+          test "$code" = "200"
+      - name: 缺少凭证时阻止假发布
+        if: inputs.deploy && steps.token.outputs.have != 'true'
+        run: |
+          echo "::error::选择了 deploy=true，但仓库没有 EDGEONE_API_TOKEN。"
+          exit 1
+      - name: 保存发布包
+        uses: actions/upload-artifact@v4
+        with:
+          name: zimingqi-edgeone-zip
+          path: /tmp/zimingqi-edgeone.zip
+          retention-days: 14

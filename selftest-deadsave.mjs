@@ -3,8 +3,9 @@
 import { chromium } from 'playwright';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
 
-const ROOT = process.argv[2];
+const ROOT = resolve(process.argv[2] || '.');
 const server = createServer(async (req, res) => {
   try {
     const p = decodeURIComponent(req.url.split('?')[0].split('#')[0]);
@@ -15,7 +16,7 @@ const server = createServer(async (req, res) => {
 await new Promise(r => server.listen(0, r));
 const url = `http://localhost:${server.address().port}/index.html`;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined});
 const page = await browser.newPage();
 page.on('pageerror', e => console.log('   [pageerror]', String(e).slice(0, 120)));
 await page.route('**/*', r => (/workers\.dev/.test(r.request().url()) ? r.abort() : r.continue()));
@@ -66,7 +67,11 @@ const routed = await page.evaluate(() => {
 console.log('  存档里的 phase:', state.savedPhase);
 console.log('  resumePhase 路由到:', routed.join(', ') || '(无)');
 const revived = routed.some(x => x.includes('soloPreBattle'));
-console.log(revived ? '  ❌ 死档被复活：又回到开战屏，可无限重打' : '  ✅ 死档直走结算，不能重打');
+const settled = routed.some(x => x === 'soloEnd(false)');
+const broken = routed.some(x => x.startsWith('ERR:'));
+console.log(revived ? '  ❌ 死档被复活：又回到开战屏，可无限重打'
+  : settled && !broken ? '  ✅ 死档直走结算，不能重打'
+  : '  ❌ 专项测试未命中明确结算路径');
 
 await browser.close(); server.close();
-process.exit(revived ? 1 : 0);
+process.exit(revived || broken || !settled ? 1 : 0);
