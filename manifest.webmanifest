@@ -1,7 +1,7 @@
 {
-  "name": "自鸣棋 · 课堂肉鸽自走棋",
+  "name": "自鸣棋 · 神秘策略肉鸽自走棋",
   "short_name": "自鸣棋",
-  "description": "狼先生与学生们的课堂肉鸽自走棋。离线可玩，自动保存，成绩支持断网补传。",
+  "description": "年轻但不幼稚的神秘策略肉鸽自走棋。离线可玩，真实回响战书，成绩支持断网补传。",
   "lang": "zh-CN",
   "id": "./",
   "start_url": "./",
@@ -10,7 +10,7 @@
   "orientation": "any",
   "background_color": "#071118",
   "theme_color": "#071118",
-  "categories": ["games", "education"],
+  "categories": ["games", "strategy", "education"],
   "icons": [
     {
       "src": "assets/pwa-20260809/app-icon-192.png",
@@ -23,6 +23,12 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any"
+    },
+    {
+      "src": "assets/pwa-20260809/app-icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }

@@ -17,7 +17,7 @@ const server = createServer(async (req, res) => {
 await new Promise(r => server.listen(0, r));
 const port = server.address().port;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined});
 const page = await browser.newPage();
 let title = '';
 try {

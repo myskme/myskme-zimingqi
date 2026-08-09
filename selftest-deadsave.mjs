@@ -16,7 +16,7 @@ const server = createServer(async (req, res) => {
 await new Promise(r => server.listen(0, r));
 const url = `http://localhost:${server.address().port}/index.html`;
 
-const browser = await chromium.launch();
+const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined});
 const page = await browser.newPage();
 page.on('pageerror', e => console.log('   [pageerror]', String(e).slice(0, 120)));
 await page.route('**/*', r => (/workers\.dev/.test(r.request().url()) ? r.abort() : r.continue()));

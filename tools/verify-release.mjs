@@ -16,6 +16,9 @@ ok('榜单普通 POST 不触发 JSON 预检',!html.includes("headers:{'Content-T
 ok('首访不预热全部单位立绘',!html.includes('UNITS.forEach(x=>{const u=artURL(x.id)'));
 ok('PWA 注册',html.includes("navigator.serviceWorker.register('./sw.js'"));
 ok('PWA 独立显示',manifest.display==='standalone'&&manifest.start_url==='./');
+ok('真实回响分享闭环',html.includes("const SHARE_URL='https://zimingqi.myskme.com/'")&&html.includes('function echoParse')&&html.includes('navigator.share'));
+ok('榜单不填充虚拟玩家',html.includes('NO FABRICATED PLAYERS')&&html.includes("SIM_GHOST_NAMES=['回廊守卫 · 系统局']"));
+ok('战报二维码不再指向旧 Pages',!html.includes('29×29 → https://myskme.github.io/myskme-zimingqi/'));
 ok('SW 不缓存非 GET',sw.includes("if(request.method!=='GET')return"));
 ok('SW 排除跨域与 API',sw.includes("url.origin!==self.location.origin||url.pathname.startsWith('/api/')"));
 ok('SW 导航 4.5 秒超时回落',sw.includes('setTimeout(()=>controller.abort(),4500)'));
@@ -25,7 +28,12 @@ for(const path of [
   'assets/pwa-20260809/app-icon-192.png',
   'assets/pwa-20260809/app-icon-512.png',
   'assets/pwa-20260809/apple-touch-icon.png',
-  'assets/pwa-20260809/favicon-64.png'
+  'assets/pwa-20260809/favicon-64.png',
+  'assets/platform-20260809/app-icon-master-1024.png',
+  'assets/platform-20260809/ios/AppIcon.appiconset/AppIcon-1024.png',
+  'assets/platform-20260809/wechat/game-icon-512.png',
+  'assets/platform-20260809/wechat/share-card-5x4.png',
+  'assets/platform-20260809/marketing/og-cover-1200x630.png'
 ]){
   const info=await stat(new URL('../'+path,import.meta.url));
   ok(path,info.isFile()&&info.size>1024);

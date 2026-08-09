@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>MYSKME自鸣棋 · 课堂肉鸽自走棋</title>
+<title>MYSKME自鸣棋 · 神秘策略肉鸽自走棋</title>
 <meta name="theme-color" content="#071118">
 <meta name="color-scheme" content="dark">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -166,10 +166,9 @@ body.playing #hud{display:flex}
   filter:drop-shadow(0 0 14px rgba(201,166,74,.3))}
 @media(max-width:760px){.brand-seal{width:56px;top:2px;right:2px}}
 .title-mark{width:76px;height:76px;margin:0 auto 22px;border:1px solid var(--gold);position:relative;
-  display:flex;align-items:center;justify-content:center;
-  background:radial-gradient(ellipse at center,rgba(201,166,74,.14),transparent 70%)}
-.title-mark::before{content:'';position:absolute;inset:6px;border:1px dashed var(--gold3);transform:rotate(45deg)}
-.title-mark span{font-size:38px;color:var(--gold);text-shadow:0 0 26px rgba(201,166,74,.5)}
+  display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:18%;
+  background:#071118;box-shadow:0 16px 46px rgba(0,0,0,.38),0 0 0 1px rgba(232,199,104,.18)}
+.title-mark img{width:100%;height:100%;display:block;object-fit:cover}
 .title-hero{font-size:clamp(40px,7vw,84px);font-weight:300;letter-spacing:.2em;margin-left:.2em;
   animation:titleIn 1.4s cubic-bezier(.16,1,.3,1) both}
 .title-hero em{font-style:normal;color:var(--gold);font-weight:500}
@@ -197,6 +196,15 @@ body.playing #hud{display:flex}
 .entry-solo::before{content:'推荐 · 一个人也能玩';position:absolute;top:-11px;left:50%;transform:translateX(-50%);
   font-size:10px;letter-spacing:.2em;color:#1a150d;background:var(--gold);padding:2px 13px;white-space:nowrap}
 .entry-solo:hover{box-shadow:0 0 0 1px rgba(201,166,74,.3) inset,var(--glow-gold)}
+.echo-invite{display:block;width:min(580px,100%);margin:18px auto 2px;padding:13px 18px;cursor:pointer;
+  color:var(--ink);font-family:var(--serif);text-align:left;border:1px solid rgba(95,184,165,.48);
+  background:linear-gradient(96deg,rgba(4,11,15,.94),rgba(16,42,43,.66));position:relative;overflow:hidden}
+.echo-invite[hidden]{display:none}.echo-invite::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--teal)}
+.echo-invite small{display:block;color:var(--teal);font:10px/1.4 var(--mono);letter-spacing:.24em;text-transform:uppercase}
+.echo-invite b{display:block;margin-top:4px;font-size:15px;letter-spacing:.08em;font-weight:500}
+.echo-invite i{display:block;margin-top:3px;color:var(--ink3);font-style:normal;font-size:11.5px;letter-spacing:.04em}
+.echo-invite:hover{border-color:var(--gold);box-shadow:0 0 28px rgba(95,184,165,.13)}
+.echo-invite:not([hidden])+.entry-row{margin-top:20px}
 @media(max-width:620px){.entry{min-width:0;flex:1 1 42%;padding:16px 12px 13px}
   .entry .entry-t{font-size:18px}.entry .entry-d{font-size:10.5px}
   .entry-solo::before{font-size:9px;letter-spacing:.1em}}
@@ -865,6 +873,13 @@ body.arok .av-reliquary-frame{display:block}
 #report-wrap{margin:26px auto 0;max-width:520px}
 #report-canvas{width:100%;border:1px solid var(--line);box-shadow:0 12px 44px rgba(0,0,0,.5)}
 
+/* 世界回廊：只用真实成绩制造神秘感；空榜以个人门槛承接，不填充虚拟玩家。 */
+.echo-rail{padding:13px 14px;border-bottom:1px solid rgba(95,184,165,.2);background:linear-gradient(105deg,rgba(6,14,18,.96),rgba(16,42,43,.38));text-align:left}
+.echo-rail small{display:block;color:var(--teal);font:10px/1.4 var(--mono);letter-spacing:.22em}
+.echo-rail b{display:block;margin-top:4px;color:var(--ink);font-size:14px;letter-spacing:.08em;font-weight:500}
+.echo-rail span{display:block;margin-top:4px;color:var(--ink3);font-size:11.5px;line-height:1.55}
+.echo-rail.has-rival{cursor:pointer}.echo-rail.has-rival:hover{background:linear-gradient(105deg,rgba(9,21,25,.98),rgba(26,54,49,.48))}
+
 /* ============ 点名星盘 v3（20260719 重做:罗盘刻度环+星屑双层+印章水印+金针巡指+光晕落定,黑金编年史） ============
    全班名牌围成星盘环(带 答N/未答 章=加权透明化),金针随巡光转动减速,落定者金光绽放+冲击波+印章编钟。
    抢答位可开关(zmq_wheel_all,默认开):关=每次只点一人。装饰全程序化零资产。 */
@@ -1253,13 +1268,14 @@ body.uok .uf-seal{display:block;width:54px;height:54px;margin:14px auto 2px;opac
   #title-kv{aspect-ratio:16/8.2;margin:0 0 10px}
   #title-kv img{object-position:38% center}
   #scr-title .title-mark{width:44px;height:44px;margin:0 auto 8px}
-  #scr-title .title-mark img{width:34px;height:34px}
+  #scr-title .title-mark img{width:100%;height:100%}
   #scr-title .title-hero{font-size:40px;line-height:1.08}
   #scr-title .title-sub{font-size:10.5px;letter-spacing:.13em;line-height:1.55;margin:7px 0 3px}
   #scr-title .title-quote{font-size:10.5px;line-height:1.5;letter-spacing:.04em;margin-bottom:14px}
   .title-trust{gap:5px;margin:-4px 0 14px;font-size:9.5px;letter-spacing:.02em}
   .title-trust span{padding:3px 6px}
   #scr-title .entry-row{gap:8px;margin-top:0;flex-wrap:nowrap}
+  #scr-title .echo-invite:not([hidden])+.entry-row{margin-top:18px}
   #scr-title .entry{min-height:86px;padding:14px 8px 10px}
   #scr-title .entry .entry-t{font-size:17px;letter-spacing:.1em}
   #scr-title .entry .entry-d{font-size:9.5px;line-height:1.35}
@@ -1304,18 +1320,19 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
   .title-foot{margin-top:4vh}
 }
 @media (orientation:landscape) and (max-height:900px) and (min-width:820px){
+  main:has(#scr-title.on .echo-invite:not([hidden])){padding-top:0;padding-bottom:0}
   #scr-title.on:has(#title-kv.show){
     display:grid;grid-template-columns:minmax(0,1fr) minmax(500px,540px);
-    grid-template-areas:"kv mark" "kv hero" "kv sub" "kv quote" "kv trust" "kv entry" "kv btns" "foot foot";
+    grid-template-areas:"kv mark" "kv hero" "kv sub" "kv quote" "kv trust" "kv echo" "kv entry" "kv btns" "foot foot";
     /* 容器要先撑满可视高，align-content:center 才有得居中（否则内容贴顶、底下一片空） */
     min-height:calc(100dvh - 96px);align-content:center;gap:0 36px;padding-top:max(2vh,var(--sat))}
   #scr-title.on:has(#title-kv.show) #title-kv{grid-area:kv;align-self:center;max-width:none;width:100%;margin:0}
   #scr-title.on:has(#title-kv.show) .title-mark{grid-area:mark;width:56px;height:56px;margin-bottom:10px}
-  #scr-title.on:has(#title-kv.show) .title-mark span{font-size:28px}
   #scr-title.on:has(#title-kv.show) .title-hero{grid-area:hero;font-size:clamp(40px,4.6vw,64px)}
   #scr-title.on:has(#title-kv.show) .title-sub{grid-area:sub}
   #scr-title.on:has(#title-kv.show) .title-quote{grid-area:quote;margin-bottom:0}
   #scr-title.on:has(#title-kv.show) .title-trust{grid-area:trust;margin:8px 0 0}
+  #scr-title.on:has(#title-kv.show) .echo-invite{grid-area:echo;margin:10px 0 0;width:100%;padding-block:10px}
   #scr-title.on:has(#title-kv.show) .entry-row{grid-area:entry;margin-top:20px}
   #scr-title.on:has(#title-kv.show) .btnrow{grid-area:btns}
   #scr-title.on:has(#title-kv.show) .title-foot{grid-area:foot;margin-top:3vh}
@@ -1358,7 +1375,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 #modal-box details .dbody{padding:10px 16px 14px}
 /* 标题主按钮常亮，不用无限呼吸动画；把持续合成预算留给战斗反馈。 */
 #scr-title .btn.gold.big{box-shadow:0 0 18px rgba(201,166,74,.3);border-color:var(--gold2)}
-.title-mark img{width:54px;height:54px;display:block;filter:drop-shadow(0 0 10px rgba(201,166,74,.4))}
+.title-mark img{width:100%;height:100%;display:block;filter:drop-shadow(0 0 10px rgba(201,166,74,.28))}
 /* 视觉侧收官：减少动态效果覆盖所有主表面。短暂的无位移淡显型 VFX 继续走各自 rm 分支。 */
 @media (prefers-reduced-motion:reduce){
   body,#clouds::after,#scene img,#event-inner,.bar i,.u,.u .hpb i,#life-vignette,#toast,
@@ -1393,9 +1410,9 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){#scr-wave .float-num{display:none!important}}
 </style>
 
-<meta name="description" content="课堂肉鸽自走棋，单文件离线网页，扫码即玩。MYSKME × 王老师。">
-<meta property="og:title" content="自鸣棋 · MYSKME 课堂肉鸽自走棋">
-<meta property="og:description" content="课堂肉鸽自走棋，单文件离线网页，扫码即玩。MYSKME × 王老师。">
+<meta name="description" content="年轻但不幼稚的神秘策略肉鸽自走棋。单人闯关、真实回响战书、离线可玩。MYSKME × 王老师。">
+<meta property="og:title" content="自鸣棋 · MYSKME 神秘策略肉鸽自走棋">
+<meta property="og:description" content="一枚棋子，一支军团，一封来自真实玩家的回响战书。离线可玩，扫码即战。">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://zimingqi.myskme.com/">
 <meta property="og:image" content="https://zimingqi.myskme.com/og-cover.png">
@@ -1421,11 +1438,12 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
   <!-- 标题 -->
   <section class="scr on" id="scr-title">
     <div id="title-kv"><img alt=""></div>
-    <div class="title-mark" id="title-mark"><span>鸣</span></div>
+    <div class="title-mark" id="title-mark"><img src="assets/pwa-20260809/app-icon-192.png" alt="自鸣棋黑曜石棋子图标" width="76" height="76"></div>
     <h1 class="title-hero">自<em>鸣</em>棋</h1>
-    <p class="title-sub">MYSKME · 课堂肉鸽自走棋 · 狼先生与他的学生们</p>
+    <p class="title-sub">MYSKME · 神秘策略肉鸽自走棋 · 狼先生与他的学生们</p>
     <p class="title-quote">「拒绝一切死板的教条。世界值得有趣地活一次。」</p>
     <p class="title-trust" aria-label="游戏特性"><span>离线可玩</span><span>自动保存</span><span>成绩断网补传</span></p>
+    <button class="echo-invite" id="echo-invite" hidden><small>REAL ECHO · 真实回响</small><b id="echo-invite-title">收到一封棋局战书</b><i id="echo-invite-meta"></i></button>
     <div class="entry-row">
       <button class="entry entry-solo" id="btn-solo">
         <span class="entry-t">单人闯关</span>
@@ -1581,7 +1599,8 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
     <div id="podium"></div>
     <div id="report-wrap"><canvas id="report-canvas" width="1000" height="1400"></canvas></div>
     <div class="btnrow">
-      <button class="btn gold ritual-key" id="btn-save-report"><span class="mi-slot" data-ui-icon="action-save"></span>保存战报卡 PNG</button>
+      <button class="btn gold ritual-key" id="btn-share-report"><span class="mi-slot" data-ui-icon="state-shadow-echo"></span>发出回响战书</button>
+      <button class="btn ritual-key" id="btn-save-report"><span class="mi-slot" data-ui-icon="action-save"></span>保存战报卡 PNG</button>
       <button class="btn ritual-key" id="btn-classup" style="display:none"><span class="mi-slot" data-ui-icon="score-throne"></span>上传课堂榜</button>
       <button class="btn ritual-key" id="btn-again"><span class="mi-slot" data-ui-icon="action-refresh"></span>再来一局</button>
     </div>
@@ -4129,6 +4148,13 @@ function runSelftest(){
      return pf.indexOf('S.revengeTargetKey')>0                            // 指定目标优先
        && sr.indexOf('S.revengeTargetKey=rivalKey')>0 && sr.indexOf('startOriginDraft')>0  // 锁定+开局
        && sv.indexOf('textContent')>0})());                              // 名字 textContent 注入防 XSS
+   ok('真实回响战书:紧凑链接往返 · 外链军团白名单/星级钳制 · 第4关前拒绝 · 不写虚拟玩家榜', (()=>{
+     const raw=b64uEncode(JSON.stringify({v:1,n:'棋手甲',d:9,c:8,a:[['lin',9],['not-real',2]]})),p=echoParse(raw);
+     if(!p||p.name!=='棋手甲'||p.difficulty!==2||p.cleared!==8||p.army.length!==1||p.army[0].star!==3)return false;
+     if(echoParse(b64uEncode(JSON.stringify({v:1,n:'甲',d:1,c:3,a:[['lin',1]]})))!==null)return false;
+     const src=showLbHall.toString();
+     return startEchoChallenge.toString().indexOf('S.sharedRival')>0&&pickRivalFoe.toString().indexOf('S.sharedRival')>0
+       &&src.indexOf('零虚拟玩家')>0&&src.indexOf('真实推荐')>0;})());
    ok('群英擂台:胜分加权(深关×高难×复仇1.5)· 走独立 board=arena(不撞课堂榜密码门)· 斩影/提交/页签 接线', (()=>{
      if(arenaWinScore(4,0,false)!==4||arenaWinScore(7,2,false)!==21||arenaWinScore(4,0,true)!==6)return false; // 加权公式
      // ⚠ 这条断言原来钉的是错的后端契约(「纯周号→免密」),于是擂台上传一路 403 却全绿半年。
@@ -4142,10 +4168,10 @@ function runSelftest(){
        && aps.indexOf('pendPush')>0                                          // 0723 弱网加固:失败进 pendFlush 队列联网自愈(不再只记标记)
        && sh.indexOf('d===7')>0 && sh.indexOf('FMT.arena')>0
        && sh.indexOf('ARENA_BOARD')>0})());                                  // 读榜也走同一个 board,不然写进去也看不见
-   ok('影军保底+段位:injectGhost 第3级 AI 影卫(池空也有影军战·round>=3) · 段位阶梯单调', (()=>{
+   ok('影军保底+段位:池空只用明示系统守关局(不塑造虚拟人) · 段位阶梯单调', (()=>{
      const ig=injectGhost.toString();
      if(ig.indexOf('SIM_GHOST_NAMES')<0||ig.indexOf('sim:true')<0||ig.indexOf('round>=3')<0)return false; // AI 保底第3级
-     if(SIM_GHOST_NAMES.length<5)return false;
+     if(SIM_GHOST_NAMES.length!==1||SIM_GHOST_NAMES[0].indexOf('系统局')<0)return false;
      if(arenaTier(0).name!=='初阵'||arenaTier(59).name!=='初阵'||arenaTier(60).name!=='露锋'||arenaTier(99999).name!=='无双')return false; // 阈值
      for(let i=1;i<ARENA_TIERS.length;i++)if(ARENA_TIERS[i][0]<=ARENA_TIERS[i-1][0])return false; // 阈值单调递增
      return showRoster.toString().indexOf('arenaTier')>0})());                // 名册显示段位
@@ -5752,6 +5778,44 @@ function ghostToFoe(g){ // 纯函数,#selftest 可测:校验+映射影军army→
   const out=[];g.army.slice(0,6).forEach((u,i)=>{if(u&&UMAP[u.id])out.push({uid:'gh'+i+'_'+u.id,id:u.id,star:Math.max(1,Math.min(3,(u.star|0)||1)),gAtk:0,gHp:0})});
   return out.length?out:null;
 }
+/* ============ 回响战书：真实玩家把本局军团装进链接，零登录、零新增后端 ============ */
+const SHARE_URL='https://zimingqi.myskme.com/';
+function b64uEncode(s){const bytes=new TextEncoder().encode(String(s)),parts=[];for(let i=0;i<bytes.length;i+=8192)parts.push(String.fromCharCode(...bytes.subarray(i,i+8192)));return btoa(parts.join('')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
+function b64uDecode(s){const bin=atob(String(s).replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(String(s).length/4)*4,'=')),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
+function echoParse(raw){ // 外链不可信：限长、版本、难度、深度、单位白名单、星级全部重验
+  try{
+    if(!raw||String(raw).length>1400)return null;
+    const p=JSON.parse(b64uDecode(raw));if(!p||p.v!==1||!Array.isArray(p.a))return null;
+    const army=p.a.slice(0,6).map(x=>Array.isArray(x)?{id:String(x[0]||''),star:Math.max(1,Math.min(3,(x[1]|0)||1))}:null).filter(x=>x&&UMAP[x.id]);
+    const difficulty=Math.max(0,Math.min(2,p.d|0)),cleared=Math.max(0,Math.min(999,p.c|0));
+    if(!army.length||cleared<4)return null; // 第4关才是首个真实影军节点
+    return {name:String(p.n||'匿名棋手').slice(0,6),army,difficulty,cleared,shared:true};
+  }catch(e){return null}
+}
+function echoLinkFromRun(){
+  if(!S||!S.solo||!(S._cleared>=4)||!S.players||!S.players[0])return '';
+  const you=S.players[0],army=(you.army||[]).slice(0,6).filter(a=>a&&UMAP[a.id]).map(a=>[a.id,Math.max(1,Math.min(3,(a.star|0)||1))]);
+  if(!army.length)return '';
+  return SHARE_URL+'?echo='+b64uEncode(JSON.stringify({v:1,n:String(you.name||'匿名棋手').slice(0,6),d:S.difficulty|0,c:S._cleared|0,a:army}));
+}
+function startEchoChallenge(rival){ // 从分享链接开局：第4关必遇这支真实军团，不伪装成复仇对象
+  if(!rival)return;
+  if((loadSave()||loadBak())&&!confirm('还有一局没打完。接受战书会覆盖当前局内进度，确定吗？'))return;
+  const nm=localStorage.getItem('zmq_lbname')||'挑战者';
+  S=newState([nm],3,0,false);S.solo=true;S.difficulty=rival.difficulty|0;S.round=1;S.soloFoe=null;S.soloWins=0;
+  S.sharedRival={name:rival.name,army:rival.army,difficulty:rival.difficulty|0,cleared:rival.cleared|0};
+  lifeInit();rng=mulberry32(S.seed);assignBounties();setAct(1);hud();startOriginDraft();save();BGM.auto('play',true);ghostPull();
+  toast(`战书已启封 —— 第 4 关迎战 ${rival.name} 的真实军团`,4200);
+}
+async function copyLink(text){
+  try{if(navigator.clipboard&&window.isSecureContext){await navigator.clipboard.writeText(text);return true}}catch(e){}
+  try{const ta=document.createElement('textarea');ta.value=text;ta.setAttribute('readonly','');ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();return ok}catch(e){return false}
+}
+async function shareGame(){
+  const data={title:'自鸣棋 · 回响战书',text:'一枚棋子，一支军团。来世界回廊留下你的真实回响。',url:SHARE_URL};
+  try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
+  const ok=await copyLink(SHARE_URL);toast(ok?'入口已复制 —— 发给下一位棋手':'请复制地址：'+SHARE_URL,3200);
+}
 /* ============ 复仇战(20260717·纯前端零后端)：输给某支影军→记本地,下次影军关优先遇到它,斩它=复仇成功 ============ */
 const RIVAL_KEY='zmq_rivals', RIVAL_MAX=6;
 function loadRivals(){try{const a=JSON.parse(localStorage.getItem(RIVAL_KEY)||'[]');return Array.isArray(a)?a:[]}catch(e){return []}}
@@ -5765,6 +5829,8 @@ function addRival(g){ // g={name,army,difficulty,cleared};army 快照(小数据)
 }
 function removeRival(g){const k=rivalKey(g);saveRivals(loadRivals().filter(r=>rivalKey(r)!==k))}
 function pickRivalFoe(round,diff){ // 优先复仇:①主菜单指定的目标 ②任意同难度且够格(cleared>=round)的 rival → {g,foe};否则 null
+  if(typeof S!=='undefined'&&S&&S.sharedRival){const t=S.sharedRival;
+    if((t.difficulty|0)===diff&&(t.cleared|0)>=round){const foe=ghostToFoe(t);if(foe)return {g:t,foe,shared:true}}}
   const rs=loadRivals();
   if(typeof S!=='undefined'&&S&&S.revengeTargetKey){const t=rs.find(r=>rivalKey(r)===S.revengeTargetKey); // 玩家主动指定的复仇目标优先
     if(t&&(t.difficulty|0)===diff&&(t.cleared|0)>=round){const foe=ghostToFoe(t);if(foe)return {g:t,foe}}}
@@ -5794,18 +5860,18 @@ function showRevenge(){ // 仇敌名单:看见+主动发起(把复仇战从"隐�
 }
 function injectGhost(round){ // 影军关统一注入:先复仇 rival、否则拉池。返回是否注入。S.ghostFoe 存 army/difficulty 供败后记 rival
   const rv=pickRivalFoe(round,S.difficulty|0);
-  if(rv){S.soloFoe=rv.foe;S.ghostFoe={r:round,name:rv.g.name,army:rv.g.army,difficulty:rv.g.difficulty|0,cleared:rv.g.cleared|0,revenge:true};
-    (S.ghostUsed=S.ghostUsed||[]).push(round);toast(`复仇战 —— ${rv.g.name} 的军团又挡在你面前!赢下它,一雪前耻`,3600);return true}
+  if(rv){S.soloFoe=rv.foe;S.ghostFoe={r:round,name:rv.g.name,army:rv.g.army,difficulty:rv.g.difficulty|0,cleared:rv.g.cleared|0,revenge:!rv.shared,echo:!!rv.shared};
+    (S.ghostUsed=S.ghostUsed||[]).push(round);toast(rv.shared?`回响战书 —— ${rv.g.name} 的真实军团抵达第 ${round} 关`:`复仇战 —— ${rv.g.name} 的军团又挡在你面前!赢下它,一雪前耻`,3600);return true}
   const gi=(_ghostPool||[]).findIndex(g=>g&&g.cleared>=round&&ghostToFoe(g));
   if(gi>=0){const g=_ghostPool.splice(gi,1)[0],foe=ghostToFoe(g);
     if(foe){S.soloFoe=foe;S.ghostFoe={r:round,name:(g.name||'无名同窗'),army:g.army.filter(u=>u&&UMAP[u.id]).map(u=>({id:u.id,star:Math.max(1,Math.min(3,u.star||1))})),difficulty:g.difficulty|0,cleared:g.cleared|0}; // 净化影军池(网络/篡改数据不可信):存干净 army,护住败后 addRival/rivalKey/showRevenge 不崩软锁
       (S.ghostUsed=S.ghostUsed||[]).push(round);toast(`影军回响 —— ${S.ghostFoe.name} 的军团挡在这一阶`,3200);
       if(hintFirst('ghost'))setTimeout(()=>toast('影军=同学们真实上传的军团：斩它有铸币奖励，输了他会进你的「复仇战」名单',5200),1800); // 延时发:同帧的收入播报会顶掉toast,别烧掉唯一一次教学
       return true}}
-  // 3) AI 保底影卫:真人池空(就俩人玩/gpull 排除自己)也有影军战体验;真人军团进池后前两级自动优先取代
+  // 3) 系统守关局：不使用虚拟人名、不进入真实排行；真人军团进池后自动优先取代
   if(round>=3){
     S.soloFoe=soloBuildFoe(round,Math.min(2,(S.difficulty|0)+1)); // 略强(diff+1),像一支打得更深的对手
-    const nm=SIM_GHOST_NAMES[Math.floor(Math.random()*SIM_GHOST_NAMES.length)]; // Math.random:名字纯装饰,不消费玩法 rng
+    const nm=SIM_GHOST_NAMES[0];
     S.ghostFoe={r:round,name:nm,sim:true}; // sim 标记:AI 保底(将来若要区分真人/AI 有钩子)
     (S.ghostUsed=S.ghostUsed||[]).push(round);toast(`影军回响 —— ${nm} 的军团挡在这一阶`,3200);
     // 独立 hint 键 + 独立文案:这一支是 AI 保底,不是同学上传的军团,也不带 army —— 而
@@ -5817,7 +5883,7 @@ function injectGhost(round){ // 影军关统一注入:先复仇 rival、否则�
   }
   return false;
 }
-const SIM_GHOST_NAMES=['无名剑客','云中客','夜行影卫','拾遗生','独行客','远来客','旧岁影军']; // AI 保底影卫名(不假冒具体同学·像路过的强者)
+const SIM_GHOST_NAMES=['回廊守卫 · 系统局']; // 明示系统对局：不塑造虚拟玩家，也不参与真实榜单
 let _ghostPool=null; // 影军池:模块级 transient——绝不挂 S(snapDraft 会整体序列化+回滚,异步回填的池会被撤销抹掉还写进存档)
 function ghostPull(){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo)return;
   try{fetch(LB_URL,{method:'POST',body:JSON.stringify({action:'gpull',difficulty:S.difficulty})})
@@ -5970,7 +6036,8 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
   if(result&&result.surv&&A&&result.surv[0].length===A.length)S._noDeathWin=true; // 名册成就「一命不折」打点(任一场零阵亡胜利)
   if(S.ghostFoe&&S.ghostFoe.r===S.round){ghost=true;S.slainN=(S.slainN||0)+1;
     addArenaWin(S.round,S.difficulty,S.ghostFoe.revenge);submitArena(); // 群英擂台:胜场加权累加+提交本周榜(零后端)
-    if(S.ghostFoe.revenge){you.coins+=4;removeRival(S.ghostFoe); // 复仇成功:移除 rival + 更厚回报 + 专属播报
+    if(S.ghostFoe.echo){you.coins+=4;toast(`战书已破!${S.ghostFoe.name} 的真实军团被你斩落 +4 铸币`,3600);flash(false);}
+    else if(S.ghostFoe.revenge){you.coins+=4;removeRival(S.ghostFoe); // 复仇成功:移除 rival + 更厚回报 + 专属播报
       toast(`复仇成功!${S.ghostFoe.name} 的军团被你斩落 —— 一雪前耻 +4 铸币`,3600);flash(false);}
     else{you.coins+=2;toast(`斩影 · ${S.ghostFoe.name} 的军团溃散 +2 铸币`,3000);}
     S.ghostFoe=null;}
@@ -6442,7 +6509,7 @@ async function showLbHall(){
     <div id="lb-cats" class="btnrow" style="display:none;margin:0 0 6px;flex-wrap:wrap;gap:6px"></div>
     <div id="lb-days" class="btnrow" style="display:none;margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
     <div id="lblist" style="min-height:160px;max-height:44vh;overflow:auto"></div>
-    <div class="btnrow" style="margin-top:10px;flex-wrap:wrap;gap:8px"><button class="btn" id="lb-mycard">我的名片</button><button class="btn" id="lb-upbest">上传本机单人最佳</button></div>`);
+    <div class="btnrow" style="margin-top:10px;flex-wrap:wrap;gap:8px"><button class="btn" id="lb-mycard">我的名片</button><button class="btn" id="lb-upbest">上传本机单人最佳</button><button class="btn gold" id="lb-share">邀请真实棋手</button></div>`);
   // —— 各榜格式化器（榜行显示；分数是整数，前端自解码）——
   const dec=(s,div,mod)=>Math.floor((s|0)/div)%mod;
   const FMT={
@@ -6456,14 +6523,24 @@ async function showLbHall(){
   const CATS=[{k:'-0',fmt:FMT.glory,label:'荣耀榜',cap:'课堂·荣耀榜 · 皇冠优先·战力破平 · 按周结算'},
               {k:'-1',fmt:FMT.power,label:uiIcon('stat-attack')+'战力榜',cap:'课堂·战力榜 · 阵容强度 · 按周结算'},
               {k:'-2',fmt:FMT.wealth,label:uiIcon('currency-coin')+'财富榜',cap:'课堂·财富榜 · 金币·战绩 · 按周结算'}];
-  const render=(rows,fmt,mode)=>{const el=$('#lblist');if(!el)return;
+  const render=(rows,fmt,mode,localScore)=>{const el=$('#lblist');if(!el)return;
     el.className='b3-list'+(mode==='arena'?' b3-arena-list':'');
+    const competitive=mode==='solo'||mode==='arena';
     el.innerHTML=rows.length?rows.map((e,i)=>`<div class="lbrow clickable${rankRowClass(i)}">${rankBadge(i)}<span class="lb-player"><span class="lb-player-name"></span>${mode==='arena'?arenaTierBadge(e.score,true):''}</span><i>${fmt(e.score)}</i></div>`).join('')
-      :'<div style="color:var(--ink3);text-align:center;padding:24px">这个赛季还没有成绩</div>';
+      :(competitive?'':'<div style="color:var(--ink3);text-align:center;padding:24px">这个赛季还没有成绩</div>');
     el.querySelectorAll('.lbrow').forEach((row,i)=>{const e=rows[i];
       row.querySelector('.lb-player-name').textContent=(e.name||'?'); // textContent 注入防 XSS
       row.title='点击看 '+(e.name||'?')+' 的名片';
-      row.onclick=()=>showPlayerCard(e.id,e.name);}); };
+      row.onclick=()=>showPlayerCard(e.id,e.name);});
+    if(competitive){const mine=Math.max(0,localScore|0),unit=mode==='arena'?' 擂台分':' 关',rail=document.createElement('div');
+      if(rows.length){const ahead=rows.filter(e=>(e.score|0)>mine).sort((a,b)=>(a.score|0)-(b.score|0))[0],rec=ahead||rows[0];
+        rail.className='echo-rail has-rival';rail.innerHTML='<small>CURATED REAL ECHO · 真实推荐</small><b></b><span></span>';
+        rail.querySelector('b').textContent=mine?`你的刻度 ${mine}${unit} · 下一枚真实回响`:'选择一枚真实回响作为第一道门';
+        rail.querySelector('span').textContent=`${rec.name||'匿名棋手'} · ${Math.max(0,rec.score|0)}${unit} · 本榜共 ${rows.length} 条真实记录`;
+        rail.onclick=()=>showPlayerCard(rec.id,rec.name);
+      }else{rail.className='echo-rail';rail.innerHTML='<small>NO FABRICATED PLAYERS · 零虚拟玩家</small><b>本赛季尚无真实成绩</b><span>你的下一局可以成为第一枚回响；系统只给目标门槛，不伪造竞争者。</span>'}
+      el.prepend(rail);
+    }};
   // —— 名匠榜(人物/宝物)与绝品实录:后端存标签,前端按色阶上色 ——
   const hallRow=(e,i,kind)=>{
     const c=TIER_COLOR[Math.max(0,Math.min(4,e.q|0))];
@@ -6494,11 +6571,11 @@ async function showLbHall(){
       if(!r||!Array.isArray(r.top))throw 0;
       if(kind==='feed')renderFeed(r.top);else renderHall(r.top,kind);}
     catch(e){netFail($('#lblist'),()=>fetchHall(kind))}};
-  const fetchDay=async(day,fmt,mode,board)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+  const fetchDay=async(day,fmt,mode,board,localScore)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
     try{const r=await lbSend({action:'dmtop',board:board||'zmq',day:String(day)});
       if(!r||!Array.isArray(r.top))throw 0;
-      render(r.top,fmt,mode);}
-    catch(e){netFail($('#lblist'),()=>fetchDay(day,fmt,mode,board))} };
+      render(r.top,fmt,mode,localScore);}
+    catch(e){netFail($('#lblist'),()=>fetchDay(day,fmt,mode,board,localScore))} };
   // —— 课堂榜：周选择 + 三榜(荣耀/战力/财富)子选择；旧格式周回退纯皇冠 ——
   let curCat=0;
   const v2has=w=>getClassWeeksV2().indexOf(w)>=0;
@@ -6538,14 +6615,15 @@ async function showLbHall(){
       if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
       if(cap)cap.textContent='群英擂台 · 影军战胜场积分 · 本周赛季';
       try{if(loadArena().score>0)submitArena()}catch(e){} // 看榜顺手补交本周分:治"最后一胜提交失败=周界丢分"(幂等,后端取max)
-      fetchDay(weekKey(),FMT.arena,'arena',ARENA_BOARD);
+      fetchDay(weekKey(),FMT.arena,'arena',ARENA_BOARD,loadArena().score);
     }else{ if(daysBar)daysBar.style.display='none'; if(catsBar)catsBar.style.display='none';
-      if(cap)cap.textContent='单人试炼 · 通过关数 · 全球纪录'; fetchDay(d,FMT.solo); }
+      if(cap)cap.textContent='单人试炼 · 通过关数 · 真实全球纪录'; fetchDay(d,FMT.solo,'solo','zmq',soloBest()['d'+d]|0); }
   };
   document.querySelectorAll('.lbtab').forEach(b=>b.onclick=()=>{
     document.querySelectorAll('.lbtab').forEach(x=>x.classList.remove('gold'));
     b.classList.add('gold');load(+b.dataset.d)});
   const mc=$('#lb-mycard'); if(mc)mc.onclick=()=>{cardPush();showPlayerCard(lbId(),localStorage.getItem('zmq_lbname')||'挑战者')};
+  const sh=$('#lb-share');if(sh)sh.onclick=shareGame;
   const up=$('#lb-upbest');
   if(up)up.onclick=async()=>{up.disabled=true;up.textContent='上传中…';
     const b2=soloBest();let sent=0,tried=0;
@@ -6562,6 +6640,7 @@ function soloEnd(victory){
   S.phase='final';setPhase(victory?'加冕':'试炼结算');
   showFinalArt();
   const you=S.players[0], cleared=victory?S.round:Math.max(0,S.round-1);
+  S._cleared=cleared; // 分享战书只读这次结算快照；不依赖 clearSave 后的本地档
   // —— 狼先生的名册:终局提交(必须在 clearSave 之前——那时 S 还在) ——
   const _mv=(typeof mvpInfo==='function')?mvpInfo():null;
   const _mr=metaCommitRun({win:!!victory, victory:!!victory, endless:!!S.endless, cleared:cleared,
@@ -6889,9 +6968,9 @@ async function drawReport(sorted){
     y=yStart+half*40;
   }
   } // ← 单人跳过终榜段
-  // 二维码：离线硬编码常量位图（29×29 → https://myskme.github.io/myskme-zimingqi/）
-  // 战报进家长群 = 二维码进家长群：课堂散场 → 回家单人试炼的传播桥
-  const QR=['1fc5447f','1058d441','1759235d','175dbb5d','17411e5d','104dd841','1fd5557f','155200','1054ccce','17172e36','1e6a3960','1a74188','1fdb1261','122bbf73','fc9202c','e2f31d5','1e529aac','1729bb77','1dce2f19','14aa5140','16d509f7','1ef318','1fccff5c','10419312','1749b3fa','174b3ead','1741fdfe','104c80fd','1fd28a64'];
+  // 二维码：离线硬编码常量位图（29×29 → https://zimingqi.myskme.com/）
+  // 新域名是唯一正式入口；分享卡不再把流量带回旧 GitHub Pages 地址。
+  const QR=['1fcb3c7f','1059d141','1754a15d','17571f5d','174a3f5d','10482941','1fd5557f','1d7600','10521ace','1b269636','153fd70','18b48248','1971b261','191f73','4fa093c','2ae21a5','17ed1b0c','1f98cff7','1e5f2ad9','11a78180','105a6ff7','154d18','1fce0b5c','10457310','1745cff8','174c4d8e','174bbbfe','10465c0d','1fd4600c'];
   const QN=29,qs=4,qsz=QN*qs,qx=W-74-qsz,qy=H-96-qsz;
   ctx.fillStyle='#f2ecdc';ctx.fillRect(qx-10,qy-10,qsz+20,qsz+20);
   ctx.fillStyle='#141414';
@@ -6913,6 +6992,20 @@ $('#btn-save-report').onclick=()=>{
     a.href=$('#report-canvas').toDataURL('image/png');a.click();
     toast((S&&S.solo)?'战报卡已保存——和同学比比谁打得更深':'战报卡已保存——发到家长群里去吧');
   }catch(e){toast('保存失败：图片污染了画布，请直接截图保存',3200)}
+};
+$('#btn-share-report').onclick=async()=>{
+  const btn=$('#btn-share-report'),old=btn.innerHTML,link=echoLinkFromRun()||SHARE_URL;
+  btn.disabled=true;btn.textContent='正在封装战书…';
+  const echo=link!==SHARE_URL;
+  const data={title:'自鸣棋 · 回响战书',text:echo?'这是我本局留下的真实军团。接下战书，第 4 关见。':'来世界回廊留下你的真实成绩。',url:link};
+  try{
+    const blob=await new Promise(resolve=>$('#report-canvas').toBlob(resolve,'image/png'));
+    if(blob&&typeof File!=='undefined'){const file=new File([blob],'MYSKME自鸣棋回响战报.png',{type:'image/png'});
+      if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];}
+    if(navigator.share){await navigator.share(data);toast(echo?'回响战书已发出 —— 等下一位棋手应战':'战报已分享',3000);return}
+    const ok=await copyLink(link);toast(ok?(echo?'战书链接已复制 —— 发给下一位棋手':'游戏入口已复制'):'分享失败，请保存战报卡后手动发送',3400);
+  }catch(e){if(!(e&&e.name==='AbortError')){const ok=await copyLink(link);toast(ok?'战书链接已复制':'分享失败，请保存战报卡后手动发送',3200)}}
+  finally{btn.disabled=false;btn.innerHTML=old}
 };
 
 /* ============================================================
@@ -7136,6 +7229,10 @@ $('#btn-menu').onclick=showMenu;
 (function boot(){
   _meta=loadMeta(); // 狼先生的名册:启动读一次(独立键,与局内存档隔离)
   if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
+  {const invite=echoParse(new URLSearchParams(location.search).get('echo')),box=$('#echo-invite');
+    if(invite&&box){box.hidden=false;$('#echo-invite-title').textContent=`${invite.name} 留下了一支真实军团`;
+      $('#echo-invite-meta').textContent=`${SOLO_DIFF[invite.difficulty]} · 曾抵达第 ${invite.cleared} 关 · 接战后第 4 关相遇`;
+      box.onclick=()=>startEchoChallenge(invite);}}
   {const br=$('#btn-roster');if(br)br.onclick=showRoster}
   {const bm=$('#btn-menu2');if(bm)bm.onclick=showMenu} // 标题页也能进菜单:局外关BGM不用先开一局(局外时菜单自动藏"回标题/放弃")
   cfProbe(); // 卡框/角标/词缀框：探到资源才点亮 body.cfok（selftest 早退，不受影响）
@@ -7146,9 +7243,7 @@ $('#btn-menu').onclick=showMenu;
     pendFlush().catch(e=>console.warn('pendFlush',e))} // 世界榜保底:开局自动补发上次没传上的成绩(幂等)。async 函数:必须 .catch,同步 try 是假保护
   {const br=$('#btn-revenge');if(br){br.onclick=showRevenge;if(loadRivals().length)br.style.display=''}} // 复仇战:onclick恒绑(go('title')只管显隐),有仇敌才显
   renderSetup();
-  // 标题徽记=MYSKME 印章（居中一枚；原「鸣」字与大标题的鸣重复、角落双章冗余，已合并）
-  try{const tm=$('#title-mark');if(tm){const im=new Image();im.alt='MYSKME';
-    im.src=sealCanvas().toDataURL();tm.innerHTML='';tm.appendChild(im)}}catch(e){}
+  // 标题徽记直接使用发布图标：让网页、PWA、iOS 与微信资源共享同一枚品牌符号。
   // 标题主视觉：移动端优先 800w，桌面/投屏 1600w；缺图则保持原标题布局
   const kv=$('#title-kv'),u=artURL('title');
   if(kv&&u){const im=kv.querySelector('img');
