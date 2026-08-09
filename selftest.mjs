@@ -20,10 +20,12 @@ const port = server.address().port;
 const browser = await chromium.launch({executablePath:process.env.PLAYWRIGHT_EXECUTABLE_PATH||undefined});
 const page = await browser.newPage();
 let title = '';
+let failures = [];
 try {
   await page.goto(`http://localhost:${port}/index.html#selftest`, { waitUntil: 'load', timeout: 30000 });
   await page.waitForFunction(() => /#selftest \d+\/\d+/.test(document.title), null, { timeout: 30000 });
   title = await page.title();
+  failures = await page.evaluate(() => document.body.innerText.split('\n').filter(line => line.startsWith('✗ ')));
 } finally {
   await browser.close(); server.close();
 }
@@ -32,5 +34,9 @@ const m = title.match(/#selftest (\d+)\/(\d+)/);
 if (!m) { console.error('✗ 没读到 #selftest 结果，title=' + JSON.stringify(title)); process.exit(1); }
 const pass = +m[1], total = +m[2];
 console.log(`自鸣棋 #selftest ${pass}/${total}`);
-if (total === 0 || pass !== total) { console.error(`✗ 自检未全过 (${pass}/${total})`); process.exit(1); }
+if (total === 0 || pass !== total) {
+  console.error(`✗ 自检未全过 (${pass}/${total})`);
+  failures.forEach(line => console.error(line));
+  process.exit(1);
+}
 console.log('✅ 全过');
