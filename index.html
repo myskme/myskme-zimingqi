@@ -4,6 +4,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>MYSKME自鸣棋 · 课堂肉鸽自走棋</title>
+<meta name="theme-color" content="#071118">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="自鸣棋">
+<link rel="canonical" href="https://zimingqi.myskme.com/">
+<link rel="preconnect" href="https://myskme.com" crossorigin>
+<link rel="dns-prefetch" href="//myskme.com">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="64x64" href="assets/pwa-20260809/favicon-64.png">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/pwa-20260809/apple-touch-icon.png">
 <style>
 /* ============================================================
    断云演武 · 视觉主题「断云演武场」
@@ -60,15 +71,13 @@ body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:2;
 body::after{content:'';position:fixed;left:0;right:0;bottom:0;height:34vh;pointer-events:none;z-index:1;
   background:linear-gradient(0deg,var(--cloudB),transparent 80%)}
 
-/* —— 漂移云海（两层错速） —— */
+/* —— 静态云海分层：保留纵深，不让背景常驻占用合成线程 —— */
 #clouds{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none}
 /* 性能版：径向渐变自带软边，替代高成本 blur() */
-#clouds i{position:absolute;will-change:transform}
-#clouds .c1{width:70vw;height:26vh;left:-12vw;top:16vh;background:radial-gradient(closest-side,var(--cloudA),transparent);animation:drift1 74s ease-in-out infinite alternate}
-#clouds .c2{width:56vw;height:22vh;right:-10vw;top:44vh;background:radial-gradient(closest-side,var(--cloudA),transparent);animation:drift2 96s ease-in-out infinite alternate}
-#clouds .c3{width:64vw;height:20vh;left:6vw;bottom:4vh;background:radial-gradient(closest-side,var(--cloudB),transparent);animation:drift1 118s ease-in-out infinite alternate-reverse}
-@keyframes drift1{to{transform:translateX(9vw) translateY(-2vh)}}
-@keyframes drift2{to{transform:translateX(-11vw) translateY(3vh)}}
+#clouds i{position:absolute}
+#clouds .c1{width:70vw;height:26vh;left:-12vw;top:16vh;background:radial-gradient(closest-side,var(--cloudA),transparent);transform:translate3d(4vw,-1vh,0)}
+#clouds .c2{width:56vw;height:22vh;right:-10vw;top:44vh;background:radial-gradient(closest-side,var(--cloudA),transparent);transform:translate3d(-5vw,1vh,0)}
+#clouds .c3{width:64vw;height:20vh;left:6vw;bottom:4vh;background:radial-gradient(closest-side,var(--cloudB),transparent);transform:translate3d(3vw,-1vh,0)}
 /* —— 三幕签名光（军规一：每幕一种不可错认的氛围，纯 CSS 随 data-act 切换）——
    谷地雾晨=谷底晨雾上浮 / 断云之上=高空云隙天光 / 黑域门前=门楣凶光(紫+一点血红) */
 #clouds::after{content:'';position:absolute;inset:0;pointer-events:none;transition:background 2.2s ease}
@@ -115,6 +124,7 @@ h2.sec em{font-style:normal;color:var(--gold);font-weight:500}
 .btn.danger{border-color:rgba(168,48,48,.55);color:var(--red2)}
 .btn.danger:hover{box-shadow:var(--glow-red)}
 .btn:disabled{opacity:.35;pointer-events:none}
+.btn:focus-visible,.entry:focus-visible,.strat-card:focus-visible{outline:2px solid var(--gold2);outline-offset:3px}
 .btnrow{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:18px}
 /* MYSKME 通用游戏图标系统 v20260714b：24px 网格、currentColor 双层珐琅、无字体/Emoji 依赖 */
 .mi{width:1.18em;height:1.18em;display:inline-block;vertical-align:-.19em;overflow:visible;flex:0 0 auto}
@@ -158,9 +168,8 @@ body.playing #hud{display:flex}
 .title-mark{width:76px;height:76px;margin:0 auto 22px;border:1px solid var(--gold);position:relative;
   display:flex;align-items:center;justify-content:center;
   background:radial-gradient(ellipse at center,rgba(201,166,74,.14),transparent 70%)}
-.title-mark::before{content:'';position:absolute;inset:6px;border:1px dashed var(--gold3);animation:spinSlow 22s linear infinite}
+.title-mark::before{content:'';position:absolute;inset:6px;border:1px dashed var(--gold3);transform:rotate(45deg)}
 .title-mark span{font-size:38px;color:var(--gold);text-shadow:0 0 26px rgba(201,166,74,.5)}
-@keyframes spinSlow{to{transform:rotate(360deg)}}
 .title-hero{font-size:clamp(40px,7vw,84px);font-weight:300;letter-spacing:.2em;margin-left:.2em;
   animation:titleIn 1.4s cubic-bezier(.16,1,.3,1) both}
 .title-hero em{font-style:normal;color:var(--gold);font-weight:500}
@@ -168,6 +177,8 @@ body.playing #hud{display:flex}
   100%{opacity:1;letter-spacing:.2em;transform:translateY(0);filter:blur(0)}}
 .title-sub{color:var(--ink2);letter-spacing:.3em;margin:14px 0 6px;font-size:clamp(13px,1.6vw,16px)}
 .title-quote{color:var(--ink3);font-size:13px;letter-spacing:.12em;margin-bottom:34px}
+.title-trust{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:-18px auto 22px;color:var(--ink2);font:11px/1.5 var(--mono);letter-spacing:.08em}
+.title-trust span{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid var(--line2);background:rgba(4,8,12,.28)}
 .title-foot{margin-top:7vh;color:var(--ink3);font-size:12px;letter-spacing:.28em}
 /* 首页双入口：单人=主推，视觉更突出（给扫码/分享来的独玩者） */
 .entry-row{display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:30px}
@@ -448,10 +459,7 @@ body.b3ok .lbrow .b3-tier-mark{flex:0 0 25px}
 body.b3ok .lbrow .b3-feed-mark{display:inline-block;width:24px;height:24px;flex:0 0 24px;color:var(--gold2);background:currentColor;
   -webkit-mask:url(assets/visual-batch3-20260717/emblems/feed-ribbon.svg) center/contain no-repeat;mask:url(assets/visual-batch3-20260717/emblems/feed-ribbon.svg) center/contain no-repeat}
 body.b3ok .feedrow{min-height:50px;overflow:hidden;background:linear-gradient(90deg,rgba(157,114,214,.06),transparent 72%)}
-body.b3ok .feedrow::after{content:'';position:absolute;top:0;bottom:0;width:22%;left:-26%;pointer-events:none;
-  background:linear-gradient(90deg,transparent,rgba(232,199,104,.13),transparent);animation:b3FeedGlint 7s ease-in-out infinite}
-body.b3ok .feedrow:nth-child(3n+2)::after{animation-delay:1.8s}body.b3ok .feedrow:nth-child(3n)::after{animation-delay:3.6s}
-@keyframes b3FeedGlint{0%,42%{transform:translateX(0);opacity:0}52%{opacity:1}72%,100%{transform:translateX(560%);opacity:0}}
+body.b3ok .feedrow::after{display:none}
 @media(max-width:600px){
   body.b3ok #pc-body .player-profile-card{min-height:520px;padding:64px 24px 38px}
   body.b3ok #pc-body .b3-pc-bg img{object-position:center}
@@ -800,7 +808,7 @@ body.arok .av-reliquary-frame{display:block}
   text-align:center;padding:0 16px;max-width:96vw;
   text-shadow:0 0 44px rgba(201,166,74,.55);animation:titleIn .9s cubic-bezier(.16,1,.3,1) both}
 .result-banner p{color:var(--ink2);margin-top:14px;letter-spacing:.2em}
-.result-banner .hint{margin-top:38px;font-size:12px;color:var(--ink3);animation:ragePulse 2s infinite}
+.result-banner .hint{margin-top:38px;font-size:12px;color:var(--ink3)}
 
 /* ============ 叶王乱入 ============ */
 #boss-veil{position:fixed;inset:0;background:rgba(6,2,10,.88);z-index:60;display:none;
@@ -809,7 +817,7 @@ body.arok .av-reliquary-frame{display:block}
 #boss-veil h1{font-size:clamp(40px,8vw,86px);font-weight:300;letter-spacing:.34em;color:var(--purple);
   text-shadow:0 0 46px rgba(157,114,214,.6);animation:titleIn 1.1s both}
 #boss-veil p{color:var(--ink2);margin-top:16px;letter-spacing:.16em;font-size:15px;line-height:2}
-#boss-veil .snake{margin-bottom:10px;color:var(--purple);animation:snakeSway 3s ease-in-out infinite}
+#boss-veil .snake{margin-bottom:10px;color:var(--purple);transform:rotate(2deg)}
 #boss-veil .snake svg{width:92px;height:66px;filter:drop-shadow(0 0 14px rgba(157,114,214,.65))}
 /* ============ 叶王入场（Codex 20260715a）============
    紫雾转场按【屏幕方向】选图——这正是新视觉基准：iPad 横屏取 1600×900，iPad/手机竖屏取 900×1600。
@@ -830,7 +838,6 @@ body.arok .av-reliquary-frame{display:block}
 /* 事件卡背 840×600 = 现有 420px 显示位的 2× 图（高 DPR 天生对齐，不糊） */
 #event-inner .ev-back{background-image:url(assets/boss-event-20260715/event-card-back.webp);
   background-size:cover;background-position:center}
-@keyframes snakeSway{50%{transform:rotate(7deg) translateY(-4px)}}
 .stamp-list{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:26px;max-width:760px}
 .stamp{border:1px solid var(--line);padding:12px 18px;min-width:120px;opacity:0;transform:scale(1.6);background:var(--panel2)}
 .stamp.show{animation:stampIn .4s cubic-bezier(.16,1,.3,1) forwards}
@@ -869,15 +876,13 @@ body.arok .av-reliquary-frame{display:block}
 #wheel-title em{font-style:normal;color:var(--gold2);text-shadow:0 0 18px rgba(201,166,74,.35)}
 #wheel-stage{position:relative;width:min(78vmin,540px);aspect-ratio:1;--wr:calc(min(78vmin,540px)/2 - 3.4em)}
 #wheel-stage::before{content:'';position:absolute;inset:6.5%;border-radius:50%;pointer-events:none;
-  border:1px dashed rgba(201,166,74,.26);animation:wheelSpinR 70s linear infinite}
-#wheel-compass{position:absolute;inset:0;width:100%;height:100%;color:var(--gold3);opacity:.6;pointer-events:none;animation:wheelSpin 130s linear infinite}
-@keyframes wheelSpin{to{transform:rotate(360deg)}}
-@keyframes wheelSpinR{to{transform:rotate(-360deg)}}
+  border:1px dashed rgba(201,166,74,.26);transform:rotate(-9deg)}
+#wheel-compass{position:absolute;inset:0;width:100%;height:100%;color:var(--gold3);opacity:.6;pointer-events:none;transform:rotate(4deg)}
 #wheel-star,#wheel-star i{position:absolute;pointer-events:none}
 #wheel-star{inset:0}
 #wheel-star i{left:50%;top:50%;width:2px;height:2px;border-radius:50%;background:transparent}
-#wheel-star .s1{animation:wheelSpin 150s linear infinite}
-#wheel-star .s2{animation:wheelSpinR 100s linear infinite}
+#wheel-star .s1{transform:rotate(7deg)}
+#wheel-star .s2{transform:rotate(-11deg)}
 #wheel-seal{position:absolute;left:50%;top:50%;width:32%;aspect-ratio:1;transform:translate(-50%,-50%);opacity:.085;pointer-events:none}
 #wheel-seal img{width:100%;height:100%;display:block}
 #wheel-needle{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:3;transition:transform .3s cubic-bezier(.2,.7,.3,1)}
@@ -920,8 +925,7 @@ body.arok .av-reliquary-frame{display:block}
 .wp.trail{border-color:rgba(201,166,74,.45);box-shadow:0 0 10px rgba(201,166,74,.28)} /* 巡光拖尾:上一格余晖渐熄 */
 .wp.won{border-color:var(--gold);color:var(--gold2);background:rgba(201,166,74,.16);z-index:2;
   transform:translate(-50%,-50%) rotate(var(--wa)) translate(var(--wr)) rotate(calc(-1*var(--wa))) scale(1.22);
-  box-shadow:0 0 30px rgba(201,166,74,.8);animation:wonPulse 1.8s ease-in-out .5s infinite}
-@keyframes wonPulse{50%{box-shadow:0 0 46px rgba(232,199,104,.95)}}
+  box-shadow:0 0 38px rgba(232,199,104,.92)}
 .wp.dim{opacity:.22}
 .wp.wp-all{border-style:dashed;color:var(--teal)}
 #wheel-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;text-align:center;z-index:5;width:72%}
@@ -1192,8 +1196,8 @@ body.uok .uf-seal{display:block;width:54px;height:54px;margin:14px auto 2px;opac
 #scene img.show{opacity:.42}
 #title-kv{position:relative;max-width:960px;aspect-ratio:16/9;margin:0 auto 26px;display:none;overflow:hidden;background:#071118;border:1px solid var(--line);box-shadow:0 18px 54px rgba(0,0,0,.52)}
 #title-kv.show{display:block;animation:scrIn .8s both}
-#title-kv::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 80px rgba(0,0,0,.38);background:linear-gradient(180deg,transparent 62%,rgba(4,8,12,.24))}
-#title-kv img{width:100%;height:100%;display:block;object-fit:cover}
+#title-kv::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 62px rgba(0,0,0,.28);background:linear-gradient(180deg,transparent 70%,rgba(4,8,12,.18))}
+#title-kv img{width:100%;height:100%;display:block;object-fit:cover;filter:saturate(1.08) contrast(1.04) brightness(1.06)}
 .badge .art{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 42%;z-index:2}/* 42% 聚焦脸/上半身：把不少立绘顶部的金色光环推出框，避免小徽章里裁成「金色斜块」 */
 .u .face{position:relative;height:112px;margin:-8px -4px 3px;overflow:hidden;border-bottom:1px solid rgba(0,0,0,.35);
   -webkit-mask:linear-gradient(#000 80%,transparent);mask:linear-gradient(#000 80%,transparent)}
@@ -1220,7 +1224,15 @@ body.uok .uf-seal{display:block;width:54px;height:54px;margin:14px auto 2px;opac
 @media (max-width:760px){
   /* 手机竖屏是主基准之一：这里必须继续吃安全区，否则 home indicator 会压住底部按钮 */
   main{padding:12px max(10px,var(--sal)) calc(40px + var(--sab)) max(10px,var(--sar))}
-  #offers{grid-template-columns:1fr;max-width:340px;margin:0 auto}
+  #offers{display:flex;max-width:none;margin:0 -10px;padding:4px 10px 16px;gap:12px;justify-content:flex-start;
+    overflow-x:auto;overscroll-behavior-inline:contain;scroll-snap-type:x mandatory;scroll-padding-inline:10px;
+    -webkit-overflow-scrolling:touch;scrollbar-width:none}
+  #offers::-webkit-scrollbar{display:none}
+  #offers>.offer{flex:0 0 min(78vw,300px);scroll-snap-align:center;content-visibility:auto;contain-intrinsic-size:300px 470px}
+  #offers>.offer:first-child{scroll-snap-align:start}
+  #draft-actions{position:sticky;bottom:max(0px,var(--sab));z-index:24;margin:4px -10px 0;padding:11px 10px calc(11px + var(--sab));
+    background:linear-gradient(180deg,rgba(7,17,24,0),rgba(7,17,24,.94) 22%,rgba(7,17,24,.98));border-bottom:1px solid var(--line2)}
+  #draft-actions .btn{flex:1 1 42%;padding-inline:10px;letter-spacing:.08em}
   .u{width:62px}.u .g{font-size:22px}.u .num{font-size:10px;gap:4px}
   .u .face{height:82px}.u .face .g{font-size:30px}
   #arena{gap:2vw}
@@ -1235,6 +1247,26 @@ body.uok .uf-seal{display:block;width:54px;height:54px;margin:14px auto 2px;opac
   #title-kv{margin-bottom:20px}
   .relic-chip{min-height:32px;padding-right:8px;gap:5px}
   .relic-art{width:24px;height:24px}
+}
+@media (max-width:600px){
+  #scr-title{padding-top:max(2px,var(--sat))}
+  #title-kv{aspect-ratio:16/8.2;margin:0 0 10px}
+  #title-kv img{object-position:38% center}
+  #scr-title .title-mark{width:44px;height:44px;margin:0 auto 8px}
+  #scr-title .title-mark img{width:34px;height:34px}
+  #scr-title .title-hero{font-size:40px;line-height:1.08}
+  #scr-title .title-sub{font-size:10.5px;letter-spacing:.13em;line-height:1.55;margin:7px 0 3px}
+  #scr-title .title-quote{font-size:10.5px;line-height:1.5;letter-spacing:.04em;margin-bottom:14px}
+  .title-trust{gap:5px;margin:-4px 0 14px;font-size:9.5px;letter-spacing:.02em}
+  .title-trust span{padding:3px 6px}
+  #scr-title .entry-row{gap:8px;margin-top:0;flex-wrap:nowrap}
+  #scr-title .entry{min-height:86px;padding:14px 8px 10px}
+  #scr-title .entry .entry-t{font-size:17px;letter-spacing:.1em}
+  #scr-title .entry .entry-d{font-size:9.5px;line-height:1.35}
+  #scr-title>.btnrow{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:11px}
+  #scr-title>.btnrow .btn{min-width:0;padding:7px 6px;font-size:11px;line-height:1.25;letter-spacing:.025em}
+  #scr-title>.btnrow .btn.big{grid-column:1/-1}
+  #scr-title .title-foot{margin-top:14px;font-size:9.5px;line-height:1.6;letter-spacing:.035em}
 }
 /* 投屏大字档：≥1100px（教室 1080p 投影 4 米外，后排要能读技能与播报） */
 @media (min-width:1100px){
@@ -1274,7 +1306,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 @media (orientation:landscape) and (max-height:900px) and (min-width:820px){
   #scr-title.on:has(#title-kv.show){
     display:grid;grid-template-columns:minmax(0,1fr) minmax(500px,540px);
-    grid-template-areas:"kv mark" "kv hero" "kv sub" "kv quote" "kv entry" "kv btns" "foot foot";
+    grid-template-areas:"kv mark" "kv hero" "kv sub" "kv quote" "kv trust" "kv entry" "kv btns" "foot foot";
     /* 容器要先撑满可视高，align-content:center 才有得居中（否则内容贴顶、底下一片空） */
     min-height:calc(100dvh - 96px);align-content:center;gap:0 36px;padding-top:max(2vh,var(--sat))}
   #scr-title.on:has(#title-kv.show) #title-kv{grid-area:kv;align-self:center;max-width:none;width:100%;margin:0}
@@ -1283,6 +1315,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
   #scr-title.on:has(#title-kv.show) .title-hero{grid-area:hero;font-size:clamp(40px,4.6vw,64px)}
   #scr-title.on:has(#title-kv.show) .title-sub{grid-area:sub}
   #scr-title.on:has(#title-kv.show) .title-quote{grid-area:quote;margin-bottom:0}
+  #scr-title.on:has(#title-kv.show) .title-trust{grid-area:trust;margin:8px 0 0}
   #scr-title.on:has(#title-kv.show) .entry-row{grid-area:entry;margin-top:20px}
   #scr-title.on:has(#title-kv.show) .btnrow{grid-area:btns}
   #scr-title.on:has(#title-kv.show) .title-foot{grid-area:foot;margin-top:3vh}
@@ -1323,9 +1356,8 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 #modal-box details[open] summary::after{transform:rotate(45deg)}
 #modal-box details[open] summary{color:var(--gold2);border-bottom:1px solid var(--line2)}
 #modal-box details .dbody{padding:10px 16px 14px}
-/* 标题主按钮待机呼吸：只动光晕不动位移 */
-#scr-title .btn.gold.big{animation:ctaBreath 3.2s ease-in-out infinite}
-@keyframes ctaBreath{50%{box-shadow:0 0 20px rgba(201,166,74,.38);border-color:var(--gold2)}}
+/* 标题主按钮常亮，不用无限呼吸动画；把持续合成预算留给战斗反馈。 */
+#scr-title .btn.gold.big{box-shadow:0 0 18px rgba(201,166,74,.3);border-color:var(--gold2)}
 .title-mark img{width:54px;height:54px;display:block;filter:drop-shadow(0 0 10px rgba(201,166,74,.4))}
 /* 视觉侧收官：减少动态效果覆盖所有主表面。短暂的无位移淡显型 VFX 继续走各自 rm 分支。 */
 @media (prefers-reduced-motion:reduce){
@@ -1361,14 +1393,14 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 @media (prefers-reduced-motion:reduce){#scr-wave .float-num{display:none!important}}
 </style>
 
-<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Crect%20width%3D%2232%22%20height%3D%2232%22%20rx%3D%227%22%20fill%3D%22%2317140f%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%228%22%20fill%3D%22none%22%20stroke%3D%22%23c9a24d%22%20stroke-width%3D%222%22/%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%222.6%22%20fill%3D%22%23c9a24d%22/%3E%3C/svg%3E">
 <meta name="description" content="课堂肉鸽自走棋，单文件离线网页，扫码即玩。MYSKME × 王老师。">
 <meta property="og:title" content="自鸣棋 · MYSKME 课堂肉鸽自走棋">
 <meta property="og:description" content="课堂肉鸽自走棋，单文件离线网页，扫码即玩。MYSKME × 王老师。">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://myskme.github.io/myskme-zimingqi/og-cover.png">
+<meta property="og:url" content="https://zimingqi.myskme.com/">
+<meta property="og:image" content="https://zimingqi.myskme.com/og-cover.png">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://myskme.github.io/myskme-zimingqi/og-cover.png">
+<meta name="twitter:image" content="https://zimingqi.myskme.com/og-cover.png">
 </head>
 <body>
 <div id="scene"><img id="scene-img" alt=""></div>
@@ -1393,6 +1425,7 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
     <h1 class="title-hero">自<em>鸣</em>棋</h1>
     <p class="title-sub">MYSKME · 课堂肉鸽自走棋 · 狼先生与他的学生们</p>
     <p class="title-quote">「拒绝一切死板的教条。世界值得有趣地活一次。」</p>
+    <p class="title-trust" aria-label="游戏特性"><span>离线可玩</span><span>自动保存</span><span>成绩断网补传</span></p>
     <div class="entry-row">
       <button class="entry entry-solo" id="btn-solo">
         <span class="entry-t">单人闯关</span>
@@ -2147,7 +2180,7 @@ const BGM=(function(){
     const f=BGM_FILES[k]; if(!f)return;
     if(kind===k&&audio&&!audio.paused)return;
     kind=k;
-    if(!audio){audio=new Audio();audio.loop=true;audio.preload='auto'}
+    if(!audio){audio=new Audio();audio.loop=true;audio.preload='none'}
     if(curFile!==f){ curFile=f; try{audio.pause()}catch(e){}
       audio.src='assets/bgm/'+f+'.mp3'; audio.volume=0; try{audio.load()}catch(e){} }
     const run=()=>{ const p=audio.play(); if(p&&p.catch)p.catch(()=>{}); fade(VOL,1600) };
@@ -3216,8 +3249,9 @@ function renderDraft(fresh){
     }else{S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true}
   }
   $('#draft-title').innerHTML=origin?'开 局 <em>点 将</em>':'征 募 · <em>三 选 一</em>';
+  const touchCompare=window.matchMedia&&matchMedia('(max-width:760px)').matches?' · 左右滑动对比':'';
   $('#draft-sub').textContent=(origin?(S.solo?'开局礼：点将一名学员入队':'开局礼：每人免费领一名学员入队')
-    :(S.solo?'试炼征募 · 迎战前补强军团':'按排名从后往前挑 · 落后者先选'))+' · 点立绘看详情'; // 单人不渗漏多人措辞
+    :(S.solo?'试炼征募 · 迎战前补强军团':'按排名从后往前挑 · 落后者先选'))+' · 点立绘看详情'+touchCompare; // 单人不渗漏多人措辞
   $('#btn-reroll').style.display=origin?'none':'';
   $('#btn-draft-done').style.display=origin?'none':'';
   $('#btn-draft-done').innerHTML=S.solo?('征募毕 '+uiIcon('play-skip')+' 迎战'):('征募毕 '+uiIcon('nav-next')+' 下一位');
@@ -3257,7 +3291,7 @@ function renderDraft(fresh){
       d.innerHTML=`
         <div class="rec-frame">
           <div class="rec-glyph">${u.n[0]}</div>
-          <img class="rec-art" src="${cardURL(u.id)}" srcset="${cardSrcset(u.id)}" alt="" onerror="this.style.display='none';this.closest('.rec-frame').classList.add('no-art')">
+          <img class="rec-art" src="${cardURL(u.id)}" srcset="${cardSrcset(u.id)}" sizes="(max-width:760px) 78vw, 300px" alt="" decoding="async" loading="${idx===0?'eager':'lazy'}" fetchpriority="${idx===0?'high':'auto'}" onerror="this.style.display='none';this.closest('.rec-frame').classList.add('no-art')">
           <i class="rec-fr" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
           <div class="rec-fac rec-elem" style="color:${ELEM_COLOR2[unitElem(u.id)]||'var(--ink2)'}">${elemGlyph(unitElem(u.id))}<span>${ELEM_CN[unitElem(u.id)]||''}</span></div>
           <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
@@ -3280,7 +3314,7 @@ function renderDraft(fresh){
         <div class="spell-frame">
           <div class="spell-fallback" aria-hidden="true">${uiIcon('state-halo')}</div>
           <picture class="spell-art">
-            <img src="${spellArtURL(sp.id)}" srcset="${spellArtURL(sp.id)} 1x, ${spellArtURL(sp.id,'@2x')} 2x, ${spellArtURL(sp.id,'@3x')} 3x" alt="" decoding="async"
+            <img src="${spellArtURL(sp.id)}" srcset="${spellArtURL(sp.id)} 1x, ${spellArtURL(sp.id,'@2x')} 2x, ${spellArtURL(sp.id,'@3x')} 3x" alt="" decoding="async" loading="${idx===0?'eager':'lazy'}"
               onerror="this.style.display='none';this.closest('.spell-frame').classList.add('no-art')">
           </picture>
           <i class="spell-ornament" style="--sfo:url(${spellFrameURL(sp.q)});color:${col}" aria-hidden="true"></i>
@@ -5786,7 +5820,7 @@ function injectGhost(round){ // 影军关统一注入:先复仇 rival、否则�
 const SIM_GHOST_NAMES=['无名剑客','云中客','夜行影卫','拾遗生','独行客','远来客','旧岁影军']; // AI 保底影卫名(不假冒具体同学·像路过的强者)
 let _ghostPool=null; // 影军池:模块级 transient——绝不挂 S(snapDraft 会整体序列化+回滚,异步回填的池会被撤销抹掉还写进存档)
 function ghostPull(){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo)return;
-  try{fetch(LB_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpull',difficulty:S.difficulty})})
+  try{fetch(LB_URL,{method:'POST',body:JSON.stringify({action:'gpull',difficulty:S.difficulty})})
     .then(r=>r.json()).then(j=>{if(j&&j.ok&&Array.isArray(j.ghosts)&&S&&S.solo){_ghostPool=j.ghosts.filter(g=>g&&g.id!==lbId())}}).catch(()=>{})}catch(e){}}
 /* ============ 名匠榜(世界回廊 · 人物/宝物榜 + 传世播报 · P2 2026-07-14) ============ */
 // 榜分 = 该单位的"含金量"整数:战力(atk+hp) ×100 + 词缀品阶 ×10 + 星芒。前端自解码,后端只存整数+标签。
@@ -5806,7 +5840,7 @@ function unitHallLabel(inst){ const u=UMAP[inst.id]; const bits=[u.n];
 }
 function hallSend(kind,item,label,q,score){ if(typeof LB_ON==='undefined'||!LB_ON)return;
   try{const nm=(S&&S.players&&S.players[0]&&S.players[0].name)||localStorage.getItem('zmq_lbname')||'挑战者';
-    fetch(LB_URL,{method:'POST',headers:{'Content-Type':'application/json'},
+    fetch(LB_URL,{method:'POST',
       body:JSON.stringify({action:'hpush',kind:kind,id:lbId(),name:nm,item:item,label:label,q:q,score:score})}).catch(()=>{})}catch(e){}
 }
 function hallPushRun(){ // 终局:把本局最强的一张卡 + 最好的一件宝送上榜
@@ -5925,7 +5959,7 @@ async function showPlayerCard(pid,fallbackName){ // 点榜行 → 拉名片
 }
 function ghostPush(cleared){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo||!(cleared>=3))return; // 至少打到第3关才够格当影军
   try{const you=S.players[0];
-    fetch(LB_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'gpush',id:lbId(),name:String((you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))})}).catch(()=>{})}catch(e){}}
+    fetch(LB_URL,{method:'POST',body:JSON.stringify({action:'gpush',id:lbId(),name:String((you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))})}).catch(()=>{})}catch(e){}}
 // name 截到 6 与 lbPayload 同口径:两条上传路径不该有两套截断规则(输入框 maxLength=6 只挡正常路径)
 function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销(经典/无尽/终战通用)
   const you=S.players[0];let ghost=false;
@@ -7120,11 +7154,11 @@ $('#btn-menu').onclick=showMenu;
   if(kv&&u){const im=kv.querySelector('img');
     const sm=artURL('titleSmall');
     im.onload=()=>kv.classList.add('show');
+    im.alt='狼先生与学生们在云上棋局相逢';im.decoding='async';im.fetchPriority='high';
     im.srcset=sm?`${sm} 800w, ${u} 1600w`:'';im.sizes='(max-width:760px) 94vw, 960px';im.src=u}
-  // 空闲预热立绘：标题页停留的几秒把全部单位图拉进缓存，首轮征募不再字形→立绘跳变
-  if(location.protocol!=='file:'){
-    const warm=()=>{try{UNITS.forEach(x=>{const u=artURL(x.id);if(u){const i=new Image();i.src=u}})}catch(e){}}; // 无图单位 artURL=null，别发 GET /null
-    ('requestIdleCallback' in window)?requestIdleCallback(warm,{timeout:3000}):setTimeout(warm,800);
+  // 首访不再预热全体立绘：只下载玩家真正看到的三张，后续由 Service Worker 按需复用。
+  if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+    addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{}),{once:true});
   }
 })();
 // 课堂兜底：未捕获异常至少可见、可续，不静默白屏
