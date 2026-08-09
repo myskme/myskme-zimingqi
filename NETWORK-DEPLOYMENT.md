@@ -10,11 +10,11 @@
   只在实际使用时缓存，首访不下载全体立绘和三首背景音乐。
 - 导航网络优先、离线回落；静态资源缓存优先；跨域榜单、`/api/` 和所有非 GET 请求不缓存。
 - 榜单 POST 不声明 `application/json`，保持 CORS simple request，避免额外 OPTIONS 往返。
-- 结算页的“回响战书”把军团快照放在 `zimingqi.myskme.com/?echo=...` 链接中；接收方首屏即可验明是真实军团并离线开局，不新增账号或后端依赖。
+- 结算页的“回响战书”把军团快照放进分享链接；页面由 `zimingqi.myskme.com` 承载时使用新域名，新域名启用前则自动回退到现有 GitHub Pages，战书链接和战报二维码都不会成为死链。接收方首屏即可验明是真实军团并离线开局，不新增账号或后端依赖。
 - 世界回廊严格不造虚拟玩家：空榜显示个人门槛；真人池空时只出现明确标注的“系统守关局”，且不会上传真实榜单。
 - `edgeone.json` 为入口文件与 Service Worker 设置 `no-cache`，美术资源缓存一天；现有资源
   仍会原名更新，因此不使用 `immutable`。
-- `.github/workflows/deploy-edgeone.yml` 只允许手动触发，且默认只构建 ZIP，不会因合并自动上线。
+- `.github/workflows/deploy-edgeone.yml` 只允许手动触发，且默认只构建 ZIP，不会因合并自动上线；CLI 固定为已经验证过的 `edgeone@1.6.19`，避免发布环境漂移。
 
 ## 上线前一次性配置
 

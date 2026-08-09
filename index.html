@@ -4153,7 +4153,8 @@ function runSelftest(){
      if(!p||p.name!=='棋手甲'||p.difficulty!==2||p.cleared!==8||p.army.length!==1||p.army[0].star!==3)return false;
      if(echoParse(b64uEncode(JSON.stringify({v:1,n:'甲',d:1,c:3,a:[['lin',1]]})))!==null)return false;
      const src=showLbHall.toString();
-     return startEchoChallenge.toString().indexOf('S.sharedRival')>0&&pickRivalFoe.toString().indexOf('S.sharedRival')>0
+     return SHARE_URL===(location.hostname==='zimingqi.myskme.com'?PRIMARY_SHARE_URL:FALLBACK_SHARE_URL)
+       &&startEchoChallenge.toString().indexOf('S.sharedRival')>0&&pickRivalFoe.toString().indexOf('S.sharedRival')>0
        &&src.indexOf('零虚拟玩家')>0&&src.indexOf('真实推荐')>0;})());
    ok('群英擂台:胜分加权(深关×高难×复仇1.5)· 走独立 board=arena(不撞课堂榜密码门)· 斩影/提交/页签 接线', (()=>{
      if(arenaWinScore(4,0,false)!==4||arenaWinScore(7,2,false)!==21||arenaWinScore(4,0,true)!==6)return false; // 加权公式
@@ -5779,7 +5780,10 @@ function ghostToFoe(g){ // 纯函数,#selftest 可测:校验+映射影军army→
   return out.length?out:null;
 }
 /* ============ 回响战书：真实玩家把本局军团装进链接，零登录、零新增后端 ============ */
-const SHARE_URL='https://zimingqi.myskme.com/';
+const PRIMARY_SHARE_URL='https://zimingqi.myskme.com/';
+const FALLBACK_SHARE_URL='https://myskme.github.io/myskme-zimingqi/';
+// 新域名一旦承载当前页面就自动成为唯一分享入口；上线前由现有 Pages 保证战书不失联。
+const SHARE_URL=location.hostname==='zimingqi.myskme.com'?PRIMARY_SHARE_URL:FALLBACK_SHARE_URL;
 function b64uEncode(s){const bytes=new TextEncoder().encode(String(s)),parts=[];for(let i=0;i<bytes.length;i+=8192)parts.push(String.fromCharCode(...bytes.subarray(i,i+8192)));return btoa(parts.join('')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')}
 function b64uDecode(s){const bin=atob(String(s).replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(String(s).length/4)*4,'=')),bytes=Uint8Array.from(bin,c=>c.charCodeAt(0));return new TextDecoder().decode(bytes)}
 function echoParse(raw){ // 外链不可信：限长、版本、难度、深度、单位白名单、星级全部重验
@@ -6968,9 +6972,10 @@ async function drawReport(sorted){
     y=yStart+half*40;
   }
   } // ← 单人跳过终榜段
-  // 二维码：离线硬编码常量位图（29×29 → https://zimingqi.myskme.com/）
-  // 新域名是唯一正式入口；分享卡不再把流量带回旧 GitHub Pages 地址。
-  const QR=['1fcb3c7f','1059d141','1754a15d','17571f5d','174a3f5d','10482941','1fd5557f','1d7600','10521ace','1b269636','153fd70','18b48248','1971b261','191f73','4fa093c','2ae21a5','17ed1b0c','1f98cff7','1e5f2ad9','11a78180','105a6ff7','154d18','1fce0b5c','10457310','1745cff8','174c4d8e','174bbbfe','10465c0d','1fd4600c'];
+  // 二维码：离线硬编码常量位图（29×29）；与 SHARE_URL 同步，新域名上线前绝不生成死链。
+  const QR_PRIMARY=['1fcb3c7f','1059d141','1754a15d','17571f5d','174a3f5d','10482941','1fd5557f','1d7600','10521ace','1b269636','153fd70','18b48248','1971b261','191f73','4fa093c','2ae21a5','17ed1b0c','1f98cff7','1e5f2ad9','11a78180','105a6ff7','154d18','1fce0b5c','10457310','1745cff8','174c4d8e','174bbbfe','10465c0d','1fd4600c'];
+  const QR_FALLBACK=['1fc5447f','1058d441','1759235d','175dbb5d','17411e5d','104dd841','1fd5557f','155200','1054ccce','17172e36','1e6a3960','1a74188','1fdb1261','122bbf73','fc9202c','e2f31d5','1e529aac','1729bb77','1dce2f19','14aa5140','16d509f7','1ef318','1fccff5c','10419312','1749b3fa','174b3ead','1741fdfe','104c80fd','1fd28a64'];
+  const QR=location.hostname==='zimingqi.myskme.com'?QR_PRIMARY:QR_FALLBACK;
   const QN=29,qs=4,qsz=QN*qs,qx=W-74-qsz,qy=H-96-qsz;
   ctx.fillStyle='#f2ecdc';ctx.fillRect(qx-10,qy-10,qsz+20,qsz+20);
   ctx.fillStyle='#141414';
