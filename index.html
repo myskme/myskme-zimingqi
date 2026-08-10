@@ -1363,6 +1363,101 @@ button,.entry,.lbrow.clickable,.strat-card,.pcard-btn{touch-action:manipulation}
 .codex-u .cu-n{font-size:13px;margin-top:6px;letter-spacing:.1em}
 .codex-u .cu-i{font-size:10px}
 .codex-u:hover .badge{border-color:var(--gold)}
+/* 四象星图 · 一张图理解相克，一次筛选找到构筑。数据全部来自 ZODIAC / BONDS / COMBOS，避免手抄漂移。 */
+#modal-box:has(.atlas-app){width:min(1120px,96vw);max-width:none;height:min(850px,92dvh);max-height:92dvh;
+  padding:0;overflow:hidden;background:#071118;border-color:rgba(201,166,74,.55)}
+#modal-box:has(.atlas-app)>.modal-x{position:absolute;top:10px;right:10px;float:none;margin:0;background:rgba(7,17,24,.92);z-index:8}
+#modal-box:has(.atlas-app)>.btnrow{display:none}
+.atlas-app{height:100%;min-height:0;display:grid;grid-template-rows:auto auto minmax(0,1fr);color:var(--ink2);
+  background:linear-gradient(rgba(5,13,19,.9),rgba(5,13,19,.95)),url(assets/codex-atlas-20260810/atlas-background.webp) center/cover}
+.atlas-head{display:flex;align-items:center;gap:18px;padding:20px 68px 13px 24px;border-bottom:1px solid rgba(201,166,74,.18)}
+.atlas-title{min-width:210px}.atlas-kicker{display:block;color:var(--gold3);font:10px/1.2 var(--mono);letter-spacing:.32em}
+.atlas-title h3{margin:4px 0 0!important;text-align:left!important;font-size:clamp(22px,3vw,32px);letter-spacing:.22em!important}
+.atlas-tools{margin-left:auto;display:flex;align-items:center;gap:8px}.atlas-search{position:relative;min-width:210px}
+.atlas-search input{width:100%;height:42px;box-sizing:border-box;padding:0 12px 0 34px;border:1px solid var(--line2);
+  border-radius:0;background:rgba(0,0,0,.26);color:var(--ink);font:13px var(--serif);outline:none}
+.atlas-search input:focus{border-color:var(--gold)}.atlas-search::before{content:'';position:absolute;left:12px;top:13px;width:10px;height:10px;border:1.5px solid var(--gold3);border-radius:50%}
+.atlas-search::after{content:'';position:absolute;left:22px;top:24px;width:7px;height:1.5px;background:var(--gold3);transform:rotate(45deg);transform-origin:left center}
+.atlas-save{height:42px;white-space:nowrap}.atlas-tabs{display:flex;gap:0;padding:0 24px;border-bottom:1px solid rgba(201,166,74,.14)}
+.atlas-tab{min-height:46px;padding:0 18px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--ink3);
+  font:13px var(--serif);letter-spacing:.14em;cursor:pointer}.atlas-tab.on{color:var(--gold2);border-bottom-color:var(--gold)}
+.atlas-stage{min-height:0;position:relative}.atlas-pane{display:none;height:100%;overflow:auto;padding:18px 24px 24px;box-sizing:border-box}
+.atlas-pane.on{display:block}.atlas-intro{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+.atlas-intro p{margin:0;color:var(--ink3);font-size:12px;line-height:1.65}.atlas-elem-switch{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.atlas-elem-btn{min-height:36px;padding:0 12px;border:1px solid var(--line2);background:rgba(0,0,0,.22);color:var(--ink3);
+  font:12px var(--serif);cursor:pointer}.atlas-elem-btn.on{color:var(--ec);border-color:var(--ec);background:color-mix(in srgb,var(--ec) 10%,transparent)}
+.atlas-elements{display:grid;grid-template-columns:1fr 1fr;gap:10px}.atlas-element{--ec:var(--gold2);position:relative;min-width:0;
+  padding:13px 14px 12px;border:1px solid color-mix(in srgb,var(--ec) 32%,transparent);background:rgba(3,9,14,.58)}
+.atlas-element.is-active{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--ec) 42%,transparent)}
+.atlas-element-head{display:flex;align-items:flex-start;gap:9px}.atlas-element .elem-emblem .mi{width:24px;height:24px}
+.atlas-element h4{margin:0!important;color:var(--ec)!important;font-size:18px;letter-spacing:.18em!important}
+.atlas-element-meta{margin-left:auto;text-align:right;font:10.5px/1.55 var(--mono);color:var(--ink3)}
+.atlas-element-effect{margin:7px 0 9px;color:var(--ink2);font-size:11.5px;line-height:1.55;min-height:36px}
+.atlas-unit-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(42px,1fr));gap:5px}
+.atlas-unit{position:relative;min-width:0;border:1px solid transparent;background:transparent;color:var(--ink2);padding:0 1px 3px;cursor:pointer;font:10px var(--serif)}
+.atlas-unit .atlas-portrait{display:block;position:relative;width:34px;height:42px;margin:0 auto 3px;overflow:hidden;
+  border:1px solid rgba(201,166,74,.2);background:rgba(0,0,0,.28)}
+.atlas-unit .atlas-portrait img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 20%}.atlas-unit .atlas-fallback{display:grid;height:100%;place-items:center;color:var(--ec);font-size:17px}
+.atlas-unit .atlas-name{display:block;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}.atlas-unit:hover,.atlas-unit.is-match{border-color:var(--ec);color:var(--ink)}
+.atlas-cycle-note{display:flex;align-items:center;justify-content:center;gap:9px;margin-top:10px;padding:8px;border:1px solid rgba(201,166,74,.14);
+  background:rgba(0,0,0,.18);font-size:11px;letter-spacing:.08em}.atlas-cycle-note b{color:var(--gold2);font-weight:500}.atlas-arrow{color:var(--gold3)}
+.atlas-inspector{margin-top:10px;display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;padding:10px 12px;
+  border-left:2px solid var(--ic,var(--gold));background:rgba(0,0,0,.28);min-height:54px}.atlas-inspector .ai-portrait-wrap{width:42px;height:52px}
+.atlas-member-art,.ai-portrait-wrap{display:block;position:relative;width:100%;height:100%;overflow:hidden;background:rgba(0,0,0,.25)}
+.atlas-member-art img,.ai-portrait-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.atlas-member-art .atlas-fallback,.ai-portrait-wrap .atlas-fallback{display:grid;height:100%;place-items:center;font-size:12px}.atlas-inspector .ai-portrait-wrap .atlas-fallback{font-size:16px;color:var(--ic,var(--gold))}
+.atlas-inspector h5{margin:0 0 2px;color:var(--ink);font-size:15px;letter-spacing:.14em}.atlas-inspector p{margin:0;color:var(--ink3);font-size:11px;line-height:1.55}
+.atlas-inspector .btn{min-height:38px;padding:6px 12px;font-size:11.5px}
+.atlas-bond-grid,.atlas-combo-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.atlas-bond{--bc:var(--gold2);padding:13px 14px;border-left:2px solid var(--bc);background:rgba(2,8,12,.55)}
+.atlas-bond-head{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}.atlas-bond-head b{color:var(--bc);font-size:16px;letter-spacing:.14em;font-weight:500}
+.atlas-bond-head span{margin-left:auto;color:var(--ink4);font:10px var(--mono)}.atlas-bond p{margin:3px 0;color:var(--ink2);font-size:11.5px;line-height:1.55}
+.atlas-member-row{display:flex;gap:4px;overflow-x:auto;padding-top:7px}.atlas-member{flex:0 0 auto;width:31px;height:38px;overflow:hidden;border:1px solid rgba(201,166,74,.18);cursor:pointer;background:rgba(0,0,0,.25)}
+.atlas-member img{width:100%;height:100%;object-fit:cover;object-position:center 18%}
+.atlas-combo{padding:14px;border-top:1px solid rgba(201,166,74,.32);background:rgba(2,8,12,.55)}
+.atlas-combo h4{margin:0 0 4px!important;color:var(--gold2)!important;font-size:15px;letter-spacing:.15em!important}
+.atlas-combo .ac-members{color:var(--ink);font-size:12px;margin-bottom:6px}.atlas-combo p{margin:0;color:var(--ink3);font-size:11.5px;line-height:1.55}
+.atlas-combo.is-ultimate{border-top-color:var(--gold2);box-shadow:inset 0 1px 0 rgba(232,199,104,.18)}
+.atlas-empty{grid-column:1/-1;padding:40px;text-align:center;color:var(--ink3)}
+@media(max-width:760px){
+  #modal-veil{padding:0}#modal-box:has(.atlas-app){width:100vw;height:100dvh;max-height:100dvh;border:0}
+  .atlas-head{padding:14px 58px 10px 12px;display:grid;grid-template-columns:1fr auto;gap:8px}.atlas-title{min-width:0}
+  .atlas-title h3{font-size:21px}.atlas-kicker{font-size:8px}.atlas-tools{grid-column:1/-1;margin:0;display:grid;grid-template-columns:1fr auto}
+  .atlas-search{min-width:0}.atlas-save{padding-inline:10px;font-size:11px}.atlas-tabs{padding:0 8px}.atlas-tab{flex:1;padding:0 5px;font-size:11.5px;letter-spacing:.06em}
+  .atlas-pane{padding:12px 10px 18px}.atlas-intro{align-items:flex-start;display:block}.atlas-intro p{font-size:11px}
+  .atlas-elem-switch{margin-top:8px;display:grid;grid-template-columns:repeat(4,1fr)}.atlas-elem-btn{padding:0 3px}
+  .atlas-elements{grid-template-columns:1fr}.atlas-element{display:none}.atlas-element.is-active{display:block}.atlas-unit-row{grid-template-columns:repeat(6,1fr)}
+  .atlas-unit .atlas-portrait{width:38px;height:46px}.atlas-element-effect{min-height:0}.atlas-cycle-note{flex-wrap:wrap;font-size:10px;gap:5px}
+  .atlas-inspector{grid-template-columns:auto 1fr;padding:8px}.atlas-inspector .btn{grid-column:1/-1;width:100%}
+  .atlas-bond-grid,.atlas-combo-grid{grid-template-columns:1fr}.atlas-bond,.atlas-combo{padding:11px 12px}
+}
+@media(max-width:380px){.atlas-unit-row{grid-template-columns:repeat(5,1fr)}}
+
+/* 高清海报渲染模式：2400×3000，无交互；由 tools/build-atlas-poster.mjs 从同一数据源截图。 */
+html.atlas-poster-mode,html.atlas-poster-mode body{width:2400px;height:3000px;min-width:2400px;min-height:3000px;margin:0;overflow:hidden;background:#071118}
+#atlas-poster{position:relative;width:2400px;height:3000px;box-sizing:border-box;padding:138px 140px 104px;color:#eee8d8;
+  background:#071118 url(assets/codex-atlas-20260810/atlas-background.webp) center/cover no-repeat;font-family:var(--serif)}
+#atlas-poster::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(3,9,14,.64),rgba(3,9,14,.82));pointer-events:none}
+.ap-content{position:relative;height:100%;display:grid;grid-template-rows:180px 88px 1370px 545px 410px 1fr;gap:14px}
+.ap-head{display:flex;align-items:flex-end;border-bottom:2px solid rgba(201,166,74,.45);padding-bottom:32px}.ap-head>div:first-child{flex:1;min-width:0}.ap-kicker{color:#a7833d;font:22px var(--mono);letter-spacing:.38em}
+.ap-head h1{margin:8px 0 0;color:#f1d889;font-size:64px;letter-spacing:.12em;font-weight:500;white-space:nowrap}.ap-sub{flex:0 0 540px;margin-left:60px;text-align:right;color:#a9a59b;font-size:23px;line-height:1.7}
+.ap-elements{position:relative;display:grid;grid-template-columns:1fr 1fr;gap:22px}.ap-elem{--pc:#c9a64a;position:relative;padding:32px 36px 28px;border:2px solid color-mix(in srgb,var(--pc) 43%,transparent);
+  background:radial-gradient(circle at 50% 36%,color-mix(in srgb,var(--pc) 15%,transparent),transparent 58%),rgba(2,8,12,.82);box-shadow:inset 0 0 120px color-mix(in srgb,var(--pc) 7%,transparent)}
+.ap-elem-head{display:flex;align-items:center;gap:15px}.ap-elem h2{margin:0;color:var(--pc);font-size:36px;letter-spacing:.12em;font-weight:500}.ap-elem-head .elem-emblem .mi{width:44px;height:44px}
+.ap-elem-meta{margin-left:auto;text-align:right;color:#97938a;font:20px/1.5 var(--mono)}.ap-elem-effect{height:86px;margin:15px 0 18px;color:#d1cec4;font-size:21px;line-height:1.65}
+.ap-units{display:grid;grid-template-columns:repeat(6,1fr);gap:10px 6px}.ap-unit{text-align:center;min-width:0}.ap-unit-img{width:98px;height:120px;margin:0 auto 6px;overflow:hidden;border:2px solid rgba(201,166,74,.22);background:#09131a}
+.ap-unit-img img{width:100%;height:100%;object-fit:cover;object-position:center 18%}.ap-unit b{display:block;height:45px;color:#eee8d8;font-size:18px;line-height:1.22;font-weight:500;overflow:hidden}
+.ap-unit small{display:block;color:#8f8b83;font:14px var(--mono);margin-top:2px}.ap-cycle{display:flex;align-items:center;justify-content:center;gap:52px;padding:0 36px;
+  background:rgba(7,17,24,.84);border-top:2px solid rgba(201,166,74,.55);border-bottom:2px solid rgba(201,166,74,.3);text-align:center}
+.ap-cycle strong{color:#f1d889;font-size:27px;letter-spacing:.18em;font-weight:500}.ap-cycle span{color:#b7b2a8;font-size:21px;letter-spacing:.12em}.ap-cycle em{color:#8f8b83;font:17px var(--mono);font-style:normal}
+.ap-bonds h2,.ap-combos h2{margin:0 0 15px;color:#f1d889;font-size:31px;letter-spacing:.18em;font-weight:500}.ap-bond-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.ap-bond{--pc:#c9a64a;min-height:222px;box-sizing:border-box;padding:18px 20px;border-left:4px solid var(--pc);background:rgba(2,8,12,.78)}
+.ap-bond h3{margin:0;color:var(--pc);font-size:25px;letter-spacing:.12em;font-weight:500}.ap-bond .ap-th{float:right;color:#8f8b83;font:16px var(--mono)}
+.ap-bond p{margin:8px 0 0;color:#cbc7bd;font-size:18px;line-height:1.55}.ap-bond-members{margin-top:10px;color:#969188;font-size:16px;line-height:1.45}
+.ap-combo-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.ap-combo{min-height:145px;box-sizing:border-box;padding:16px 18px;border-top:3px solid rgba(201,166,74,.5);background:rgba(2,8,12,.78)}
+.ap-combo h3{margin:0 0 6px;color:#e6cc7a;font-size:22px;letter-spacing:.1em;font-weight:500}.ap-combo b{display:block;color:#eee8d8;font-size:17px;font-weight:500}.ap-combo p{margin:6px 0 0;color:#9e9a91;font-size:16px;line-height:1.4}
+.ap-foot{align-self:end;display:flex;align-items:flex-end;border-top:1px solid rgba(201,166,74,.35);padding-top:22px;color:#8f8b83;font-size:18px;letter-spacing:.08em}
+.ap-foot strong{color:#d8be6e;font-weight:500}.ap-foot span:last-child{margin-left:auto;text-align:right}
 /* 名册去 Unicode 图形字（Codex 20260715 审计发现：★/◆/✔ 属字符冒充图标，此前只清了 HUD）。
    ★→复用 rank-star · ◆→复用 score-throne · ✔→CSS 边框画的真勾（不新增第 46 枚图标，图标数自检不动） */
 .rmark{position:absolute;z-index:3;display:inline-flex;line-height:0}
@@ -7356,6 +7451,133 @@ function showLbSync(){ // 世界榜同步 + 设备迁移面板(菜单入口;仅�
       if(msg)msg.innerHTML='<span style="color:var(--gold2)">接续成功！你的纪录已在本设备生效 ✓</span>';SFX.play('crown')}
     else if(msg)msg.innerHTML='<span style="color:var(--red2)">接续失败——本机存储写不进（无痕模式/存储被禁/空间已满），换正常模式再试</span>';};
 }
+/* ============================================================
+   四象星图 · 战术总览
+   第一层记四象相克，第二层查打法羁绊，第三层追秘契组合。
+   全部从 ZODIAC / BONDS / COMBOS 派生；高清海报也复用同一数据源。
+   ============================================================ */
+const ATLAS_DIR='assets/codex-atlas-20260810/';
+const ATLAS_POSTER=ATLAS_DIR+'zimingqi-atlas-2400.png';
+const ATLAS_ELEMS=['earth','water','fire','wind'];
+const ATLAS_PLAYS=['pierce','vanguard','death','control','persist','edge'];
+const ATLAS_PLAY_COLOR={pierce:'#9cc0e8',vanguard:'#c9a64a',death:'#ad8ac8',control:'#7fc4d8',persist:'#82b997',edge:'#e08b7a'};
+function atlasColor(key){return ELEM_COLOR2[key]||ATLAS_PLAY_COLOR[key]||'#c9a64a'}
+function atlasPortrait(id,wrapClass='atlas-portrait'){
+  const u=UMAP[id],src=u&&artURL(id),srcset=u&&artSrcset(id),priority=wrapClass==='ai-portrait-wrap'?'high':'low';
+  return `<span class="${wrapClass}"><span class="atlas-fallback">${u?u.n[0]:'?'}</span>${src?`<img data-atlas-src="${src}"${srcset?` data-atlas-srcset="${srcset}"`:''} data-atlas-priority="${priority}" alt="" decoding="async">`:''}</span>`;
+}
+// 图鉴立绘有 43 张且羁绊页会重复引用：只为当前可见页排队，四路并发，避免一开图鉴就抢满弱网。
+let _atlasImgQueue=[],_atlasImgActive=0;
+window.__ATLAS_IMG_PEAK=0;window.__ATLAS_IMG_STARTED=0;window.__ATLAS_IMG_ACTIVE=0;
+function atlasPumpImages(){
+  while(_atlasImgActive<4&&_atlasImgQueue.length){const img=_atlasImgQueue.shift();
+    if(!img||!img.isConnected||!img.dataset.atlasSrc){if(img)delete img.dataset.atlasQueued;continue}
+    _atlasImgActive++;window.__ATLAS_IMG_ACTIVE=_atlasImgActive;window.__ATLAS_IMG_STARTED++;window.__ATLAS_IMG_PEAK=Math.max(window.__ATLAS_IMG_PEAK,_atlasImgActive);
+    const done=()=>{_atlasImgActive=Math.max(0,_atlasImgActive-1);window.__ATLAS_IMG_ACTIVE=_atlasImgActive;atlasPumpImages()};
+    img.addEventListener('load',done,{once:true});img.addEventListener('error',()=>{img.remove();done()},{once:true});
+    const src=img.dataset.atlasSrc,srcset=img.dataset.atlasSrcset;delete img.dataset.atlasSrc;delete img.dataset.atlasSrcset;delete img.dataset.atlasQueued;
+    img.fetchPriority=img.dataset.atlasPriority||'low';if(srcset)img.srcset=srcset;img.src=src;
+  }
+}
+function atlasHydrateImages(){
+  const root=$('#modal-box .atlas-app');if(!root)return;
+  const visible=[...root.querySelectorAll('img[data-atlas-src]')].filter(img=>{const pane=img.closest('.atlas-pane'),element=img.closest('.atlas-element');return (!pane||pane.classList.contains('on'))&&(!element||getComputedStyle(element).display!=='none')});
+  visible.sort((a,b)=>(a.dataset.atlasPriority==='high'?-1:0)-(b.dataset.atlasPriority==='high'?-1:0));
+  visible.forEach(img=>{if(img.dataset.atlasQueued)return;img.dataset.atlasQueued='1';_atlasImgQueue.push(img)});atlasPumpImages();
+}
+function atlasUnitAxes(id){return [unitElem(id),...ATLAS_PLAYS.filter(k=>BONDS[k].ids.includes(id))]}
+function atlasComboParts(c){
+  const parts=c.on.split(' · '),name=parts.shift(),effect=parts.join(' · ');
+  let ids=[c.a],labels=[];
+  if(c.p)ids.push(c.p);else if(c.ps)ids.push(...c.ps);else if(c.pf)labels.push(((FACS[c.pf]&&FACS[c.pf].n)||c.pf)+'伙伴');
+  ids=[...new Set(ids)];
+  return {name,effect,ids,labels,members:[...ids.map(id=>UMAP[id]?UMAP[id].n:id),...labels]};
+}
+function atlasUnitButton(u){
+  const z=ZODIAC[u.id]||['未录','earth'],el=z[1],axes=atlasUnitAxes(u.id).map(k=>BONDS[k].n).join(' ');
+  return `<button class="atlas-unit" data-uid="${u.id}" data-search="${u.n} ${u.id} ${z[0]} ${axes}" style="--ec:${atlasColor(el)}" title="${u.n} · ${z[0]}座">${atlasPortrait(u.id)}<span class="atlas-name">${u.n}</span></button>`;
+}
+function atlasElementCard(el){
+  const us=UNITS.filter(u=>unitElem(u.id)===el),z=[...new Set(us.map(u=>ZODIAC[u.id]&&ZODIAC[u.id][0]).filter(Boolean))],b=BONDS[el];
+  return `<section class="atlas-element${el==='earth'?' is-active':''}" data-elem="${el}" style="--ec:${atlasColor(el)}">
+    <div class="atlas-element-head">${elemGlyph(el)}<h4>${ELEM_CN[el]}</h4><div class="atlas-element-meta">${us.length} 名学员<br>${z.join(' · ')}</div></div>
+    <div class="atlas-element-effect"><b>${b.n}</b> ${b.th[0]}人：${b.d[0]}<br>${b.th[1]}人：${b.d[1]}</div>
+    <div class="atlas-unit-row">${us.map(atlasUnitButton).join('')}</div></section>`;
+}
+function atlasMemberButton(id){const u=UMAP[id];return `<button class="atlas-member" data-uid="${id}" title="${u.n}">${atlasPortrait(id,'atlas-member-art')}</button>`}
+function atlasBondCard(key){
+  const b=BONDS[key],ids=b.ids||[],color=atlasColor(key);
+  return `<section class="atlas-bond" data-bond="${key}" style="--bc:${color}"><div class="atlas-bond-head"><b>${b.n}</b><span>${b.chip} · ${ids.length}人</span></div>
+    <p>${b.th[0]}人：${b.d[0]}</p><p>${b.th[1]}人：${b.d[1]}</p><div class="atlas-member-row">${ids.map(atlasMemberButton).join('')}</div></section>`;
+}
+function atlasComboCard(c){
+  const p=atlasComboParts(c),ultimate=c.reqStar?' is-ultimate':'';
+  return `<section class="atlas-combo${ultimate}" data-combo="${p.name}"><h4>${p.name}${c.reqStar?' · 终局秘契':''}</h4><div class="ac-members">${p.members.join(' ＋ ')}</div><p>${c.reqStar?'全员升至 2 星后：':''}${p.effect}</p><div class="atlas-member-row">${p.ids.map(atlasMemberButton).join('')}</div></section>`;
+}
+function atlasInspectorHTML(id){
+  const u=UMAP[id]||UNITS[0],z=ZODIAC[u.id]||['未录','earth'],axes=atlasUnitAxes(u.id).map(k=>BONDS[k].chip),combos=COMBOS.filter(c=>atlasComboParts(c).ids.includes(u.id)).map(c=>atlasComboParts(c).name);
+  return `${atlasPortrait(u.id,'ai-portrait-wrap')}<div><h5>${u.n} · ${z[0]}座</h5><p>${ELEM_CN[z[1]]}${axes.slice(1).length?' · '+axes.slice(1).join(' / '):''}${combos.length?' · 秘契：'+combos.join(' / '):''}</p></div><button class="btn" data-atlas-detail="${u.id}">打开完整档案</button>`;
+}
+function atlasSetElement(el){
+  $$('#modal-box .atlas-elem-btn').forEach(b=>b.classList.toggle('on',b.dataset.elem===el));
+  $$('#modal-box .atlas-element').forEach(card=>card.classList.toggle('is-active',card.dataset.elem===el));
+  requestAnimationFrame(atlasHydrateImages);
+}
+function atlasSelectUnit(id){
+  const u=UMAP[id];if(!u)return;atlasSetElement(unitElem(id));
+  $$('#modal-box .atlas-unit').forEach(b=>b.classList.toggle('is-match',b.dataset.uid===id));
+  const box=$('#atlas-inspector');if(box){box.style.setProperty('--ic',atlasColor(unitElem(id)));box.innerHTML=atlasInspectorHTML(id);
+    const detail=box.querySelector('[data-atlas-detail]');if(detail)detail.onclick=()=>showUnitDetail(detail.dataset.atlasDetail);requestAnimationFrame(atlasHydrateImages)}
+}
+function atlasOpenTab(tab){
+  $$('#modal-box .atlas-tab').forEach(b=>{const on=b.dataset.tab===tab;b.classList.toggle('on',on);b.setAttribute('aria-selected',on?'true':'false')});
+  $$('#modal-box .atlas-pane').forEach(p=>p.classList.toggle('on',p.dataset.pane===tab));
+  requestAnimationFrame(atlasHydrateImages);
+}
+async function saveAtlasPoster(){
+  const url=ATLAS_POSTER+'?v=20260810a';
+  try{
+    const res=await fetch(url);if(!res.ok)throw new Error('poster unavailable');const blob=await res.blob();
+    const file=new File([blob],'自鸣棋-四象星图-高清总览.png',{type:'image/png'});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      await navigator.share({title:'自鸣棋 · 四象星图',text:'四象相克、打法羁绊与秘契组合总览',files:[file]});toast('已打开系统分享，可选择“存储图像”');
+    }else{const href=URL.createObjectURL(blob),a=document.createElement('a');a.href=href;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(href),1200);toast('高清星图已下载')}
+  }catch(e){if(e&&e.name==='AbortError')return;window.open(url,'_blank');toast('已打开高清图，长按图片即可保存')}
+}
+function showAtlas(){
+  const elemSwitch=ATLAS_ELEMS.map(el=>`<button class="atlas-elem-btn${el==='earth'?' on':''}" data-elem="${el}" style="--ec:${atlasColor(el)}">${ELEM_CN[el]}</button>`).join('');
+  modal(`<div class="atlas-app"><header class="atlas-head"><div class="atlas-title"><span class="atlas-kicker">MYSKME STRATEGY CODEX</span><h3>四象星图</h3></div>
+    <div class="atlas-tools"><label class="atlas-search"><input id="atlas-search" type="search" autocomplete="off" placeholder="查名字或星座" aria-label="查找学员或星座"></label><button class="btn gold atlas-save" id="atlas-save">保存高清图</button></div></header>
+    <nav class="atlas-tabs" role="tablist"><button class="atlas-tab on" data-tab="elements" role="tab" aria-selected="true">四象总览</button><button class="atlas-tab" data-tab="bonds" role="tab" aria-selected="false">打法羁绊</button><button class="atlas-tab" data-tab="combos" role="tab" aria-selected="false">秘契组合</button></nav>
+    <div class="atlas-stage"><section class="atlas-pane on" data-pane="elements"><div class="atlas-intro"><p>先看四象决定相克，再看羁绊决定队伍方向。点任意学员即可看到他能同时连接哪些构筑。</p><div class="atlas-elem-switch">${elemSwitch}</div></div>
+      <div class="atlas-elements">${ATLAS_ELEMS.map(atlasElementCard).join('')}</div><div class="atlas-cycle-note"><b>相克环</b><span>土象</span><i class="atlas-arrow">克</i><span>水象</span><i class="atlas-arrow">克</i><span>火象</span><i class="atlas-arrow">克</i><span>风象</span><i class="atlas-arrow">克</i><span>土象</span><em>基础攻击 +25% · 被克 ×0.80</em></div>
+      <aside class="atlas-inspector" id="atlas-inspector" style="--ic:${atlasColor('earth')}">${atlasInspectorHTML('zi')}</aside></section>
+      <section class="atlas-pane" data-pane="bonds"><div class="atlas-intro"><p>同一名学员可以同时属于四象与打法羁绊；这种“一牌两算”的桥牌，是阵容研究的关键。</p></div><div class="atlas-bond-grid">${ATLAS_PLAYS.map(atlasBondCard).join('')}</div></section>
+      <section class="atlas-pane" data-pane="combos"><div class="atlas-intro"><p>秘契不只加数值，还改变复起、站位与整队节奏。终局秘契最难凑齐，也最值得长期追求。</p></div><div class="atlas-combo-grid">${COMBOS.map(atlasComboCard).join('')}</div></section></div></div>`);
+  $$('#modal-box .atlas-tab').forEach(b=>b.onclick=()=>atlasOpenTab(b.dataset.tab));
+  $$('#modal-box .atlas-elem-btn').forEach(b=>b.onclick=()=>atlasSetElement(b.dataset.elem));
+  $$('#modal-box [data-uid]').forEach(b=>b.onclick=()=>{atlasOpenTab('elements');atlasSelectUnit(b.dataset.uid)});
+  const detail=$('#atlas-inspector [data-atlas-detail]');if(detail)detail.onclick=()=>showUnitDetail(detail.dataset.atlasDetail);
+  $('#atlas-save').onclick=saveAtlasPoster;
+  $('#atlas-search').oninput=e=>{const q=e.target.value.trim().toLowerCase();if(!q){$$('#modal-box .atlas-unit').forEach(b=>b.classList.remove('is-match'));return}
+    const hits=UNITS.filter(u=>{const b=$(`#modal-box .atlas-unit[data-uid="${u.id}"]`);return b&&b.dataset.search.toLowerCase().includes(q)});
+    $$('#modal-box .atlas-unit').forEach(b=>b.classList.toggle('is-match',hits.some(u=>u.id===b.dataset.uid)));
+    if(hits.length){atlasOpenTab('elements');atlasSelectUnit(hits[0].id)}};
+  atlasHydrateImages();
+}
+function posterUnit(u){const z=ZODIAC[u.id]||['未录','earth'];return `<div class="ap-unit"><div class="ap-unit-img">${artTag(u.id)}</div><b>${u.n}</b><small>${z[0]} · ${u.rar}</small></div>`}
+function posterElement(el){const us=UNITS.filter(u=>unitElem(u.id)===el),b=BONDS[el],z=[...new Set(us.map(u=>ZODIAC[u.id][0]))];return `<section class="ap-elem" style="--pc:${atlasColor(el)}"><div class="ap-elem-head">${elemGlyph(el)}<h2>${ELEM_CN[el]} · ${b.n}</h2><div class="ap-elem-meta">${us.length} 名<br>${z.join(' / ')}</div></div><div class="ap-elem-effect">${b.th[0]}人：${b.d[0]}<br>${b.th[1]}人：${b.d[1]}</div><div class="ap-units">${us.map(posterUnit).join('')}</div></section>`}
+function posterBond(key){const b=BONDS[key],names=b.ids.map(id=>UMAP[id].n).join(' · ');return `<section class="ap-bond" style="--pc:${atlasColor(key)}"><span class="ap-th">${b.th[0]} / ${b.th[1]} 人</span><h3>${b.n} · ${b.chip}</h3><p>${b.th[0]}人：${b.d[0]}<br>${b.th[1]}人：${b.d[1]}</p><div class="ap-bond-members">成员：${names}</div></section>`}
+function posterCombo(c){const p=atlasComboParts(c);return `<section class="ap-combo"><h3>${p.name}${c.reqStar?' · 终局':''}</h3><b>${p.members.join(' ＋ ')}</b><p>${c.reqStar?'全员 2 星：':''}${p.effect}</p></section>`}
+function renderAtlasPosterPage(){
+  document.documentElement.classList.add('atlas-poster-mode');document.body.innerHTML=`<main id="atlas-poster"><div class="ap-content"><header class="ap-head"><div><div class="ap-kicker">MYSKME · STRATEGY CODEX</div><h1>自鸣棋 · 四象星图</h1></div><div class="ap-sub">四象相克 · 六种打法 · ${COMBOS.length} 组秘契<br>一张图看懂阵容的连接方式</div></header>
+    <section class="ap-cycle"><strong>四象相克环</strong><span>土克水　·　水克火　·　火克风　·　风克土</span><em>基础攻击 +25% ／ 被克 ×0.80</em></section>
+    <section class="ap-elements">${['earth','wind','fire','water'].map(posterElement).join('')}</section>
+    <section class="ap-bonds"><h2>打法羁绊 · 一牌两算</h2><div class="ap-bond-grid">${ATLAS_PLAYS.map(posterBond).join('')}</div></section>
+    <section class="ap-combos"><h2>秘契组合 · 长线追求</h2><div class="ap-combo-grid">${COMBOS.map(posterCombo).join('')}</div></section>
+    <footer class="ap-foot"><span><strong>MYSKME 原创世界</strong> · 数据取自当前正式玩法</span><span>基础攻击克制 +25% · 被克 ×0.80<br>角色与羁绊更新后可重新生成</span></footer></div></main>`;
+  const ready=async()=>{await Promise.all([...document.images].map(im=>im.complete?Promise.resolve():new Promise(done=>{im.onload=im.onerror=done})));if(document.fonts&&document.fonts.ready)await document.fonts.ready;$('#atlas-poster').dataset.ready='true'};ready();
+}
 function showMenu(){
   try{ensureClassroomRitual()}catch(e){} // 视觉探针异常也不能阻断菜单
   modal(`<div class="ritual-menu">
@@ -7364,7 +7586,8 @@ function showMenu(){
       <section class="ritual-menu-section"><span class="ritual-menu-label">行 旅 档 案</span><div class="ritual-menu-actions">
         <button class="btn ritual-key" onclick="closeModal();showHowto()">${uiIcon('help-book')}${S&&S.solo?'玩法说明':'玩法与课堂说明'}</button>
         <button class="btn ritual-key" onclick="closeModal();showRoster()">${uiIcon('score-throne')}狼先生的名册</button>
-        <button class="btn ritual-key" onclick="closeModal();showUnits()">${uiIcon('rank-star')}单位与遗物图鉴</button>
+        <button class="btn ritual-key" onclick="closeModal();showAtlas()">${uiIcon('rank-star')}四象星图 · 羁绊图鉴</button>
+        <button class="btn ritual-key" onclick="closeModal();showUnits()">${uiIcon('help-book')}完整单位与遗物</button>
         ${(typeof LB_ON!=='undefined'&&LB_ON)?`<button class="btn ritual-key" onclick="closeModal();showLbSync()">${uiIcon('score-throne')}世界榜同步 · 换设备迁移</button>`:''}
       </div></section>
       <section class="ritual-menu-section"><span class="ritual-menu-label">声 场 调 律</span><div class="ritual-menu-actions">
@@ -7448,6 +7671,7 @@ $('#btn-menu').onclick=showMenu;
 (function boot(){
   const bootStarted=performance.now();
   _meta=loadMeta(); // 狼先生的名册:启动读一次(独立键,与局内存档隔离)
+  if(new URLSearchParams(location.search).get('atlas')==='poster'){renderAtlasPosterPage();document.documentElement.dataset.boot='ready';return}
   if(location.hash==='#selftest'){try{runSelftest()}catch(e){document.body.innerHTML='<pre style="color:#d56060;padding:20px">selftest error:\n'+e.stack+'</pre>'}return}
   {const invite=echoParse(new URLSearchParams(location.search).get('echo')),box=$('#echo-invite');
     if(invite&&box){box.hidden=false;$('#echo-invite-title').textContent=`${invite.name} 留下了一支真实军团`;

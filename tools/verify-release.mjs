@@ -33,6 +33,10 @@ ok('补传不抢首屏且恢复联网自愈',html.includes('function schedulePen
 ok('影军与名匠请求统一超时',(html.match(/fetch\(LB_URL/g)||[]).length===1&&html.includes("lbSend({action:'gpull'")&&html.includes("lbSend({action:'hpush'")&&html.includes("lbSend({action:'gpush'"));
 ok('SW 注册不重复手动更新',html.includes("navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch")&&!html.includes('reg=>reg.update()'));
 ok('真实音效三路并发且单请求限时',html.includes('const REAL_LOAD_CONCURRENCY=3')&&html.includes('Math.min(REAL_LOAD_CONCURRENCY,jobs.length)')&&html.includes('setTimeout(()=>ctl.abort(),10000)'));
+ok('四象星图从现有数据源实时派生',html.includes("const ATLAS_ELEMS=['earth','water','fire','wind']")&&html.includes('ATLAS_PLAYS.filter(k=>BONDS[k].ids.includes(id))')&&html.includes('COMBOS.map(atlasComboCard)'));
+ok('图鉴立绘四路按当前页延迟加载',html.includes('while(_atlasImgActive<4&&_atlasImgQueue.length)')&&html.includes("querySelectorAll('img[data-atlas-src]')")&&html.includes('requestAnimationFrame(atlasHydrateImages)'));
+ok('高清星图支持移动端系统分享与桌面下载',html.includes('navigator.canShare({files:[file]})')&&html.includes("a.download=file.name")&&html.includes("const ATLAS_POSTER=ATLAS_DIR+'zimingqi-atlas-2400.png'"));
+ok('高清海报与游戏共用四象羁绊秘契数据',html.includes("['earth','wind','fire','water'].map(posterElement)")&&html.includes('ATLAS_PLAYS.map(posterBond)')&&html.includes('COMBOS.map(posterCombo)')&&html.includes('<section class="ap-cycle"><strong>四象相克环</strong>'));
 
 for(const path of [
   'assets/pwa-20260809/app-icon-192.png',
@@ -43,7 +47,14 @@ for(const path of [
   'assets/platform-20260809/ios/AppIcon.appiconset/AppIcon-1024.png',
   'assets/platform-20260809/wechat/game-icon-512.png',
   'assets/platform-20260809/wechat/share-card-5x4.png',
-  'assets/platform-20260809/marketing/og-cover-1200x630.png'
+  'assets/platform-20260809/marketing/og-cover-1200x630.png',
+  'assets/codex-atlas-20260810/atlas-background-source.png',
+  'assets/codex-atlas-20260810/atlas-background.webp',
+  'assets/codex-atlas-20260810/zimingqi-atlas-2400.png',
+  'assets/codex-atlas-20260810/zimingqi-atlas-1200.jpg',
+  'assets/codex-atlas-20260810/zimingqi-atlas-preview-600.jpg',
+  'assets/codex-atlas-20260810/atlas-data.json',
+  'assets/codex-atlas-20260810/manifest.json'
 ]){
   const info=await stat(new URL('../'+path,import.meta.url));
   ok(path,info.isFile()&&info.size>1024);

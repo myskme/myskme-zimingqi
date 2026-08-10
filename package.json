@@ -11,6 +11,8 @@
     "selftest:pwa": "node tools/selftest-pwa.mjs",
     "qa:strategy": "node tools/qa-strategy-ui.mjs",
     "qa:balance": "node tools/qa-strategy-balance.mjs",
+    "build:atlas": "node tools/build-atlas-poster.mjs",
+    "qa:atlas": "node tools/qa-atlas.mjs",
     "verify:release": "node tools/verify-release.mjs",
     "build:edgeone": "node tools/build-edgeone-package.mjs"
   }

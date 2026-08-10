@@ -1,0 +1,1374 @@
+{
+  "schemaVersion": 1,
+  "assetVersion": "20260810a",
+  "title": "自鸣棋 · 四象星图",
+  "brand": "MYSKME",
+  "source": {
+    "units": "UNITS",
+    "zodiac": "ZODIAC",
+    "bonds": "BONDS",
+    "combos": "COMBOS"
+  },
+  "counterCycle": [
+    {
+      "from": "earth",
+      "fromName": "土象",
+      "to": "water",
+      "toName": "水象"
+    },
+    {
+      "from": "water",
+      "fromName": "水象",
+      "to": "fire",
+      "toName": "火象"
+    },
+    {
+      "from": "fire",
+      "fromName": "火象",
+      "to": "wind",
+      "toName": "风象"
+    },
+    {
+      "from": "wind",
+      "fromName": "风象",
+      "to": "earth",
+      "toName": "土象"
+    }
+  ],
+  "elements": [
+    {
+      "id": "earth",
+      "name": "土象",
+      "color": "#c9a64a",
+      "bond": {
+        "name": "厚土载物",
+        "chip": "土象",
+        "thresholds": [
+          2,
+          4
+        ],
+        "effects": [
+          "全队 +3 生命",
+          "全队 +3 生命 · 开战全队 +2 护盾"
+        ]
+      },
+      "zodiacs": [
+        "处女",
+        "金牛",
+        "摩羯"
+      ],
+      "units": [
+        {
+          "id": "zi",
+          "name": "梓",
+          "zodiac": "处女",
+          "rarity": "UR",
+          "cost": 4,
+          "beast": "鹿",
+          "art": "assets/unit-zi.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            }
+          ]
+        },
+        {
+          "id": "lu",
+          "name": "璐",
+          "zodiac": "处女",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "歌",
+          "art": "assets/unit-lu.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            }
+          ]
+        },
+        {
+          "id": "guard",
+          "name": "谷地守望",
+          "zodiac": "金牛",
+          "rarity": "N",
+          "cost": 1,
+          "beast": "盾",
+          "art": "assets/unit-guard.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            },
+            {
+              "id": "vanguard",
+              "name": "不退之誓",
+              "chip": "嘲讽"
+            }
+          ]
+        },
+        {
+          "id": "carter",
+          "name": "星尘车夫",
+          "zodiac": "摩羯",
+          "rarity": "N",
+          "cost": 1,
+          "beast": "尘",
+          "art": "assets/unit-carter.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            },
+            {
+              "id": "death",
+              "name": "向死而生",
+              "chip": "亡语"
+            }
+          ]
+        },
+        {
+          "id": "han",
+          "name": "涵",
+          "zodiac": "处女",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "册",
+          "art": "assets/image2-characters-20260713/unit-han.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            }
+          ]
+        },
+        {
+          "id": "majun",
+          "name": "马将军",
+          "zodiac": "摩羯",
+          "rarity": "N",
+          "cost": 1,
+          "beast": "归",
+          "art": "assets/unit-majun.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            }
+          ]
+        },
+        {
+          "id": "wan",
+          "name": "菀",
+          "zodiac": "金牛",
+          "rarity": "SR",
+          "cost": 3,
+          "beast": "尺",
+          "art": "assets/unit-wan.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        },
+        {
+          "id": "xuan",
+          "name": "璇",
+          "zodiac": "摩羯",
+          "rarity": "SR",
+          "cost": 3,
+          "beast": "狞",
+          "art": "assets/unit-xuan.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        },
+        {
+          "id": "xiao",
+          "name": "晓",
+          "zodiac": "处女",
+          "rarity": "R",
+          "cost": 1,
+          "beast": "晨",
+          "art": "assets/unit-xiao.webp",
+          "axes": [
+            {
+              "id": "earth",
+              "name": "厚土载物",
+              "chip": "土象"
+            },
+            {
+              "id": "persist",
+              "name": "不倒之志",
+              "chip": "坚韧"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "water",
+      "name": "水象",
+      "color": "#7fc4d8",
+      "bond": {
+        "name": "潮汐同悲",
+        "chip": "水象",
+        "thresholds": [
+          2,
+          3
+        ],
+        "effects": [
+          "阵亡溅射敌 1 伤",
+          "阵亡溅射敌 2 伤"
+        ]
+      },
+      "zodiacs": [
+        "天蝎",
+        "双鱼",
+        "巨蟹"
+      ],
+      "units": [
+        {
+          "id": "nuo",
+          "name": "诺",
+          "zodiac": "天蝎",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "枭",
+          "art": "assets/unit-nuo.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        },
+        {
+          "id": "crane",
+          "name": "白鹤侍从",
+          "zodiac": "双鱼",
+          "rarity": "R",
+          "cost": 1,
+          "beast": "鹤",
+          "art": "assets/unit-crane.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            }
+          ]
+        },
+        {
+          "id": "scout",
+          "name": "断云斥候",
+          "zodiac": "天蝎",
+          "rarity": "R",
+          "cost": 2,
+          "beast": "云",
+          "art": "assets/unit-scout.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        },
+        {
+          "id": "pigeon",
+          "name": "信鸽",
+          "zodiac": "巨蟹",
+          "rarity": "N",
+          "cost": 1,
+          "beast": "翎",
+          "art": "assets/unit-pigeon.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            }
+          ]
+        },
+        {
+          "id": "mist",
+          "name": "海雾行者",
+          "zodiac": "巨蟹",
+          "rarity": "R",
+          "cost": 2,
+          "beast": "雾",
+          "art": "assets/unit-mist.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        },
+        {
+          "id": "wei",
+          "name": "炜",
+          "zodiac": "天蝎",
+          "rarity": "R",
+          "cost": 1,
+          "beast": "衡",
+          "art": "assets/unit-wei.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            }
+          ]
+        },
+        {
+          "id": "ming",
+          "name": "铭",
+          "zodiac": "双鱼",
+          "rarity": "R",
+          "cost": 1,
+          "beast": "门",
+          "art": "assets/characters-six-20260810-v2/unit-ming.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            }
+          ]
+        },
+        {
+          "id": "jie",
+          "name": "杰",
+          "zodiac": "天蝎",
+          "rarity": "R",
+          "cost": 2,
+          "beast": "跃",
+          "art": "assets/characters-six-20260810-v2/unit-jie.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        },
+        {
+          "id": "xi",
+          "name": "晰",
+          "zodiac": "双鱼",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "糖",
+          "art": "assets/unit-xi.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "persist",
+              "name": "不倒之志",
+              "chip": "坚韧"
+            }
+          ]
+        },
+        {
+          "id": "toll",
+          "name": "更漏人",
+          "zodiac": "巨蟹",
+          "rarity": "R",
+          "cost": 2,
+          "beast": "漏",
+          "art": "assets/visual-batch2-20260717/units/unit-toll.webp",
+          "axes": [
+            {
+              "id": "water",
+              "name": "潮汐同悲",
+              "chip": "水象"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fire",
+      "name": "火象",
+      "color": "#e08b7a",
+      "bond": {
+        "name": "烈焰同燃",
+        "chip": "火象",
+        "thresholds": [
+          2,
+          4
+        ],
+        "effects": [
+          "火象单位 +1 攻",
+          "火象单位 +2 攻"
+        ]
+      },
+      "zodiacs": [
+        "狮子",
+        "射手",
+        "白羊"
+      ],
+      "units": [
+        {
+          "id": "lin",
+          "name": "琳",
+          "zodiac": "狮子",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "剑",
+          "art": "assets/unit-lin.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            }
+          ]
+        },
+        {
+          "id": "yin",
+          "name": "音",
+          "zodiac": "狮子",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "弦",
+          "art": "assets/unit-yin.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "death",
+              "name": "向死而生",
+              "chip": "亡语"
+            }
+          ]
+        },
+        {
+          "id": "chen",
+          "name": "宸",
+          "zodiac": "射手",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "弓",
+          "art": "assets/characters-six-20260810-v2/unit-chen.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "pierce",
+              "name": "破云之矢",
+              "chip": "穿透"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        },
+        {
+          "id": "jun",
+          "name": "钧",
+          "zodiac": "射手",
+          "rarity": "R",
+          "cost": 2,
+          "beast": "山",
+          "art": "assets/characters-six-20260810-v2/unit-jun.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "vanguard",
+              "name": "不退之誓",
+              "chip": "嘲讽"
+            }
+          ]
+        },
+        {
+          "id": "xin",
+          "name": "欣",
+          "zodiac": "射手",
+          "rarity": "R",
+          "cost": 2,
+          "beast": "界",
+          "art": "assets/image2-characters-20260713-b2/unit-xin.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "persist",
+              "name": "不倒之志",
+              "chip": "坚韧"
+            }
+          ]
+        },
+        {
+          "id": "yu",
+          "name": "屿",
+          "zodiac": "白羊",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "潮",
+          "art": "assets/unit-yu.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "death",
+              "name": "向死而生",
+              "chip": "亡语"
+            }
+          ]
+        },
+        {
+          "id": "qi",
+          "name": "麒",
+          "zodiac": "白羊",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "浪",
+          "art": "assets/unit-qi.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "vanguard",
+              "name": "不退之誓",
+              "chip": "嘲讽"
+            }
+          ]
+        },
+        {
+          "id": "hai",
+          "name": "海",
+          "zodiac": "射手",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "舞",
+          "art": "assets/image2-characters-20260713-b2/unit-hai.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        },
+        {
+          "id": "yang",
+          "name": "洋",
+          "zodiac": "射手",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "衡",
+          "art": "assets/unit-yang.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            }
+          ]
+        },
+        {
+          "id": "ke",
+          "name": "克",
+          "zodiac": "射手",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "画",
+          "art": "assets/characters-six-20260810-v2/unit-ke.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        },
+        {
+          "id": "wen",
+          "name": "文",
+          "zodiac": "狮子",
+          "rarity": "SR",
+          "cost": 1,
+          "beast": "卷",
+          "art": "assets/unit-wen.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "persist",
+              "name": "不倒之志",
+              "chip": "坚韧"
+            }
+          ]
+        },
+        {
+          "id": "flint",
+          "name": "燧石",
+          "zodiac": "白羊",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "燧",
+          "art": "assets/visual-batch2-20260717/units/unit-flint.webp",
+          "axes": [
+            {
+              "id": "fire",
+              "name": "烈焰同燃",
+              "chip": "火象"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "wind",
+      "name": "风象",
+      "color": "#9cc0e8",
+      "bond": {
+        "name": "疾风借势",
+        "chip": "风象",
+        "thresholds": [
+          2,
+          4
+        ],
+        "effects": [
+          "全队 +1 速",
+          "全队 +2 速 · 穿透单位 +1 攻"
+        ]
+      },
+      "zodiacs": [
+        "水瓶",
+        "天秤",
+        "双子"
+      ],
+      "units": [
+        {
+          "id": "zeng",
+          "name": "增",
+          "zodiac": "水瓶",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "熊",
+          "art": "assets/unit-zeng.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "vanguard",
+              "name": "不退之誓",
+              "chip": "嘲讽"
+            }
+          ]
+        },
+        {
+          "id": "wolf",
+          "name": "狼先生",
+          "zodiac": "天秤",
+          "rarity": "UR",
+          "cost": 5,
+          "beast": "月",
+          "art": "assets/unit-wolf.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            }
+          ]
+        },
+        {
+          "id": "jin",
+          "name": "瑾",
+          "zodiac": "水瓶",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "狐",
+          "art": "assets/image2-characters-20260713/unit-jin.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        },
+        {
+          "id": "hao",
+          "name": "浩",
+          "zodiac": "水瓶",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "牛",
+          "art": "assets/image2-characters-20260713/unit-hao.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "vanguard",
+              "name": "不退之誓",
+              "chip": "嘲讽"
+            }
+          ]
+        },
+        {
+          "id": "ziyu",
+          "name": "子鱼",
+          "zodiac": "水瓶",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "鲤",
+          "art": "assets/characters-six-20260810-v2/unit-ziyu.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            }
+          ]
+        },
+        {
+          "id": "jia",
+          "name": "佳",
+          "zodiac": "水瓶",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "问",
+          "art": "assets/unit-jia.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "control",
+              "name": "制敌之势",
+              "chip": "制御"
+            }
+          ]
+        },
+        {
+          "id": "rui",
+          "name": "睿",
+          "zodiac": "水瓶",
+          "rarity": "SSR",
+          "cost": 3,
+          "beast": "题",
+          "art": "assets/image2-characters-20260713-b2/unit-rui.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "edge",
+              "name": "锋锐首击",
+              "chip": "锋锐"
+            }
+          ]
+        },
+        {
+          "id": "rong",
+          "name": "荣",
+          "zodiac": "双子",
+          "rarity": "R",
+          "cost": 1,
+          "beast": "衡",
+          "art": "assets/unit-rong.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "vanguard",
+              "name": "不退之誓",
+              "chip": "嘲讽"
+            }
+          ]
+        },
+        {
+          "id": "hui",
+          "name": "慧",
+          "zodiac": "天秤",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "烬",
+          "art": "assets/unit-hui.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "death",
+              "name": "向死而生",
+              "chip": "亡语"
+            }
+          ]
+        },
+        {
+          "id": "hang",
+          "name": "航",
+          "zodiac": "水瓶",
+          "rarity": "UR",
+          "cost": 4,
+          "beast": "锁",
+          "art": "assets/unit-hang.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            }
+          ]
+        },
+        {
+          "id": "yue",
+          "name": "月",
+          "zodiac": "天秤",
+          "rarity": "SSR",
+          "cost": 2,
+          "beast": "霄",
+          "art": "assets/unit-yue.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "persist",
+              "name": "不倒之志",
+              "chip": "坚韧"
+            }
+          ]
+        },
+        {
+          "id": "duo",
+          "name": "铎",
+          "zodiac": "双子",
+          "rarity": "SR",
+          "cost": 2,
+          "beast": "钟",
+          "art": "assets/unit-duo.webp",
+          "axes": [
+            {
+              "id": "wind",
+              "name": "疾风借势",
+              "chip": "风象"
+            },
+            {
+              "id": "persist",
+              "name": "不倒之志",
+              "chip": "坚韧"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "playBonds": [
+    {
+      "id": "pierce",
+      "name": "破云之矢",
+      "chip": "穿透",
+      "color": "#9cc0e8",
+      "thresholds": [
+        2,
+        4
+      ],
+      "effects": [
+        "穿透单位 开战 +2 护盾",
+        "穿透单位 开战 +2 护盾 · 首击必暴击 ×2"
+      ],
+      "members": [
+        {
+          "id": "zi",
+          "name": "梓"
+        },
+        {
+          "id": "chen",
+          "name": "宸"
+        },
+        {
+          "id": "nuo",
+          "name": "诺"
+        },
+        {
+          "id": "scout",
+          "name": "断云斥候"
+        },
+        {
+          "id": "pigeon",
+          "name": "信鸽"
+        },
+        {
+          "id": "xuan",
+          "name": "璇"
+        },
+        {
+          "id": "jie",
+          "name": "杰"
+        }
+      ]
+    },
+    {
+      "id": "vanguard",
+      "name": "不退之誓",
+      "chip": "嘲讽",
+      "color": "#c9a64a",
+      "thresholds": [
+        2,
+        3
+      ],
+      "effects": [
+        "嘲讽单位被普攻命中：反震 1 伤",
+        "嘲讽单位被普攻命中：反震 2 伤"
+      ],
+      "members": [
+        {
+          "id": "zeng",
+          "name": "增"
+        },
+        {
+          "id": "guard",
+          "name": "谷地守望"
+        },
+        {
+          "id": "hao",
+          "name": "浩"
+        },
+        {
+          "id": "jun",
+          "name": "钧"
+        },
+        {
+          "id": "qi",
+          "name": "麒"
+        },
+        {
+          "id": "rong",
+          "name": "荣"
+        }
+      ]
+    },
+    {
+      "id": "death",
+      "name": "向死而生",
+      "chip": "亡语",
+      "color": "#ad8ac8",
+      "thresholds": [
+        2,
+        3
+      ],
+      "effects": [
+        "同袍阵亡时 · 随机友军 +1 攻",
+        "同袍阵亡时 · 全队 +1 攻（前赴后继）"
+      ],
+      "members": [
+        {
+          "id": "yin",
+          "name": "音"
+        },
+        {
+          "id": "carter",
+          "name": "星尘车夫"
+        },
+        {
+          "id": "yu",
+          "name": "屿"
+        },
+        {
+          "id": "hui",
+          "name": "慧"
+        }
+      ]
+    },
+    {
+      "id": "control",
+      "name": "制敌之势",
+      "chip": "制御",
+      "color": "#7fc4d8",
+      "thresholds": [
+        2,
+        4
+      ],
+      "effects": [
+        "开战 · 敌全体 -1 速",
+        "开战 · 敌全体 -2 速 · 敌最高攻 -2 攻"
+      ],
+      "members": [
+        {
+          "id": "nuo",
+          "name": "诺"
+        },
+        {
+          "id": "jia",
+          "name": "佳"
+        },
+        {
+          "id": "mist",
+          "name": "海雾行者"
+        },
+        {
+          "id": "hai",
+          "name": "海"
+        },
+        {
+          "id": "wan",
+          "name": "菀"
+        },
+        {
+          "id": "ke",
+          "name": "克"
+        },
+        {
+          "id": "toll",
+          "name": "更漏人"
+        }
+      ]
+    },
+    {
+      "id": "persist",
+      "name": "不倒之志",
+      "chip": "坚韧",
+      "color": "#82b997",
+      "thresholds": [
+        3,
+        5
+      ],
+      "effects": [
+        "坚韧单位 +4 最大生命",
+        "坚韧单位 +4 命 · 最左坚韧首次阵亡半血复起"
+      ],
+      "members": [
+        {
+          "id": "xin",
+          "name": "欣"
+        },
+        {
+          "id": "yue",
+          "name": "月"
+        },
+        {
+          "id": "duo",
+          "name": "铎"
+        },
+        {
+          "id": "wen",
+          "name": "文"
+        },
+        {
+          "id": "xiao",
+          "name": "晓"
+        },
+        {
+          "id": "xi",
+          "name": "晰"
+        }
+      ]
+    },
+    {
+      "id": "edge",
+      "name": "锋锐首击",
+      "chip": "锋锐",
+      "color": "#e08b7a",
+      "thresholds": [
+        2,
+        3
+      ],
+      "effects": [
+        "锋锐单位 首击额外 +2 伤",
+        "锋锐单位 首击必暴击 ×2"
+      ],
+      "members": [
+        {
+          "id": "jin",
+          "name": "瑾"
+        },
+        {
+          "id": "chen",
+          "name": "宸"
+        },
+        {
+          "id": "scout",
+          "name": "断云斥候"
+        },
+        {
+          "id": "rui",
+          "name": "睿"
+        },
+        {
+          "id": "xuan",
+          "name": "璇"
+        },
+        {
+          "id": "jie",
+          "name": "杰"
+        },
+        {
+          "id": "flint",
+          "name": "燧石"
+        }
+      ]
+    }
+  ],
+  "combos": [
+    {
+      "name": "谷地双壁",
+      "effect": "二人+2盾、增+1攻",
+      "memberIds": [
+        "zeng",
+        "hao"
+      ],
+      "members": [
+        "增",
+        "浩"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    },
+    {
+      "name": "灯火相承",
+      "effect": "全队+3盾、首次倒下一人半血归队",
+      "memberIds": [
+        "zi",
+        "wolf"
+      ],
+      "members": [
+        "梓",
+        "狼先生"
+      ],
+      "requiredStar": 2,
+      "ultimate": true
+    },
+    {
+      "name": "兄弟",
+      "effect": "屿麒各+2攻",
+      "memberIds": [
+        "qi",
+        "yu"
+      ],
+      "members": [
+        "麒",
+        "屿"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    },
+    {
+      "name": "归琳",
+      "effect": "阵亡时琳+3攻",
+      "memberIds": [
+        "yin",
+        "lin"
+      ],
+      "members": [
+        "音",
+        "琳"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    },
+    {
+      "name": "归正",
+      "effect": "全队+1攻",
+      "memberIds": [
+        "majun"
+      ],
+      "members": [
+        "马将军",
+        "黑域伙伴"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    },
+    {
+      "name": "四海同光",
+      "effect": "全队+1盾",
+      "memberIds": [
+        "ziyu",
+        "hai",
+        "qi",
+        "hao"
+      ],
+      "members": [
+        "子鱼",
+        "海",
+        "麒",
+        "浩"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    },
+    {
+      "name": "画像与弓",
+      "effect": "姐弟各+1盾",
+      "memberIds": [
+        "ke",
+        "chen"
+      ],
+      "members": [
+        "克",
+        "宸"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    },
+    {
+      "name": "三影",
+      "effect": "铭钧杰各+1速",
+      "memberIds": [
+        "ming",
+        "jun",
+        "jie"
+      ],
+      "members": [
+        "铭",
+        "钧",
+        "杰"
+      ],
+      "requiredStar": 1,
+      "ultimate": false
+    }
+  ]
+}

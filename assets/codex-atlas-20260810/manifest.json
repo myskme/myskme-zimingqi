@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "assetVersion": "20260810a",
+  "generator": "tools/build-atlas-poster.mjs",
+  "contract": "ZODIAC / BONDS / COMBOS are the single source of truth; generated files must not be hand-edited.",
+  "reusableFor": [
+    "自鸣棋游戏内保存",
+    "MYSKME Hub",
+    "世界编年史",
+    "微信版本",
+    "未来 iOS 版本",
+    "社交平台分享"
+  ],
+  "files": {
+    "atlas-background-source.png": {
+      "role": "无字四象底纹母版",
+      "width": 1122,
+      "height": 1402,
+      "mime": "image/png",
+      "bytes": 2713177,
+      "sha256": "a8b1b52fa5aee91342a84dbe97669fdc4afdf3ba39967fc09f11c9b426354655"
+    },
+    "atlas-background.webp": {
+      "role": "游戏内轻量底纹",
+      "width": 1122,
+      "height": 1402,
+      "mime": "image/webp",
+      "bytes": 280104,
+      "sha256": "5c18cc5d940814ca9b34f63439fa2877e04e2586a229fa8d15ab60aef0c1028d"
+    },
+    "zimingqi-atlas-2400.png": {
+      "role": "高清收藏版",
+      "width": 2400,
+      "height": 3000,
+      "mime": "image/png",
+      "bytes": 5361291,
+      "sha256": "e086768406b2f6ee0b607f3cf96468603a0830d56fab2537023cc4c624fa3af4"
+    },
+    "zimingqi-atlas-1200.jpg": {
+      "role": "网页与社交传播版",
+      "width": 1200,
+      "height": 1500,
+      "mime": "image/jpeg",
+      "bytes": 281339,
+      "sha256": "78d949c6011b9948da8f96e75ee377ee94e8ceb703d06ccab54495e40e4d438d"
+    },
+    "zimingqi-atlas-preview-600.jpg": {
+      "role": "列表缩略图",
+      "width": 600,
+      "height": 750,
+      "mime": "image/jpeg",
+      "bytes": 62628,
+      "sha256": "d028fe4560173275299d1108f4918b44f8735541bfbb2c4d853f82c0d7f3fa5a"
+    },
+    "atlas-data.json": {
+      "role": "跨端结构化图鉴数据",
+      "width": null,
+      "height": null,
+      "mime": "application/json",
+      "bytes": 30252,
+      "sha256": "660acafd2f07d74a342ec197118df998d4aa8696cc14fbd887ad31152594732b"
+    }
+  }
+}
