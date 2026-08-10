@@ -2289,10 +2289,10 @@ const ART={
   card_jin:'image2-characters-20260713/unit-jin.webp', card_han:'image2-characters-20260713/unit-han.webp', card_hao:'image2-characters-20260713/unit-hao.webp', // 新角色档案复用正式立绘，避免请求不存在的旧卡
   rui:'image2-characters-20260713-b2/unit-rui.webp', hai:'image2-characters-20260713-b2/unit-hai.webp', xin:'image2-characters-20260713-b2/unit-xin.webp', // 批⑯正典补全第二批
   card_rui:'image2-characters-20260713-b2/unit-rui.webp', card_hai:'image2-characters-20260713-b2/unit-hai.webp', card_xin:'image2-characters-20260713-b2/unit-xin.webp', // 详情页复用正式立绘，零 404
-  ziyu:'characters-six-20260810/unit-ziyu.webp', ke:'characters-six-20260810/unit-ke.webp', chen:'characters-six-20260810/unit-chen.webp',
-  ming:'characters-six-20260810/unit-ming.webp', jun:'characters-six-20260810/unit-jun.webp', jie:'characters-six-20260810/unit-jie.webp',
-  card_ziyu:'characters-six-20260810/unit-ziyu.webp', card_ke:'characters-six-20260810/unit-ke.webp', card_chen:'characters-six-20260810/unit-chen.webp',
-  card_ming:'characters-six-20260810/unit-ming.webp', card_jun:'characters-six-20260810/unit-jun.webp', card_jie:'characters-six-20260810/unit-jie.webp',
+  ziyu:'characters-six-20260810-v2/unit-ziyu.webp', ke:'characters-six-20260810-v2/unit-ke.webp', chen:'characters-six-20260810-v2/unit-chen.webp',
+  ming:'characters-six-20260810-v2/unit-ming.webp', jun:'characters-six-20260810-v2/unit-jun.webp', jie:'characters-six-20260810-v2/unit-jie.webp',
+  card_ziyu:'characters-six-20260810-v2/unit-ziyu.webp', card_ke:'characters-six-20260810-v2/unit-ke.webp', card_chen:'characters-six-20260810-v2/unit-chen.webp',
+  card_ming:'characters-six-20260810-v2/unit-ming.webp', card_jun:'characters-six-20260810-v2/unit-jun.webp', card_jie:'characters-six-20260810-v2/unit-jie.webp',
   majun:'unit-majun.webp', xi:'unit-xi.webp',   jia:'unit-jia.webp', // 批⑬三人（复用本地资源包 alpha/web 源合成，零 Codex）
   lin:'unit-lin.webp',   yin:'unit-yin.webp',   lu:'unit-lu.webp',     wolf:'unit-wolf.webp',
   guard:'unit-guard.webp', carter:'unit-carter.webp',
@@ -2339,7 +2339,7 @@ const ART_DPR=new Set([
   'relic_shuttle','relic_urn','ev_rift','ev_mourn'
 ]);
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260810a'; // 六人入棋：子鱼 + VOL.3 五人终版立绘
+const ART_VER='20260810b'; // 六人终版立绘 v2：钧普通版更新为成熟完整站姿
 function artURLAt(key,suffix){
   suffix=suffix||'';
   const base=ART[key];if(!base)return null;
@@ -4508,7 +4508,7 @@ function runSelftest(){
      UMAP.chen.tg==='pierce'&&UMAP.jie.tg==='pierce'&&UMAP.jun.taunt===true&&
      BONDS.control.ids.includes('ke')&&UMAP.ming.skill.k==='growAtk');
    ok('六人星座四象与 512×768 版本化立绘映射齐备', ids.every(id=>!!ZODIAC[id]&&
-     /^characters-six-20260810\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]&&SP_UNITS.has(id)&&CF_OPAQUE.has(id)));
+     /^characters-six-20260810-v2\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]&&SP_UNITS.has(id)&&CF_OPAQUE.has(id)));
    const allSeen=Object.fromEntries(ACH_STUDENT_IDS.map(id=>[id,1]));
    ok('全勤学员门槛随六人扩为41名正典单位且不靠本地单位顶替', ACH_STUDENT_IDS.length===41&&ACH_MAP.a_seenAll.chk({seen:allSeen})&&!ACH_MAP.a_seenAll.chk({seen:{...allSeen,ziyu:0,toll:1,flint:1}}));
   }

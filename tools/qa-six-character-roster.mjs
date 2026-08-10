@@ -29,7 +29,7 @@ try {
     const page=await browser.newPage({viewport:cfg.viewport});
     const errors=[];const assetStatus={};
     page.on('pageerror',e=>errors.push(String(e)));
-    page.on('response',r=>{if(r.url().includes('characters-six-20260810/'))assetStatus[r.url().split('/').pop().split('?')[0]]=r.status()});
+    page.on('response',r=>{if(r.url().includes('characters-six-20260810-v2/'))assetStatus[r.url().split('/').pop().split('?')[0]]=r.status()});
     await page.goto(`http://127.0.0.1:${port}/index.html`,{waitUntil:'load'});
     await page.click('#btn-roster');
     await page.waitForSelector('.codex-grid');
