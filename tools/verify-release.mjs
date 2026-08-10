@@ -21,7 +21,11 @@ ok('榜单不填充虚拟玩家',html.includes('NO FABRICATED PLAYERS')&&html.in
 ok('战报二维码随承载入口自动切换',html.includes('const QR_PRIMARY=')&&html.includes('const QR_FALLBACK=')&&html.includes("location.hostname==='zimingqi.myskme.com'?QR_PRIMARY:QR_FALLBACK"));
 ok('SW 不缓存非 GET',sw.includes("if(request.method!=='GET')return"));
 ok('SW 排除跨域与 API',sw.includes("url.origin!==self.location.origin||url.pathname.startsWith('/api/')"));
-ok('SW 导航 4.5 秒超时回落',sw.includes('setTimeout(()=>controller.abort(),4500)'));
+ok('SW 核心壳完整安装后才接管',sw.includes('CORE_SHELL')&&sw.includes('await cache.addAll(CORE_SHELL)'));
+ok('SW 拒绝旧入口跨域跳转',sw.includes("redirect:'error'")&&sw.includes("finalURL.origin!==self.location.origin"));
+ok('SW 慢网 0.9 秒先开缓存',sw.includes('setTimeout(()=>resolve(cached),900)')&&sw.includes('event.waitUntil(network.catch(()=>null))'));
+ok('SW 无可用壳时显示恢复页',sw.includes('recoveryHTML')&&sw.includes('自鸣棋正在恢复'));
+ok('SW 后台网络 4.5 秒止损',sw.includes('setTimeout(()=>controller.abort(),4500)'));
 ok('SW 音乐按首次播放缓存',sw.includes("mp3"));
 
 for(const path of [
