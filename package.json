@@ -14,6 +14,7 @@
     "build:atlas": "node tools/build-atlas-poster.mjs",
     "qa:atlas": "node tools/qa-atlas.mjs",
     "verify:release": "node tools/verify-release.mjs",
-    "build:edgeone": "node tools/build-edgeone-package.mjs"
+    "build:edgeone": "node tools/build-edgeone-package.mjs",
+    "qa:consistency": "node tools/qa-consistency.mjs"
   }
 }
