@@ -1,9 +1,8 @@
 /* 自鸣棋 PWA：壳层离线、运行资源按需缓存；排行榜/API 与所有写请求永不入缓存。 */
-const RELEASE='20260810d';
+const RELEASE='20260810e';
 const SHELL_CACHE='zmq-shell-'+RELEASE;
 const ASSET_CACHE='zmq-assets-'+RELEASE;
 const CORE_SHELL=[
-  './',
   './index.html',
   './manifest.webmanifest'
 ];
@@ -14,13 +13,25 @@ const OPTIONAL_SHELL=[
   './assets/image2-system-20260713/title-kv-800.webp'
 ];
 
+async function boundedFetch(input,options,timeoutMs){
+  const controller=new AbortController();
+  const timeout=setTimeout(()=>controller.abort(),timeoutMs||10000);
+  try{return await fetch(input,Object.assign({},options||{},{signal:controller.signal}))}
+  finally{clearTimeout(timeout)}
+}
+
 self.addEventListener('install',event=>{
   event.waitUntil((async()=>{
     const cache=await caches.open(SHELL_CACHE);
+    // 根路径与 index.html 内容相同，只缓存一份；reload 绕过旧 HTTP 缓存，避免新 SW 配上旧壳。
     // HTML 壳失败时不激活一个“空缓存”控制器；图标/KV 失败仍可降级，不阻断核心安装。
-    await cache.addAll(CORE_SHELL);
+    await Promise.all(CORE_SHELL.map(async url=>{
+      const response=await boundedFetch(url,{cache:'reload'},12000);
+      if(!response.ok)throw new Error('core shell unavailable');
+      await cache.put(url,response);
+    }));
     await Promise.allSettled(OPTIONAL_SHELL.map(async url=>{
-      const response=await fetch(url);
+      const response=await boundedFetch(url,{cache:'reload'},8000);
       if(response.ok)await cache.put(url,response);
     }));
     await self.skipWaiting();
@@ -47,7 +58,7 @@ async function navigation(request,event){
     const finalURL=new URL(fresh.url||request.url);
     if(!fresh.ok||finalURL.origin!==self.location.origin)throw new Error('bad navigation response');
     const cache=await cachePromise;await cache.put('./index.html',fresh.clone());return fresh;
-  })();
+  })().finally(()=>clearTimeout(timeout));
   if(event)event.waitUntil(network.catch(()=>null));
   const cache=await cachePromise;
   const cached=(await cache.match('./index.html'))||(await cache.match('./'));
@@ -57,14 +68,14 @@ async function navigation(request,event){
     return await network;
   }catch(error){
     return cached||new Response(recoveryHTML,{status:200,headers:{'Content-Type':'text/html; charset=utf-8','Cache-Control':'no-store'}});
-  }finally{clearTimeout(timeout)}
+  }
 }
 
 async function cacheFirst(request){
   const cache=await caches.open(ASSET_CACHE);
   const hit=await cache.match(request);
   if(hit)return hit;
-  const fresh=await fetch(request);
+  const fresh=await boundedFetch(request,null,10000);
   if(fresh.ok)await cache.put(request,fresh.clone());
   return fresh;
 }
