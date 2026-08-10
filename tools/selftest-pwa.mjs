@@ -5,9 +5,14 @@ import {extname,resolve} from 'node:path';
 
 const ROOT=resolve(process.argv[2]||'.');
 const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.mp3':'audio/mpeg','.m4a':'audio/mp4'};
+let navigationMode='normal';
 const server=createServer(async(req,res)=>{
   try{
     const path=decodeURIComponent(new URL(req.url,'http://local/').pathname);
+    if((path==='/'||path==='/index.html')&&navigationMode==='redirect'){
+      res.writeHead(302,{Location:'http://127.0.0.1:9/old-custom-domain'});res.end();return;
+    }
+    if((path==='/'||path==='/index.html')&&navigationMode==='slow')await new Promise(resolveDelay=>setTimeout(resolveDelay,1800));
     const file=resolve(ROOT,path==='/'?'index.html':path.replace(/^\/+/,''));
     if(!file.startsWith(ROOT))throw new Error('bad path');
     const body=await readFile(file);
@@ -39,9 +44,14 @@ try{
   await context.setOffline(true);
   await page.reload({waitUntil:'domcontentloaded'});
   const offline=await page.evaluate(()=>({title:document.title,solo:Boolean(document.querySelector('#btn-solo'))}));
+  await context.setOffline(false);
+  navigationMode='slow';const slowStart=Date.now();await page.reload({waitUntil:'domcontentloaded'});const slowMs=Date.now()-slowStart;
+  const slow=await page.evaluate(()=>({title:document.title,solo:Boolean(document.querySelector('#btn-solo')),bootMs:window.__ZMQ_BOOT_MS}));
+  navigationMode='redirect';await page.reload({waitUntil:'domcontentloaded'});
+  const redirectFallback=await page.evaluate(()=>({title:document.title,solo:Boolean(document.querySelector('#btn-solo'))}));
   const bgmOnFirstVisit=requests.some(item=>item.includes('/assets/bgm/'));
-  const allGood=online.controlled&&online.width===390&&online.solo&&offline.solo&&!bgmOnFirstVisit&&!errors.length;
-  console.log(JSON.stringify({online,offline,bgmOnFirstVisit,pageErrors:errors,requestCount:requests.length},null,2));
+  const allGood=online.controlled&&online.width===390&&online.solo&&offline.solo&&slow.solo&&slowMs<1500&&redirectFallback.solo&&!bgmOnFirstVisit&&!errors.length;
+  console.log(JSON.stringify({online,offline,slowNavigation:{...slow,elapsedMs:slowMs},oldDomainRedirectFallback:redirectFallback,bgmOnFirstVisit,pageErrors:errors,requestCount:requests.length},null,2));
   console.log(allGood?'自鸣棋 PWA 在线/离线验收 ✅':'自鸣棋 PWA 在线/离线验收 ❌');
   if(!allGood)process.exitCode=1;
 }finally{
