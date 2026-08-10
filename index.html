@@ -2181,6 +2181,7 @@ const SFX=(function(){
   const REAL_FILES={click:4,coin:2,hit:5,crit:5,kill:5,reveal:3}; // key→变体数,文件 key_i.m4a
   const REAL_GAIN={click:0.40,coin:0.50,hit:0.60,crit:0.66,kill:0.58,reveal:0.45};
   const REAL_LAYER={crit:1,kill:1,reveal:1}; // 这些键=录音+合成叠层;其余命中录音则替换合成
+  const REAL_LOAD_CONCURRENCY=3; // 24 个小音频不再首手势同时抢网；弱网下保住征募立绘与交互响应
   let realBufs={}, realEls=null, realKicked=false;
   function loadReal(){ if(realKicked)return; realKicked=true;
     try{
@@ -2189,11 +2190,16 @@ const SFX=(function(){
           for(let i=0;i<REAL_FILES[k];i++){ const a=new Audio(REAL_DIR+k+'_'+i+'.m4a'); a.preload='auto'; realEls[k].push(a) } });
         return; }
       const c=ac(); if(!c)return;
-      Object.keys(REAL_FILES).forEach(k=>{ realBufs[k]=[];
-        for(let i=0;i<REAL_FILES[k];i++)
-          fetch(REAL_DIR+k+'_'+i+'.m4a').then(r=>r.ok?r.arrayBuffer():Promise.reject(0))
-            .then(ab=>c.decodeAudioData(ab)).then(b=>{realBufs[k].push(b)}).catch(()=>{});
-      });
+      const jobs=[];
+      Object.keys(REAL_FILES).forEach(k=>{realBufs[k]=[];
+        for(let i=0;i<REAL_FILES[k];i++)jobs.push({k,url:REAL_DIR+k+'_'+i+'.m4a'})});
+      let next=0;
+      const worker=async()=>{while(next<jobs.length){const job=jobs[next++];
+        const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),10000);
+        try{const r=await fetch(job.url,{signal:ctl.signal});if(!r.ok)continue;
+          const ab=await r.arrayBuffer(),b=await c.decodeAudioData(ab);realBufs[job.k].push(b)}catch(e){}
+        finally{clearTimeout(tm)}}};
+      Promise.allSettled(Array.from({length:Math.min(REAL_LOAD_CONCURRENCY,jobs.length)},worker));
     }catch(e){}
   }
   function playReal(n){ // 命中真实样本→true;false=让合成兜底
@@ -2216,7 +2222,7 @@ const SFX=(function(){
     unlock,
     toggle(){ muted=!muted; localStorage.setItem('zmq_mute',muted?'1':'0'); if(!muted)unlock(); return muted },
     isMuted(){ return muted },
-    _real(){ return {files:REAL_FILES,gain:REAL_GAIN,layer:REAL_LAYER,synth:Object.keys(lib)} },
+    _real(){ return {files:REAL_FILES,gain:REAL_GAIN,layer:REAL_LAYER,synth:Object.keys(lib),loadConcurrency:REAL_LOAD_CONCURRENCY} },
   };
 })();
 
@@ -4837,6 +4843,10 @@ function runSelftest(){
   ok('保底队列 pendFlush：单飞门+收尾按当前存储重建(并发不互相覆盖·期间新入队不丢)', (()=>{
     const src=pendFlush.toString();
     return src.indexOf('_pendFlushing')>0 && src.indexOf('pendLoad().filter')>0 && src.indexOf('sentMax')>0; })());
+  ok('保底队列网络调度：首屏 load/idle 后再补传，离线转在线自动自愈', (()=>{
+    const src=schedulePendFlush.toString();
+    return src.includes("document.readyState==='complete'")&&src.includes('requestIdleCallback')
+      &&src.includes('navigator.onLine')&&String(schedulePendFlush).includes('_pendFlushScheduled'); })());
   ok('设备迁移码：UTF-8往返·白名单键·中文名不乱码·坏码/版本不符=null', (()=>{
     const code='ZMQ1.'+_b64e(JSON.stringify({v:1,d:{zmq_lbid:'z_test9',zmq_lbname:'狼先生甲乙',evil:'x'}}));
     const p=migParse(code); if(!p||p.d.zmq_lbid!=='z_test9'||p.d.zmq_lbname!=='狼先生甲乙'||('evil' in p.d))return false; // 白名单外键被丢
@@ -4880,7 +4890,8 @@ function runSelftest(){
   {const r=SFX._real();
    ok('音效: 6个真实录音键变体数>0且有对应文件命名', ['click','coin','hit','crit','kill','reveal'].every(k=>r.files[k]>=2||r.files[k]>=1)&&Object.values(r.files).every(n=>n>0));
    ok('音效: 叠层键(crit/kill/reveal)都有合成身份层兜底', Object.keys(r.layer).every(k=>r.synth.includes(k)));
-   ok('音效: 真实键全部有合成回退+增益在(0,1]', Object.keys(r.files).every(k=>r.synth.includes(k)&&r.gain[k]>0&&r.gain[k]<=1));}
+   ok('音效: 真实键全部有合成回退+增益在(0,1]', Object.keys(r.files).every(k=>r.synth.includes(k)&&r.gain[k]>0&&r.gain[k]<=1));
+   ok('音效网络: 24 个真实样本限制为三路并发', r.loadConcurrency===3&&Object.values(r.files).reduce((a,b)=>a+b,0)===24);}
   // —— 菜单/模式修复(2026-07-14 UX批) ——
   {const _S9=S;
    S={act:3};
@@ -4967,8 +4978,9 @@ function runSelftest(){
    function stubUI(){const o={renderDraft,go,hud,save,toast,play:SFX.play};
      renderDraft=()=>{};go=()=>{};hud=()=>{};save=()=>{};toast=()=>{};SFX.play=()=>{};
      return ()=>{renderDraft=o.renderDraft;go=o.go;hud=o.hud;save=o.save;toast=o.toast;SFX.play=o.play};}
-   ok('验收: 影军网络走品牌网关 LB_URL(不存在 LB_API)', LB_URL==='https://myskme.com/api/game'
-     &&/fetch\(LB_URL,[^)]*gpull/.test(ghostPull.toString())&&/fetch\(LB_URL,[^)]*gpush/.test(ghostPush.toString()));
+   ok('验收: 影军/名匠网络统一走带超时的 lbSend(不存在 LB_API 或裸 fetch)', LB_URL==='https://myskme.com/api/game'
+     &&ghostPull.toString().includes('lbSend(')&&ghostPush.toString().includes('lbSend(')&&hallSend.toString().includes('lbSend(')
+     &&![ghostPull,ghostPush,hallSend].some(fn=>fn.toString().includes('fetch(')));
    ok('验收: 影军池是模块级(不进 S/不进存档,撤销抹不掉)', (()=>{const _s=newState(['x'],3,0,false);
      return _s.ghostPool===undefined&&/[^.]_ghostPool=/.test(ghostPull.toString())})());
    ok('验收: 同一关只发一次经济(econRound 门控)', (()=>{const _S2=S,_ui=stubUI();
@@ -6074,8 +6086,8 @@ function injectGhost(round){ // 影军关统一注入:先复仇 rival、否则�
 const SIM_GHOST_NAMES=['回廊守卫 · 系统局']; // 明示系统对局：不塑造虚拟玩家，也不参与真实榜单
 let _ghostPool=null; // 影军池:模块级 transient——绝不挂 S(snapDraft 会整体序列化+回滚,异步回填的池会被撤销抹掉还写进存档)
 function ghostPull(){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo)return;
-  try{fetch(LB_URL,{method:'POST',body:JSON.stringify({action:'gpull',difficulty:S.difficulty})})
-    .then(r=>r.json()).then(j=>{if(j&&j.ok&&Array.isArray(j.ghosts)&&S&&S.solo){_ghostPool=j.ghosts.filter(g=>g&&g.id!==lbId())}}).catch(()=>{})}catch(e){}}
+  try{lbSend({action:'gpull',difficulty:S.difficulty},7000)
+    .then(j=>{if(j&&j.ok&&Array.isArray(j.ghosts)&&S&&S.solo){_ghostPool=j.ghosts.filter(g=>g&&g.id!==lbId())}}).catch(()=>{})}catch(e){}}
 /* ============ 名匠榜(世界回廊 · 人物/宝物榜 + 传世播报 · P2 2026-07-14) ============ */
 // 榜分 = 该单位的"含金量"整数:战力(atk+hp) ×100 + 词缀品阶 ×10 + 星芒。前端自解码,后端只存整数+标签。
 function unitHallScore(inst){ if(!inst)return 0;
@@ -6094,8 +6106,7 @@ function unitHallLabel(inst){ const u=UMAP[inst.id]; const bits=[u.n];
 }
 function hallSend(kind,item,label,q,score){ if(typeof LB_ON==='undefined'||!LB_ON)return;
   try{const nm=(S&&S.players&&S.players[0]&&S.players[0].name)||localStorage.getItem('zmq_lbname')||'挑战者';
-    fetch(LB_URL,{method:'POST',
-      body:JSON.stringify({action:'hpush',kind:kind,id:lbId(),name:nm,item:item,label:label,q:q,score:score})}).catch(()=>{})}catch(e){}
+    lbSend({action:'hpush',kind:kind,id:lbId(),name:nm,item:item,label:label,q:q,score:score},7000).catch(()=>{})}catch(e){}
 }
 function hallPushRun(){ // 终局:把本局最强的一张卡 + 最好的一件宝送上榜
   if(!S||!S.solo)return;
@@ -6213,7 +6224,7 @@ async function showPlayerCard(pid,fallbackName){ // 点榜行 → 拉名片
 }
 function ghostPush(cleared){ if(typeof LB_ON==='undefined'||!LB_ON||!S||!S.solo||!(cleared>=3))return; // 至少打到第3关才够格当影军
   try{const you=S.players[0];
-    fetch(LB_URL,{method:'POST',body:JSON.stringify({action:'gpush',id:lbId(),name:String((you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))})}).catch(()=>{})}catch(e){}}
+    lbSend({action:'gpush',id:lbId(),name:String((you&&you.name)||localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),difficulty:S.difficulty,cleared:cleared,army:(you.army||[]).map(a=>({id:a.id,star:a.star||1}))},7000).catch(()=>{})}catch(e){}}
 // name 截到 6 与 lbPayload 同口径:两条上传路径不该有两套截断规则(输入框 maxLength=6 只挡正常路径)
 function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销(经典/无尽/终战通用)
   const you=S.players[0];let ghost=false;
@@ -6580,6 +6591,18 @@ async function pendFlush(){ // 队列里的世界榜提交逐条补发;成功即
   })().finally(()=>{_pendFlushing=null;});
   return _pendFlushing;
 }
+let _pendFlushScheduled=false;
+function schedulePendFlush(){ // 首屏与标题 KV 稳定后再补传；离线转在线时立即进入同一单飞队列
+  if(!LB_ON||!pendLoad().length||_pendFlushing||_pendFlushScheduled)return;
+  _pendFlushScheduled=true;
+  const run=()=>{_pendFlushScheduled=false;
+    if(typeof navigator!=='undefined'&&!navigator.onLine)return;
+    pendFlush().catch(e=>console.warn('pendFlush',e));};
+  const idle=()=>{'requestIdleCallback' in window?requestIdleCallback(run,{timeout:1800}):setTimeout(run,320)};
+  if(document.readyState==='complete')idle();
+  else addEventListener('load',idle,{once:true});
+}
+if(LB_ON)addEventListener('online',schedulePendFlush);
 /* —— 设备迁移码:身份+纪录打成一段 UTF-8 安全 base64 —— */
 function _b64e(s){try{return btoa(unescape(encodeURIComponent(s)))}catch(e){return ''}}
 function _b64d(s){try{return decodeURIComponent(escape(atob(s)))}catch(e){return ''}}
@@ -7302,7 +7325,7 @@ function showLbSync(){ // 世界榜同步 + 设备迁移面板(菜单入口;仅�
   const ta='width:100%;box-sizing:border-box;background:rgba(6,10,14,.82);border:1px solid var(--line2);color:var(--ink2);font:11.5px ui-monospace,Menlo,monospace;padding:8px;letter-spacing:.02em;resize:none;border-radius:2px';
   modal(`<h3>世界榜同步 · 设备迁移</h3>
     <p style="text-align:center;color:var(--ink3);font-size:12.5px;line-height:1.75">本机单人最佳：${rows}${pend?`<br><span style="color:var(--gold2)">还有 ${pend} 条成绩没传上——联网后自动补</span>`:''}</p>
-    <p style="text-align:center;color:var(--ink3);font-size:11px;line-height:1.55">化名、榜单身份、成绩与军团摘要经 play.myskme.com 加密转发；原数据库不迁移、不双写。</p>
+    <p style="text-align:center;color:var(--ink3);font-size:11px;line-height:1.55">化名、榜单身份、成绩与军团摘要经 myskme.com 品牌网关 HTTPS 转发；原数据库不迁移、不双写。</p>
     <div class="btnrow" style="justify-content:center;margin:2px 0 6px"><button class="btn gold" id="lbs-up">立即上传世界榜 · 补传本机最佳</button></div>
     <p id="lbs-msg" style="text-align:center;font-size:12px;min-height:1.2em;letter-spacing:.03em"></p>
     <div style="width:80%;height:1px;background:var(--line2);margin:6px auto 12px"></div>
@@ -7434,7 +7457,7 @@ $('#btn-menu').onclick=showMenu;
   {const bm=$('#btn-menu2');if(bm)bm.onclick=showMenu} // 标题页也能进菜单:局外关BGM不用先开一局(局外时菜单自动藏"回标题/放弃")
   if(loadSave()||loadBak())$('#btn-continue').style.display=''; // 主档损坏时bak仍可续(三级降级入口不再被门挡死)
   if(LB_ON){const bh=$('#btn-lbhall');if(bh){bh.style.display='';bh.onclick=showLbHall}
-    pendFlush().catch(e=>console.warn('pendFlush',e))} // 世界榜保底:开局自动补发上次没传上的成绩(幂等)。async 函数:必须 .catch,同步 try 是假保护
+    schedulePendFlush()} // 世界榜保底:首屏稳定后空闲补发；离线转在线由 online 事件再次调度，不与标题资源抢网
   {const br=$('#btn-revenge');if(br){br.onclick=showRevenge;if(loadRivals().length)br.style.display=''}} // 复仇战:onclick恒绑(go('title')只管显隐),有仇敌才显
   renderSetup();
   // 首屏先可点，再在空闲时探测装饰资源：旧版启动会同时拉取多组 SVG/WebP，弱机首开短暂卡顿。
@@ -7457,7 +7480,8 @@ $('#btn-menu').onclick=showMenu;
         if(changed||!hadController)return;changed=true;
         try{if(sessionStorage.getItem('zmq_sw_reload')!=='1'){sessionStorage.setItem('zmq_sw_reload','1');location.reload()}}catch(e){}
       });
-      navigator.serviceWorker.register('./sw.js',{scope:'./'}).then(reg=>reg.update()).catch(()=>{});
+      // register 同 scope 已会执行更新检查；不再每次载入额外 reg.update()，减少一次重复 SW 请求。
+      navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
     },{once:true});
   }
   document.documentElement.dataset.boot='ready';

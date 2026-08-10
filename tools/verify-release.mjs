@@ -21,12 +21,18 @@ ok('榜单不填充虚拟玩家',html.includes('NO FABRICATED PLAYERS')&&html.in
 ok('战报二维码随承载入口自动切换',html.includes('const QR_PRIMARY=')&&html.includes('const QR_FALLBACK=')&&html.includes("location.hostname==='zimingqi.myskme.com'?QR_PRIMARY:QR_FALLBACK"));
 ok('SW 不缓存非 GET',sw.includes("if(request.method!=='GET')return"));
 ok('SW 排除跨域与 API',sw.includes("url.origin!==self.location.origin||url.pathname.startsWith('/api/')"));
-ok('SW 核心壳完整安装后才接管',sw.includes('CORE_SHELL')&&sw.includes('await cache.addAll(CORE_SHELL)'));
+ok('SW 核心壳完整安装后才接管',sw.includes('CORE_SHELL.map')&&sw.includes("cache:'reload'")&&sw.includes("throw new Error('core shell unavailable')"));
+ok('SW 不重复预缓存根路径与 index',!/const CORE_SHELL=\[\s*'\.\/'/.test(sw)&&sw.includes("'./index.html'"));
 ok('SW 拒绝旧入口跨域跳转',sw.includes("redirect:'error'")&&sw.includes("finalURL.origin!==self.location.origin"));
 ok('SW 慢网 0.9 秒先开缓存',sw.includes('setTimeout(()=>resolve(cached),900)')&&sw.includes('event.waitUntil(network.catch(()=>null))'));
 ok('SW 无可用壳时显示恢复页',sw.includes('recoveryHTML')&&sw.includes('自鸣棋正在恢复'));
-ok('SW 后台网络 4.5 秒止损',sw.includes('setTimeout(()=>controller.abort(),4500)'));
+ok('SW 后台网络 4.5 秒完整止损',sw.includes('setTimeout(()=>controller.abort(),4500)')&&sw.includes('})().finally(()=>clearTimeout(timeout))'));
+ok('SW 资源未命中 10 秒止损',sw.includes('boundedFetch(request,null,10000)'));
 ok('SW 音乐按首次播放缓存',sw.includes("mp3"));
+ok('补传不抢首屏且恢复联网自愈',html.includes('function schedulePendFlush()')&&html.includes("addEventListener('online',schedulePendFlush)")&&html.includes('schedulePendFlush()} // 世界榜保底'));
+ok('影军与名匠请求统一超时',(html.match(/fetch\(LB_URL/g)||[]).length===1&&html.includes("lbSend({action:'gpull'")&&html.includes("lbSend({action:'hpush'")&&html.includes("lbSend({action:'gpush'"));
+ok('SW 注册不重复手动更新',html.includes("navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch")&&!html.includes('reg=>reg.update()'));
+ok('真实音效三路并发且单请求限时',html.includes('const REAL_LOAD_CONCURRENCY=3')&&html.includes('Math.min(REAL_LOAD_CONCURRENCY,jobs.length)')&&html.includes('setTimeout(()=>ctl.abort(),10000)'));
 
 for(const path of [
   'assets/pwa-20260809/app-icon-192.png',

@@ -62,6 +62,11 @@ MYSKME × 王老师（Mr. Wang）· **神秘策略肉鸽自走棋** —— 年�
 Cloudflare Worker + D1；不迁库、不双写。战斗演算核心为纯函数
 （`/*SIM-BEGIN*/`…`/*SIM-END*/` 标记段），可脱离 DOM 单测。
 
+正式入口由 GitHub Pages + `zimingqi.myskme.com` 强制 HTTPS 承载。Service Worker 采用
+“0.9 秒缓存先开、4.5 秒后台止损、资源按需缓存”的弱网策略；待上传成绩延后到首屏空闲期，
+并在离线恢复联网时自动补传。影军/名匠/世界榜统一使用带超时的品牌网关请求，真实音效下载
+限制为三路并发，避免首手势瞬间同时拉取 24 个小文件。详细发布边界见 `NETWORK-DEPLOYMENT.md`。
+
 发布前除 `npm run selftest`、`npm run selftest:pwa` 与 `npm run verify:release` 外，还可运行 `npm run qa:strategy` 验证候补/羁绊/存档/双视口，运行 `npm run qa:balance` 做关键羁绊连续强度扫描。
 
 ---
