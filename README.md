@@ -68,7 +68,7 @@ Cloudflare Worker + D1；不迁库、不双写。战斗演算核心为纯函数
 并在离线恢复联网时自动补传。影军/名匠/世界榜统一使用带超时的品牌网关请求，真实音效下载
 限制为三路并发，避免首手势瞬间同时拉取 24 个小文件。详细发布边界见 `NETWORK-DEPLOYMENT.md`。
 
-发布前除 `npm run selftest`、`npm run selftest:pwa` 与 `npm run verify:release` 外，还可运行 `npm run qa:strategy` 验证候补/羁绊/存档/双视口，运行 `npm run qa:balance` 做关键羁绊连续强度扫描。图鉴资料变更后先运行 `npm run build:atlas` 重建高清图，再运行 `npm run qa:atlas` 核对 43 人、四象、羁绊、秘契与手机/桌面布局。
+发布前运行 `npm run selftest`、`npm run selftest:pwa`、`npm run qa:network` 与 `npm run verify:release`；其中网络专项使用本地模拟网关，验证 simple POST、弱网留档、并发补传不吞高分、恢复重试及快速切榜不被旧响应反盖，不会污染正式排行榜。还可运行 `npm run qa:strategy` 验证候补/羁绊/存档/双视口，运行 `npm run qa:balance` 做关键羁绊连续强度扫描。图鉴资料变更后先运行 `npm run build:atlas` 重建高清图，再运行 `npm run qa:atlas` 核对 43 人、四象、羁绊、秘契与手机/桌面布局。
 
 ---
 
