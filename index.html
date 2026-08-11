@@ -6671,6 +6671,11 @@ function pendMerge(list,pay){
 }
 function pendPush(pay){pendSave(pendMerge(pendLoad(),pay))} // 记一笔"待上传",失败也不丢
 const _pendKey=x=>[x.board,x.day,x.id].join('|');
+function pendAck(pay){ // 某条已确认送达：只清同键且不高于本次分数的旧待传；并发期间刚产生的更高分必须保留
+  if(!pay)return;
+  const key=_pendKey(pay),score=pay.score|0;
+  pendSave(pendLoad().filter(x=>_pendKey(x)!==key||(x.score|0)>score));
+}
 let _pendFlushing=null; // 单飞门:开局自动补传与手动「立即上传」若同时在飞,旧写法各自 pendSave(keep) 会互相覆盖→期间新入队的成绩被静默吞掉(与 0713 榜单读改写竞态同类)
 async function pendFlush(){ // 队列里的世界榜提交逐条补发;成功即出队,失败保留待下次(幂等,联网自愈)
   if(_pendFlushing)return _pendFlushing;                 // 已有一趟在跑就复用它,不并发
@@ -6698,6 +6703,18 @@ function schedulePendFlush(){ // 首屏与标题 KV 稳定后再补传；离线�
   else addEventListener('load',idle,{once:true});
 }
 if(LB_ON)addEventListener('online',schedulePendFlush);
+function soloBestPayloads(){ // 三档本机纪录统一转成耐久上传任务，世界回廊与迁移面板共用，避免两套失败处理再次漂移
+  const best=soloBest(),id=lbId(),out=[];let name='挑战者';try{name=localStorage.getItem('zmq_lbname')||name}catch(e){}
+  for(const d of [0,1,2]){const score=best['d'+d]|0;if(score>0)out.push(lbPayload(d,score,name,id))}
+  return out;
+}
+async function syncSoloBest(){
+  const pays=soloBestPayloads(),collided=Boolean(_pendFlushing);pays.forEach(pendPush); // 先落本机再联网：点击后即使切后台/断电，成绩仍在队列
+  if(pays.length){await pendFlush(); // 若正好撞上开局自动补传，首趟可能没读到刚入队任务；再补一趟即可收齐
+    const leftKeys=new Set(pendLoad().map(_pendKey));if(collided&&pays.some(p=>leftKeys.has(_pendKey(p))))await pendFlush();}
+  const leftKeys=new Set(pendLoad().map(_pendKey)),left=pays.filter(p=>leftKeys.has(_pendKey(p))).length;
+  return {tried:pays.length,sent:pays.length-left,left,pending:pendLoad().length};
+}
 /* —— 设备迁移码:身份+纪录打成一段 UTF-8 安全 base64 —— */
 function _b64e(s){try{return btoa(unescape(encodeURIComponent(s)))}catch(e){return ''}}
 function _b64d(s){try{return decodeURIComponent(escape(atob(s)))}catch(e){return ''}}
@@ -6738,7 +6755,7 @@ function submitArena(){ if(typeof LB_ON==='undefined'||!LB_ON)return; const a=lo
   //   国内偶发限速把某次请求拖过超时也不丢分(dmsub 取 max 幂等,补几次都安全)。
   const pay={action:'dmsub',board:ARENA_BOARD,day:weekKey(),id:lbId(),name:(localStorage.getItem('zmq_lbname')||'挑战者').slice(0,6),score:a.score};
   try{lbSendRetry(pay,3)
-    .then(r=>{ if(!(r&&r.ok)) arenaPendSave(pay); })
+    .then(r=>{ if(r&&r.ok)pendAck(pay);else arenaPendSave(pay); })
     .catch(e=>{ arenaPendSave(pay); });}catch(e){console.warn('submitArena',e);} }
 // 失败进队列(pendFlush 联网自愈),不再只记标记
 function arenaPendSave(pay){ try{ pendPush(pay); localStorage.setItem('zmq_arena_pend',weekKey()); }catch(e){} }
@@ -6782,7 +6799,7 @@ async function classUpload(roster,pass,onProg){
 function classUploadPrompt(roster){
   if(!LB_ON){toast('离线模式不能上传');return}
   modal(`<h3>上传课堂榜</h3>
-    <p style="text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.05em;line-height:1.65">本局 <b style="color:var(--gold2)">${roster.length}</b> 位学生的名称、王座分与军团摘要将经 play.myskme.com 加密转发到原「世界回廊 · 课堂榜」。<br>只有输入老师密码才能上传（防学生私自刷分）。</p>
+    <p style="text-align:center;color:var(--ink3);font-size:12.5px;letter-spacing:.05em;line-height:1.65">本局 <b style="color:var(--gold2)">${roster.length}</b> 位学生的名称、王座分与军团摘要将经 myskme.com 品牌网关 HTTPS 转发到原「世界回廊 · 课堂榜」。<br>只有输入老师密码才能上传（防学生私自刷分）。</p>
     <input id="cls-pass" type="password" autocomplete="off" placeholder="老师密码" style="width:100%;box-sizing:border-box;margin:10px 0 4px;padding:11px 14px;background:var(--panel2);border:1px solid var(--line);color:var(--ink);font-family:var(--serif);letter-spacing:.14em;font-size:15px;text-align:center">
     <div class="btnrow"><button class="btn gold" id="cls-go">上 传</button></div>
     <div id="cls-msg" style="text-align:center;font-size:12.5px;min-height:20px;margin-top:6px"></div>`);
@@ -6810,7 +6827,7 @@ async function showLbHall(){
   const tab=(d,label)=>`<button class="btn mini lbtab" data-d="${d}">${label}</button>`;
   modal(`<h3>世界回廊</h3>
     <p id="lb-cap" style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.08em">单人试炼 · 通过关数 · 全球纪录</p>
-    <p style="text-align:center;color:var(--ink3);font-size:11px;line-height:1.55;margin:4px 0 8px">化名、榜单身份、成绩与军团摘要经 play.myskme.com 加密转发到原榜单服务。</p>
+    <p style="text-align:center;color:var(--ink3);font-size:11px;line-height:1.55;margin:4px 0 8px">化名、榜单身份、成绩与军团摘要经 myskme.com 品牌网关 HTTPS 转发到原榜单服务。</p>
     <div class="btnrow" style="margin:10px 0;flex-wrap:wrap">${tab(0,SOLO_DIFF[0])+tab(1,SOLO_DIFF[1])+tab(2,SOLO_DIFF[2])+tab(7,uiIcon('state-shadow-echo')+'擂台榜')+tab(3,'课堂榜')+tab(4,'名匠·人物')+tab(5,'名匠·宝物')+tab(6,'绝品实录')}</div>
     <div id="lb-cats" class="btnrow" style="display:none;margin:0 0 6px;flex-wrap:wrap;gap:6px"></div>
     <div id="lb-days" class="btnrow" style="display:none;margin:0 0 8px;flex-wrap:wrap;gap:6px"></div>
@@ -6872,16 +6889,19 @@ async function showLbHall(){
       row.querySelector('.feed-lab').textContent=`${e.name||'?'} 抽到了 ${e.label||'?'}`;});};
   // 错误体(如 D1 busy 的 {error})也走 catch:别把服务端打嗝渲染成"还没有成绩"假空榜;错误态给"再试一次"按钮
   const netFail=(el,again)=>{if(!el)return;el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">网络不通,稍后再试<br><button class="btn mini" style="margin-top:10px">再试一次</button></div>';const rb=el.querySelector('button');if(rb)rb.onclick=again;};
-  const fetchHall=async(kind)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+  let lbViewSeq=0; // 快速切页签时旧慢响应不得反盖新榜：只有最后一次请求有落屏资格
+  const fetchHall=async(kind)=>{const seq=++lbViewSeq,el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
     try{const r=await lbSend({action:'htop',kind:kind});
+      if(seq!==lbViewSeq)return;
       if(!r||!Array.isArray(r.top))throw 0;
       if(kind==='feed')renderFeed(r.top);else renderHall(r.top,kind);}
-    catch(e){netFail($('#lblist'),()=>fetchHall(kind))}};
-  const fetchDay=async(day,fmt,mode,board,localScore)=>{const el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
+    catch(e){if(seq===lbViewSeq)netFail($('#lblist'),()=>fetchHall(kind))}};
+  const fetchDay=async(day,fmt,mode,board,localScore)=>{const seq=++lbViewSeq,el=$('#lblist');if(el)el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">加载中……</div>';
     try{const r=await lbSend({action:'dmtop',board:board||'zmq',day:String(day)});
+      if(seq!==lbViewSeq)return;
       if(!r||!Array.isArray(r.top))throw 0;
       render(r.top,fmt,mode,localScore);}
-    catch(e){netFail($('#lblist'),()=>fetchDay(day,fmt,mode,board,localScore))} };
+    catch(e){if(seq===lbViewSeq)netFail($('#lblist'),()=>fetchDay(day,fmt,mode,board,localScore))} };
   // —— 课堂榜：周选择 + 三榜(荣耀/战力/财富)子选择；旧格式周回退纯皇冠 ——
   let curCat=0;
   const v2has=w=>getClassWeeksV2().indexOf(w)>=0;
@@ -6932,9 +6952,7 @@ async function showLbHall(){
   const sh=$('#lb-share');if(sh)sh.onclick=shareGame;
   const up=$('#lb-upbest');
   if(up)up.onclick=async()=>{up.disabled=true;up.textContent='上传中…';
-    const b2=soloBest();let sent=0,tried=0;
-    for(const d of [0,1,2]){const v=b2['d'+d]||0;if(!v)continue;tried++;
-      try{const r=await lbSendRetry(lbPayload(d,v,(localStorage.getItem('zmq_lbname')||'挑战者'),lbId()),2);if(r&&r.ok)sent++}catch(e){}}
+    const {sent,tried}=await syncSoloBest();
     // 三态诚实反馈:没纪录/全成/部分或全败(弱网别谎报"没纪录"把学生劝退;dmsub取max,重点补传幂等)
     up.textContent=!tried?'本机还没有纪录':(sent===tried?('已上传 '+sent+' 档'):(sent?('传上 '+sent+'/'+tried+' 档 · 再点补传'):'网络不通 · 再试一次'));up.disabled=false;
     const cur=document.querySelector('.lbtab.gold');load(cur?+cur.dataset.d:0)};
@@ -6990,7 +7008,7 @@ function soloEnd(victory){
     bu.onclick=async()=>{bu.disabled=true;bu.textContent='上传中…';
       const fail=()=>{pendPush(pay);bu.textContent='已存本地 · 会自动补传';bu.disabled=false;toast('网络没通——成绩已存本地,联网后自动补传(或进「菜单 → 世界榜同步」立即补传)',4600)}; // 保底:失败不再白打
       try{const r=await lbSendRetry(pay,3);
-        if(r&&r.ok){bu.textContent='世界第 '+r.rank+' 位';SFX.play('crown');toast('已登临世界回廊 · 第 '+r.rank+' 位',3000)}
+        if(r&&r.ok){pendAck(pay);bu.textContent='世界第 '+r.rank+' 位';SFX.play('crown');toast('已登临世界回廊 · 第 '+r.rank+' 位',3000)}
         else fail();}
       catch(e){fail()}};}
 }
@@ -7433,9 +7451,7 @@ function showLbSync(){ // 世界榜同步 + 设备迁移面板(菜单入口;仅�
     <div class="btnrow" style="justify-content:center;margin:6px 0"><button class="btn" id="lbs-apply">接续到本设备</button></div>`);
   const msg=$('#lbs-msg');
   const up=$('#lbs-up'); if(up)up.onclick=async()=>{up.disabled=true;up.textContent='上传中…';
-    const b=soloBest();let tried=0;
-    for(const d of [0,1,2]){const v=b['d'+d]|0;if(!v)continue;tried++;pendPush(lbPayload(d,v,(localStorage.getItem('zmq_lbname')||'挑战者'),lbId()))}
-    const res=await pendFlush();
+    const res=await syncSoloBest(),tried=res.tried;
     up.disabled=false;up.textContent='立即上传世界榜 · 补传本机最佳';
     if(msg)msg.innerHTML=(!tried&&!res.sent)?'<span style="color:var(--ink3)">本机还没有纪录——先打一局单人试炼</span>':(res.left?`<span style="color:var(--gold2)">已传 ${res.sent} 条</span> · <span style="color:var(--red2)">${res.left} 条网络没通,稍后自动补</span>`:'<span style="color:var(--gold2)">已全部同步到世界回廊 ✓</span>');
     if(res.sent)SFX.play('crown');};

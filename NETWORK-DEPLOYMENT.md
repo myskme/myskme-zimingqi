@@ -14,6 +14,8 @@
 - 榜单 POST 不声明 `application/json`，保持 CORS simple request，避免额外 OPTIONS 往返。
 - 待上传成绩在首屏 `load` 后的空闲期补传，不与标题 KV 抢带宽；浏览器从离线恢复联网时
   会自动触发同一条单飞队列。失败记录保留在本机，重复补传由后端 `max` 语义保证幂等。
+- “上传本机最佳”与设备迁移面板共用同一条耐久队列：先落本机再发网，确认成功才清理；
+  快速切换榜单时只允许最后一次请求更新界面，慢到达的旧榜不会覆盖当前页签。
 - 影军、名匠榜与世界榜统一通过带超时的 `lbSend`；真实音效 24 个小文件限制为三路并发。
 - “回响战书”把真实军团快照放进分享链接；正式域名不可用时可回退 GitHub Pages 灾备入口。
 - 世界回廊不造虚拟玩家：空榜显示个人门槛；真人池空时只出现明确标注的“系统守关局”，
@@ -24,7 +26,7 @@
 ## 发布与验收
 
 1. 从最新 `main` 建分支，保持 `CNAME` 为 `zimingqi.myskme.com`。
-2. 运行 `npm run verify:release`、`npm run selftest:pwa` 与内置 `#selftest`。
+2. 运行 `npm run verify:release`、`npm run qa:network`、`npm run selftest:pwa` 与内置 `#selftest`。
 3. 验收 HTTPS 200、HTTP 301、榜单读写、飞行模式重开、慢网缓存回落和 390×844 无溢出。
 4. 用两台设备验证回响战书：A 结算分享，B 打开后首页出现“真实回响”，第 4 关遇到 A 军团。
 5. 只有在明确决定启用 EdgeOne 时，才运行手动工作流构建 ZIP 并在预览域名验收；不要自动
@@ -34,6 +36,11 @@
 
 ```bash
 npm run verify:release
+npm run qa:network
 npm run selftest:pwa
 npm run build:edgeone -- /private/tmp/zimingqi-edgeone.zip
 ```
+
+GitHub 的“自鸣棋自检”工作流同时监听相关 pull request 与 `main`：先在可审查分支拦截问题，
+合并发布后再复验，避免把 GitHub Pages 当成测试环境。`qa:network` 全程使用本地模拟网关，
+不会向正式排行榜写入验收成绩。

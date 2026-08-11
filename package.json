@@ -9,6 +9,7 @@
     "selftest": "node selftest.mjs",
     "selftest:deadsave": "node selftest-deadsave.mjs",
     "selftest:pwa": "node tools/selftest-pwa.mjs",
+    "qa:network": "node tools/qa-leaderboard-network.mjs",
     "qa:strategy": "node tools/qa-strategy-ui.mjs",
     "qa:balance": "node tools/qa-strategy-balance.mjs",
     "build:atlas": "node tools/build-atlas-poster.mjs",

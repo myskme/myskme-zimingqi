@@ -1,12 +1,13 @@
 name: 自鸣棋自检
 
-# 改了游戏(index.html)或自检脚本并 push → headless 跑 #selftest；挂了 → 本 job 失败 → GitHub 邮件通知。
-# 让“游戏改坏了”在学生玩之前先被抓到（Pages 是 push 即上线、本身没验证）。
+# 改了游戏(index.html)或网络/PWA 自检脚本，PR 阶段先跑；合入 main 后再复验。
+# 让“游戏改坏了”在学生玩之前先被抓到（Pages 是 main push 即上线，本身不替我们做玩法验收）。
 on:
   push:
     branches: [main]
     paths:
       - 'index.html'
+      - 'package.json'
       - 'selftest.mjs'
       - 'selftest-deadsave.mjs'
       - 'manifest.webmanifest'
@@ -14,8 +15,29 @@ on:
       - 'edgeone.json'
       - 'tools/verify-release.mjs'
       - 'tools/selftest-pwa.mjs'
+      - 'tools/qa-leaderboard-network.mjs'
+      - 'assets/pwa-20260809/**'
+  pull_request:
+    paths:
+      - 'index.html'
+      - 'package.json'
+      - 'selftest.mjs'
+      - 'selftest-deadsave.mjs'
+      - 'manifest.webmanifest'
+      - 'sw.js'
+      - 'edgeone.json'
+      - 'tools/verify-release.mjs'
+      - 'tools/selftest-pwa.mjs'
+      - 'tools/qa-leaderboard-network.mjs'
       - 'assets/pwa-20260809/**'
   workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: selftest-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   selftest:
@@ -33,5 +55,7 @@ jobs:
         run: node selftest-deadsave.mjs
       - name: 验证 PWA 在线接管与离线重开
         run: node tools/selftest-pwa.mjs
+      - name: 验证排行榜弱网补传与切榜竞态
+        run: node tools/qa-leaderboard-network.mjs
       - name: 校验 PWA、域名与网络边界
         run: node tools/verify-release.mjs

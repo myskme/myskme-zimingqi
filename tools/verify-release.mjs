@@ -30,6 +30,10 @@ ok('SW 后台网络 4.5 秒完整止损',sw.includes('setTimeout(()=>controller.
 ok('SW 资源未命中 10 秒止损',sw.includes('boundedFetch(request,null,10000)'));
 ok('SW 音乐按首次播放缓存',sw.includes("mp3"));
 ok('补传不抢首屏且恢复联网自愈',html.includes('function schedulePendFlush()')&&html.includes("addEventListener('online',schedulePendFlush)")&&html.includes('schedulePendFlush()} // 世界榜保底'));
+ok('本机最佳统一先落耐久队列',html.includes('function soloBestPayloads()')&&html.includes('async function syncSoloBest()')&&html.includes('pays.forEach(pendPush)'));
+ok('成功确认不误删并发产生的更高分',html.includes('function pendAck(pay)')&&html.includes("(x.score|0)>score")&&html.includes('if(r&&r.ok){pendAck(pay)'));
+ok('快速切榜旧响应不能反盖新页签',html.includes('let lbViewSeq=0')&&html.includes('if(seq!==lbViewSeq)return')&&html.includes('if(seq===lbViewSeq)netFail'));
+ok('榜单网关对外口径一致',!html.includes('play.myskme.com')&&html.includes('myskme.com 品牌网关 HTTPS'));
 ok('影军与名匠请求统一超时',(html.match(/fetch\(LB_URL/g)||[]).length===1&&html.includes("lbSend({action:'gpull'")&&html.includes("lbSend({action:'hpush'")&&html.includes("lbSend({action:'gpush'"));
 ok('SW 注册不重复手动更新',html.includes("navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch")&&!html.includes('reg=>reg.update()'));
 ok('真实音效三路并发且单请求限时',html.includes('const REAL_LOAD_CONCURRENCY=3')&&html.includes('Math.min(REAL_LOAD_CONCURRENCY,jobs.length)')&&html.includes('setTimeout(()=>ctl.abort(),10000)'));
