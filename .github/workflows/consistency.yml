@@ -1,0 +1,33 @@
+name: 自鸣棋 · 对外口径自检
+
+# 改了游戏或改了总账/README 都会跑：核对「对外声明的数字与网址」是否还对得上仓库里的事实源。
+# 单位数的事实源是 index.html 的 UNITS，正门的事实源是仓库根的 CNAME。
+# 由来：0810 全生态对账发现总账停在「37 名学员 / #selftest 288」，实际早已 43 与 320；
+# 正门搬到 zimingqi.myskme.com 后好几处仍写 github.io。这类错不影响运行，只能靠脚本盯。
+#
+# 本 job 只读本仓库，不依赖任何别的仓库能不能拉到；
+# 「主页有没有跟着改」由 myskme-hub 自己那条同名 workflow 负责。
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: consistency-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: 对外口径自检
+        run: node tools/qa-consistency.mjs
