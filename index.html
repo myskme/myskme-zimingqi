@@ -5604,7 +5604,7 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
     const blog=$('#blog');
     if(e.t==='round'&&animate)blog.innerHTML=`—— 第 <b>${e.n}</b> 回合 ——`;
     if(e.t==='bond'&&animate){const box=e.side===0?L:R;
-      box.classList.remove('bond-flare','edge','persist');void box.offsetWidth;box.classList.add('bond-flare',e.key==='edge'?'edge':(e.key==='persist'?'persist':''));
+      box.classList.remove('bond-flare','edge','persist');void box.offsetWidth;box.classList.add('bond-flare');if(e.key==='edge'||e.key==='persist')box.classList.add(e.key); // lamp等其余key不加副class,空token会让DOMTokenList.add抛SyntaxError
       setTimeout(()=>box.classList.remove('bond-flare','edge','persist'),520);
       blog.innerHTML=`${uiIcon('state-halo')}<b>${e.side===0?'左阵':'右阵'} · ${e.key==='lamp'?'灯火相承':bondName(e.key)}</b> 生效：${e.txt}`;SFX.play('reveal')}
     if(e.t==='dmg'){
@@ -7727,9 +7727,28 @@ $('#btn-menu').onclick=showMenu;
   document.documentElement.dataset.boot='ready';
   window.__ZMQ_BOOT_MS=Math.round(performance.now()-bootStarted);
 })();
-// 课堂兜底：未捕获异常至少可见、可续，不静默白屏
-window.addEventListener('error',e=>{try{toast('出了点状况：'+(e.message||'未知错误'),3000)}catch(_){}});
-window.addEventListener('unhandledrejection',e=>{try{toast('有一项加载没有完成，游戏主体仍可继续',2600)}catch(_){}});
+// 课堂兜底：未捕获异常至少可见、可续，不静默白屏。
+// 崩溃护航：中文提示+版本号(玩家截图即可定位)+一键重启续局(存档三级降级仍在,刷新后标题屏可续)。
+(function(){
+  let seen=0;
+  function rescue(raw){
+    if(++seen>3||document.getElementById('crash-rescue')||!document.body)return; // 防刷屏,同屏只立一块
+    const d=document.createElement('div');d.id='crash-rescue';
+    d.setAttribute('role','alertdialog');d.setAttribute('aria-label','出了点状况');
+    d.style.cssText='position:fixed;left:50%;bottom:max(16px,env(safe-area-inset-bottom,16px));transform:translateX(-50%);z-index:99;max-width:min(92vw,460px);background:rgba(20,16,10,.96);border:1px solid rgba(201,166,74,.55);border-radius:12px;padding:12px 14px;color:#e9e2d0;font-size:13px;line-height:1.55;box-shadow:0 8px 30px rgba(0,0,0,.5)';
+    d.innerHTML='<b style="color:var(--gold2,#e8c768)">出了点状况，存档还在</b><br>'
+      +'<span style="color:#b8b0a0;word-break:break-all">'+String(raw||'未知错误').slice(0,120).replace(/</g,'&lt;')+'</span>'
+      +'<div style="margin-top:8px;display:flex;gap:8px;align-items:center">'
+      +'<button id="crash-reload" style="background:linear-gradient(180deg,#e8c768,#c9a64a);color:#231c0e;border:0;border-radius:8px;padding:7px 14px;font-weight:700;font-size:13px">重启续局</button>'
+      +'<button id="crash-dismiss" style="background:none;border:1px solid rgba(184,176,160,.4);color:#b8b0a0;border-radius:8px;padding:7px 12px;font-size:12px">先不重启</button>'
+      +'<i style="margin-left:auto;color:#7d766a;font-style:normal;font-size:11px">v'+(typeof ART_VER!=='undefined'?ART_VER:'?')+'</i></div>';
+    document.body.appendChild(d);
+    d.querySelector('#crash-reload').onclick=()=>{try{location.reload()}catch(_){}};
+    d.querySelector('#crash-dismiss').onclick=()=>d.remove();
+  }
+  window.addEventListener('error',e=>{try{rescue(e.message)}catch(_){}});
+  window.addEventListener('unhandledrejection',e=>{try{toast('有一项加载没有完成，游戏主体仍可继续',2600)}catch(_){}});
+})();
 </script>
 </body>
 </html>
