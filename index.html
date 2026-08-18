@@ -648,6 +648,9 @@ body.arok .av-reliquary-frame{display:block}
 .pcard .wn.wn0{color:var(--ink3);border-style:dashed}
 #wheel-hint{color:var(--ink3);font-size:12px;letter-spacing:.14em;margin-top:10px}
 #draft-coins .int-hint{display:block;font-style:normal;font-size:10.5px;letter-spacing:.1em;color:var(--ink3);margin-top:2px} /* 利息断点预览 */
+#scr-draft{position:relative} /* 小黑猫彩蛋的定位锚 */
+#cat-egg{transition:opacity .2s}#cat-egg:hover{opacity:1}
+@keyframes catIn{from{opacity:0;transform:translateX(-10px)}to{opacity:.85;transform:none}}
 /* 羁绊推进徽标（征募卡）：紫=在攒 · 金=买它立刻成套。全游戏羁绊三色语义统一：灰没攒/紫在攒/金攒满 */
 .bond-advrow{display:flex;gap:5px;justify-content:center;flex-wrap:wrap;margin:5px 0 1px;min-height:20px}
 .bond-adv{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;letter-spacing:.1em;padding:1px 8px;
@@ -1615,6 +1618,11 @@ html.atlas-poster-mode,html.atlas-poster-mode body{width:2400px;height:3000px;mi
           <button data-v="1" class="on">开启</button><button data-v="0">关闭</button>
         </div>
       </div>
+      <div class="fieldrow mp-only"><label>对局风格</label>
+        <div class="seg" id="seg-feast">
+          <button data-v="0" class="on">经典</button><button data-v="1" title="铸币洪流·军团更宽·牌力半价——豪快欢乐局,不计课堂榜">鎏金狂宴</button>
+        </div>
+      </div>
     </div>
     <div class="btnrow">
       <button class="btn" id="btn-back-title"><span class="mi-slot" data-ui-icon="nav-back"></span>返回</button>
@@ -2036,6 +2044,7 @@ const BOSS_WAVE = (act)=>({n:'叶王 · 乱入', units:[
 const ACT_NAMES = {1:'谷地雾晨',2:'断云之上',3:'黑域门前',4:'黑域深处',5:'王座之前'}; // 4/5=课堂节奏「加一幕」的加时幕（场景仍黑域）
 const ACT_CN = {1:'第一幕',2:'第二幕',3:'第三幕',4:'第四幕',5:'第五幕'};
 const ARMY_CAP = {1:3,2:4,3:5};
+function armyCap(){return ARMY_CAP[Math.min(S.act,3)]+((S&&S.feast)?1:0)} // 单一事实源：鎏金狂宴全程 +1 位（4→5→6）——更宽的军团=更多流派施展空间
 const RESERVE_CAP=3; // 轻量备战席：给转型余地，但不做整排手牌拖慢手机与课堂节奏
 
 function reserveOf(p){return p?(Array.isArray(p.reserve)?p.reserve:(p.reserve=[])):[]}
@@ -2563,11 +2572,11 @@ function sealCanvas(){if(!_sealCv)_sealCv=buildSeal('#e8c768',400);return _sealC
 let S=null; // 整局状态（可 JSON 序列化）
 let uidSeq=1;
 
-function newState(names,acts,rageMax,eventsOn){
+function newState(names,acts,rageMax,eventsOn,feast){
   return {
-    v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn,
+    v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn, feast:!!feast,
     waveJudge:0, hornUsed:false, freeRerollNext:false,
-    players:names.map((n,i)=>({i, name:n, coins:3, crowns:0, wins:0,
+    players:names.map((n,i)=>({i, name:n, coins:feast?8:3, crowns:0, wins:0,
       army:[], reserve:[], relics:[], revenge:0, pity:0, tier:1})),
     // 征募运行时
     draftQueue:[], draftIdx:0, offers:[], offersSold:[], spellsPend:[],
@@ -2752,7 +2761,7 @@ function renderSetup(){
     inp.maxLength=6;grid.appendChild(inp)}
 }
 function segVal(sel){return +$(sel+' button.on').dataset.v}
-$$('#seg-acts button,#seg-rage button,#seg-event button,#seg-diff button,#seg-daily button').forEach(b=>{
+$$('#seg-acts button,#seg-rage button,#seg-event button,#seg-diff button,#seg-daily button,#seg-feast button').forEach(b=>{
   b.onclick=()=>{[...b.parentNode.children].forEach(x=>x.classList.remove('on'));b.classList.add('on')}});
 $$('#seg-mode button').forEach(b=>{
   b.onclick=()=>{[...b.parentNode.children].forEach(x=>x.classList.remove('on'));b.classList.add('on');applyModeUI(+b.dataset.v)}});
@@ -2786,8 +2795,13 @@ $('#btn-start').onclick=()=>{
     setAct(1);hud();startOriginDraft();save();BGM.auto('play',true); // 单人娱乐默认开背景音乐
     ghostPull(); // 影军回响:异步拉同学军团(离线静默跳过)
   }else{
-    S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1);
+    const feast=segVal('#seg-feast')===1;
+    S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1,feast);
     rng=mulberry32(S.seed);
+    if(feast){ // 狂宴开席礼：人人一件随机遗物（独立 Math.random，不碰玩法 rng 流）
+      S.players.forEach(p=>{const r=RELICS[Math.floor(Math.random()*RELICS.length)];p.relics.push(r.id)});
+      setTimeout(()=>toast('鎏金狂宴开席——铸币洪流、军团更宽、牌力半价，人人先领一件遗物！',4200),700);
+    }
     setAct(1);hud();startOriginDraft();save();BGM.auto('play',false); // 多人课堂默认不开（不打扰讲课）
   }
 };
@@ -2878,7 +2892,7 @@ function renderWave(){
     d.style.animationDelay=(idx*0.06)+'s';d.dataset.p=idx;
     const w=p.waveN||0;
     d.innerHTML=`<h4>${p.name} <span class="crown icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span><span class="wn${w?'':' wn0'}">${w?'答 '+w:'未答'}</span></h4>
-      <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${ARMY_CAP[Math.min(S.act,3)]}</b></span></div>
+      <div class="res"><span>铸币 <b class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</b></span><span>军团 <b>${p.army.length}/${armyCap()}</b></span></div>
       <div class="mini-army">${p.army.map(a=>{const u=UMAP[a.id];
         return `<span class="mini-u ${a.star>=2?'star'+a.star:''} e-${unitElem(u.id)||'none'}" title="${u.n} · ${ELEM_CN[unitElem(u.id)]||'无象'}">${u.n[0]}${avatarArtTag(u.id,'mua')}${a.star>=2?`<span class="star-pips">${uiIcon('rank-star').repeat(a.star)}</span>`:''}</span>`}).join('')||'<span style="color:var(--ink4);font-size:11px">尚无军团</span>'}</div>
       <div class="judge">
@@ -2891,8 +2905,10 @@ function renderWave(){
     g.appendChild(d);
   });
 }
+// 判定加币（纯函数，#selftest 可测）：鎏金狂宴翻倍——judge 与撤销必须同源取值，否则狂宴局撤销退错钱
+function judgeGain(act){const g={ok:2,hard:3,snap:1,bad:0}[act]||0;return (S&&S.feast)?g*2:g}
 function judge(pi,act,btnEl){
-  const p=S.players[pi];const gain={ok:2,hard:3,snap:1,bad:0}[act];
+  const p=S.players[pi];const gain=judgeGain(act);
   let rageInc=0; // 记录本次答错对暴走槽的真实增量（满槽被 clamp 时为 0），供精确撤销
   if(act==='bad'){
     if(S.rageMax){const before=S.rage;S.rage=Math.min(S.rageMax,S.rage+1);rageInc=S.rage-before;
@@ -2922,7 +2938,7 @@ function renderWaveNumbersOnly(){
 }
 $('#btn-undo').onclick=()=>{
   const last=(S.undoStack||[]).pop();if(!last){toast('没有可撤销的判定');return}
-  const p=S.players[last.pi];const gain={ok:2,hard:3,snap:1,bad:0}[last.act];
+  const p=S.players[last.pi];const gain=judgeGain(last.act);
   if(last.act==='bad'){if(S.rageMax){S.rage=Math.max(0,S.rage-(last.rageInc||0));S.bossPending=(S.rage>=S.rageMax)}}
   else p.coins=Math.max(0,p.coins-gain);
   p.waveN=Math.max(0,(p.waveN||0)-1);
@@ -3092,7 +3108,8 @@ function fac2Of(id){const f2=(typeof S!=='undefined'&&S&&S.evFlags&&S.evFlags.fa
 function inFac(id,key){return UMAP[id].fac===key||fac2Of(id)===key}
 function synCount(p,key){
   const b=BONDS[key], byIds=!!(b&&b.ids);
-  const ids=new Set(p.army.filter(a=>byIds?b.ids.includes(a.id):inFac(a.id,key)).map(a=>a.id));
+  const pool=(b&&b.minStar)?p.army.filter(a=>(a.star||1)>=b.minStar):p.army; // 需星级投入的轴(布衣)只数达标成员——★1白给会抬动全局基线(探针实证:阵营带宽/UR含金全崩)
+  const ids=new Set(pool.filter(a=>byIds?b.ids.includes(a.id):inFac(a.id,key)).map(a=>a.id));
   return ids.size;}
 function renderBonds(p){ // 军团面板羁绊进度：未激活灰/2档紫/大档金
   const el=$('#bond-shelf'); if(!el)return;
@@ -3127,6 +3144,8 @@ const BONDS={
   control:{n:'制敌之势', chip:'制御', th:[2,4], d:['开战 · 敌全体 -1 速','开战 · 敌全体 -2 速 · 敌最高攻 -2 攻']}, // 控速流:开战压制敌方(side flag·同凝滞通道)
   persist:{n:'不倒之志', chip:'坚韧', th:[3,5], d:['坚韧单位 +4 最大生命','坚韧单位 +4 命 · 最左坚韧首次阵亡半血复起']}, // 满档复起锁一个前排位：硬构筑已有全队+4命，单次复起留下站位研究且避免压过终极搭档
   edge:   {n:'锋锐首击', chip:'锋锐', th:[2,3], d:['锋锐单位 首击额外 +2 伤','锋锐单位 首击必暴击 ×2']}, // +2仍可见；满档暴击会把首击加伤一起翻倍，原+3在强度扫描边际过陡
+  // —— 批㉛ 布衣结义(20260818·王老师:弱卡要能靠羁绊成流派压过SSR/UR)。ids=全体N/R派生;minStar=2:结义要真投入(合星),★1白给会抬动探针基线 ——
+  folk:   {n:'布衣结义', chip:'布衣', th:[3,5], minStar:2, d:['★★布衣(N·R)单位 +1 攻 +3 命（只数二星以上的布衣）','★★布衣 累计 +2 攻 +5 命 · 开战 +2 护盾（寒门亦可封侯）']},
 };
 // 两轴成员均由单一事实源派生：四象←ZODIAC,打法←UNITS 的 tg/taunt——绝不手抄名单
 ['wind','fire','earth','water'].forEach(e=>BONDS[e].ids=UNITS.filter(u=>unitElem(u.id)===e).map(u=>u.id));
@@ -3136,6 +3155,8 @@ BONDS.death.ids   = UNITS.filter(u=>['splashDeath','boostLin','buffAdj','coinDea
 BONDS.control.ids = UNITS.filter(u=>['slowFast','snipeBack','probeCore'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 制御=开战干扰敌方(减速/狙击/探问)
 BONDS.persist.ids = UNITS.filter(u=>['revive1','growth','soak'].includes(u.skill&&u.skill.k)).map(u=>u.id);          // 坚韧=复起/成长/软抵抗(越战越不倒)
 BONDS.edge.ids    = UNITS.filter(u=>['firstCrit','firstPlus'].includes(u.skill&&u.skill.k)).map(u=>u.id);            // 锋锐=首击强化(必暴/首击+伤)
+BONDS.folk.ids    = UNITS.filter(u=>u.rar==='N'||u.rar==='R').map(u=>u.id);                                          // 布衣=全体低稀有,由 rar 派生不手抄名单
+const PLAY_AXES=['pierce','vanguard','death','control','persist','edge','folk']; // 打法轴单一事实源——bondAdvList/bridgeUnits/bond-proof/bondJustLit 全用它,别再各抄一份(批㉘漏抄教训)
 function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1]?2:(c>=th[0]?1:0)}
 function bondName(f){return (BONDS[f]&&BONDS[f].chip)||(FACS[f]&&FACS[f].n)||f}
 const ELEM_COLOR2={wind:'#9cc0e8',fire:'#e08b7a',earth:'#c9a64a',water:'#7fc4d8'};
@@ -3158,7 +3179,7 @@ function bondAdvance(p,u,key){
 function bondAdvList(p,u){ // 一张卡最多 2 枚:四象 + 一条最值得展示的打法轴(≤2 课堂限时铁律)。
   // 打法轴现有 6 条(穿透/嘲讽/亡语/制御/坚韧/锋锐),桥牌单位可能命中多条→只显「成套优先·其次进度最高」那一条。
   const el=bondAdvance(p,u,unitElem(u.id));
-  const plays=['pierce','vanguard','death','control','persist','edge'].map(k=>bondAdvance(p,u,k)).filter(Boolean)
+  const plays=PLAY_AXES.map(k=>bondAdvance(p,u,k)).filter(Boolean)
     .sort((a,b)=>(b.hit?1:0)-(a.hit?1:0)||(b.to/b.den)-(a.to/a.den));
   const out=[]; if(el)out.push(el); if(plays.length)out.push(plays[0]);
   return out;
@@ -3173,7 +3194,7 @@ function bondBadges(p){
 function bridgeUnits(p){
   const on=new Set(bondBadges(p).map(x=>x.f));
   return p.army.filter(a=>{const u=UMAP[a.id];
-    const axes=[...new Set([unitElem(a.id),'pierce','vanguard','death','control','persist','edge'])].filter(k=>k&&BONDS[k]&&on.has(k)
+    const axes=[...new Set([unitElem(a.id),...PLAY_AXES])].filter(k=>k&&BONDS[k]&&on.has(k)
       &&(BONDS[k].ids?BONDS[k].ids.includes(a.id):inFac(a.id,k)));
     return axes.length>=2})
     .filter((a,i,arr)=>arr.findIndex(x=>x.id===a.id)===i); // 同名只表彰一次
@@ -3205,8 +3226,9 @@ function stashLock(p){
 }
 // 下关利息预览（纯函数，#selftest 可测）：每存 per 币生 1 息，封顶 capN——断点可见才有存钱决策感
 function previewInterest(p){
-  const per=hasRelic(p,'dustbag')?4:5;
-  const capN=(p.strats||[]).includes('st_interest')?5:3;
+  let per=hasRelic(p,'dustbag')?4:5;
+  let capN=(p.strats||[]).includes('st_interest')?5:3;
+  if(S&&S.feast){per=Math.min(per,4);capN=Math.max(capN,5)} // 鎏金狂宴：4 币生 1 息、封顶 5（与星尘袋/利滚利取最优不叠算）
   return Math.min(capN,Math.floor(p.coins/per));
 }
 function startDraft(){
@@ -3237,7 +3259,34 @@ function startDraft(){
     p._notes=notes;
   });
   S.freeRerollNext=false;
+  // 小黑猫巡游（彩蛋）：每幕/每关一次现身机会。独立 Math.random 不碰玩法 rng 流；roll 入档=断电续局不重摇
+  const catKey=S.solo?('r'+S.round):('a'+S.act);
+  if(!S.catRoll||S.catRoll.key!==catKey)S.catRoll={key:catKey,show:Math.random()<0.35,gold:Math.random()<0.12,corner:Math.floor(Math.random()*4),found:false};
   renderDraft();go('draft');hud();save();
+}
+// 小黑猫彩蛋渲染：征募页随机角落溜过一只小黑猫,眼尖点到者得铸币(金瞳稀客大赏)。发现欲>数值——奖励刻意压小
+function renderCatEgg(){
+  const old=$('#cat-egg');if(old)old.remove();
+  const c=S&&S.catRoll;if(!c||!c.show||c.found)return;
+  if(S.phase!=='draft'&&S.phase!=='origin')return;
+  const host=$('#scr-draft');if(!host)return;
+  const col=c.gold?'#e8c768':'#17130e';
+  const pos=[['left:4px','top:6px'],['right:4px','top:6px'],['left:4px','bottom:6px'],['right:4px','bottom:6px']][c.corner||0];
+  const d=document.createElement('button');d.id='cat-egg';d.type='button';d.setAttribute('aria-label','一只路过的小黑猫');
+  d.style.cssText='position:absolute;'+pos.join(';')+';z-index:5;background:none;border:0;padding:5px;cursor:pointer;opacity:.85;animation:catIn .9s ease both';
+  d.innerHTML='<svg viewBox="0 0 34 20" width="36" height="21" aria-hidden="true">'
+    +'<path d="M7 18c-2.4-4 -.4-8 2.6-9 -1-2 -.2-4 .8-5l2.2 2c1-.4 2.2-.4 3.2 0l2.2-2c1 1 1.8 3 .8 5 3 1 5 5 2.6 9z" fill="'+col+'"/>'
+    +'<circle cx="12.4" cy="11.6" r=".9" fill="'+(c.gold?'#17130e':'#e8c768')+'"/><circle cx="16.8" cy="11.6" r=".9" fill="'+(c.gold?'#17130e':'#e8c768')+'"/>'
+    +'<path d="M25 18c3.4-1 4.6-4.4 3.2-7" stroke="'+col+'" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>';
+  d.onclick=()=>{
+    if(!S.catRoll||S.catRoll.found)return;S.catRoll.found=true;
+    const p=curDrafter();const amt=S.catRoll.gold?5:2;if(p)p.coins+=amt;
+    let n=1;try{n=(+localStorage.getItem('zmq_cats')||0)+1;localStorage.setItem('zmq_cats',String(n))}catch(e){}
+    SFX.play('coin');
+    toast((S.catRoll.gold?'金瞳小黑猫！稀客中的稀客——':'一只小黑猫蹭过棋盘——')+(p?p.name+' 铸币 +'+amt:'')+' · 第 '+n+' 次遇见',3600);
+    d.remove();renderDraft();hud();save();
+  };
+  host.appendChild(d);
 }
 function curDrafter(){return S.players[S.draftQueue[S.draftIdx]]}
 
@@ -3263,9 +3312,10 @@ const TIER_MULT={
   4:{N:.7, R:.95, SR:1.1,SSR:1.3,UR:1.5},
   5:{N:.5, R:.85, SR:1.2,SSR:1.5,UR:2},
 };
+function rrCost(){return (S&&S.feast)?1:2} // 刷新费：鎏金狂宴 1 币（保留成本感,不设免费防课堂无限刷卡拖时间）
 function tierFloor(){return Math.min(2, S.act||1)}            // 幕数免费保底封顶 tier2；升牌力才解锁 tier3+ 的高稀有，否则终幕也只停在轻压制的 tier2（治"不升科技也能刷高级单位"）
 function effTier(p){return Math.min(5, Math.max(p.tier||1, tierFloor()))}
-function nextTierCost(p){const nt=effTier(p)+1; return nt>5?null:[0,0,4,6,8,10][nt]} // 低两档：2级在第一幕买得起有独享期，4/5级第三幕来得及回本
+function nextTierCost(p){const nt=effTier(p)+1; if(nt>5)return null; const c=[0,0,4,6,8,10][nt]; return (S&&S.feast)?Math.ceil(c/2):c} // 低两档：2级在第一幕买得起有独享期，4/5级第三幕来得及回本；鎏金狂宴半价
 function genOffers(p){
   const mult=TIER_MULT[effTier(p)]; // 牌力(非幕数)驱动稀有度
   const isHigh=u=>u.rar==='SSR'||u.rar==='UR';
@@ -3453,7 +3503,7 @@ function renderDraft(fresh){
     const cls=k<S.draftIdx?'done':(k===S.draftIdx?'cur':'');
     return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
   $('#drafter-name').innerHTML=S.solo?`<em>${p.name}</em> 的军团`:`轮到 <em>${p.name}</em>`;
-  const _int=previewInterest(p),_per=hasRelic(p,'dustbag')?4:5,_capT=Math.floor(p.coins/_per)>_int; // 已到息上限:公式与实得矛盾时明说,多余的钱该花掉
+  const _int=previewInterest(p),_per=(S&&S.feast)?4:(hasRelic(p,'dustbag')?4:5),_capT=Math.floor(p.coins/_per)>_int; // 已到息上限:公式与实得矛盾时明说,多余的钱该花掉;_per 须与 previewInterest 同源(狂宴4币1息)
   $('#draft-coins').setAttribute('aria-label','铸币 '+p.coins);$('#draft-coins').innerHTML=uiIcon('currency-coin')+' '+p.coins+'<i class="int-hint">存'+_per+'生1 · 下'+(S.solo?'关':'幕')+'息+'+_int+(_capT?'（已封顶）':'')+'</i>';
   if(p._notes&&p._notes.length){toast(`${p.name}：${p._notes.join(' · ')}`,2600);p._notes=null}
   const box=$('#offers');box.innerHTML='';
@@ -3543,7 +3593,7 @@ function renderDraft(fresh){
   renderBench(p);
   renderFoeIntel(p);
   const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
-  $('#btn-reroll').innerHTML=uiIcon('action-refresh')+(freeRr?'刷新 · 免费':'刷新 · 2 铸币');
+  $('#btn-reroll').innerHTML=uiIcon('action-refresh')+(freeRr?'刷新 · 免费':'刷新 · '+rrCost()+' 铸币');
   const bl=$('#btn-lock');
   if(bl){bl.style.display=origin?'none':'';
     bl.innerHTML=uiIcon(p._lockOn?'action-unlock':'action-lock')+(p._lockOn?('已锁定 · 下'+(S.solo?'关':'次')+'送达'):'锁定本轮');
@@ -3581,7 +3631,7 @@ function renderFoeIntel(p){
   el.innerHTML=`<span class="fi-lab">宿敌情报</span><span class="fi-name">${shadowEcho?uiIcon('state-shadow-echo'):''}${escH(name)}</span><span class="mini-army">${chips}</span>${hint?`<span class="fi-hint">${hint}</span>`:''}`;
 }
 function renderBench(p){
-  const cap=ARMY_CAP[Math.min(S.act,3)];
+  const cap=armyCap();
   const reserve=reserveOf(p),rw=$('#reserve-wrap');
   if(rw)rw.style.display=S.phase==='origin'?'none':'';
   const rc=$('#reserve-count');if(rc)rc.textContent=reserve.length+'/'+RESERVE_CAP;
@@ -3644,8 +3694,8 @@ function renderBench(p){
   $$('#relic-shelf .relic-chip[data-rid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.rid];
       modal(relicDetailHTML(r))}});
-  renderBonds(p);renderBounties();
-  const proof=$('#bond-proof');if(proof){const axes=['edge','persist','control','pierce','vanguard','death'];
+  renderBonds(p);renderBounties();renderCatEgg();
+  const proof=$('#bond-proof');if(proof){const axes=PLAY_AXES;
     const active=axes.map(f=>({f,t:bondTier(p,f)})).filter(x=>x.t>0);
     proof.innerHTML=active.map(x=>`<span data-f="${x.f}"><b>${bondName(x.f)}${x.t>=2?'·满档':''}</b> ${BONDS[x.f].d[x.t-1]}</span>`).join('');}
   // 被叶王收走的单位 · 赎回
@@ -3660,7 +3710,7 @@ function renderBench(p){
       // 已有同名合星体 → 拒绝赎回，避免同名 3 实例破坏「同名≤2、自动合星」不变量
       if(twin&&twin.star===2){toast('军团已有该单位的合星体，无法再赎回');return}
       const willMerge=twin&&twin.star===1&&inst.star===1;
-      const boardFull=p.army.length>=ARMY_CAP[Math.min(S.act,3)];
+      const boardFull=p.army.length>=armyCap();
       if(!willMerge&&boardFull&&reserveOf(p).length>=RESERVE_CAP){toast('军团与备战席都已满，先腾出位置');return}
       snapDraft();
       p.coins-=3;
@@ -3675,7 +3725,7 @@ function renderBench(p){
 // 买入 u 后哪条羁绊正好跨上新档（纯函数·#selftest 可测）——首次教学 toast 用。
 // ⚠轴列表必须与 bondAdvList/bridgeUnits 同源(四象+六打法),漏一条=该流派成阵播报静默失效(批㉘对抗查虫抓出:此前硬编码漏了新增 control/persist/edge)。
 function bondJustLit(p,u){
-  const axes=[unitElem(u.id),'pierce','vanguard','death','control','persist','edge'];
+  const axes=[unitElem(u.id),...PLAY_AXES];
   const before={};axes.forEach(k=>{if(BONDS[k])before[k]=bondTier(p,k)});
   const np={...p,army:[...p.army,{id:u.id}]}; // 假想买入,不改真 army
   return axes.find(k=>BONDS[k]&&bondTier(np,k)>before[k])||null;
@@ -3694,7 +3744,7 @@ function buyUnit(idx,u,price){
     hud();save();return;
   }
   if(p.coins<price){toast(S.solo?'铸币不够——过关自有进账':'铸币不够——先答题赚钱去');return}
-  const cap=ARMY_CAP[Math.min(S.act,3)];
+  const cap=armyCap();
   const maxed=ownedUnits(p).find(a=>a.id===u.id&&a.star===3);
   if(maxed){ // ✦星芒:三星后的同名卡不再无用——每张 +1芒(+1攻+2命,无上限),合卡追求无尽化(替代7/8星方案)
     snapDraft();
@@ -3753,7 +3803,7 @@ $('#btn-reroll').onclick=()=>{
   if(p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed)||p.coins>=2)snapDraft();
   if(p._freeRr>0){p._freeRr--}
   else if(hasRelic(p,'astro')&&!p._astroUsed){p._astroUsed=true}
-  else{if(p.coins<2){toast('铸币不够刷新');return}p.coins-=2}
+  else{const rc=rrCost();if(p.coins<rc){toast('铸币不够刷新');return}p.coins-=rc}
   p._lockOn=false; // 刷新即放弃锁（炉石酒馆惯例：按钮不撒谎）
   S.offers=genOffers(p);S.offersSold=[false,false,false];dealReveal=true;renderDraft();save();
 };
@@ -3873,7 +3923,7 @@ function applyEvent(ev){
       if(n)p.coins+=n});toast('学院单位的主人们领了茶钱');break;
     case 'ev_market': S.freeRerollNext=true;toast('下一幕征募：每人免费刷新 4 次');break;
     case 'ev_swing': {const lp=lastPlace();
-      const cap=ARMY_CAP[Math.min(S.act,3)];
+      const cap=armyCap();
       const u=pick(UNITS.filter(u=>u.fac==='swing'));
       const t2=ownedUnits(lp).find(a=>a.id===u.id&&a.star===2), t1=ownedUnits(lp).find(a=>a.id===u.id&&a.star===1);
       if(t2){t2.frag=(t2.frag||0)+1;if(t2.frag>=2){t2.star=3;t2.frag=0;toast(`${u.n} 倒戈并三星觉醒！`)}else toast(`${u.n} 倒戈（碎片 ${t2.frag}/2）`)}
@@ -3891,7 +3941,7 @@ function applyEvent(ev){
       const top=rank[0],lp=lastPlace();
       if(top!==lp){top.coins=Math.max(0,top.coins-2);lp.coins+=2;toast(`${top.name} 交税 2 铸币，${lp.name} 领了补贴`)}
       else toast('账本翻了翻：并列无税')}break;
-    case 'ev_letter': {const cap=ARMY_CAP[Math.min(S.act,3)];
+    case 'ev_letter': {const cap=armyCap();
       S.players.forEach(p=>{p.coins+=1;if(p.army.length<cap)p.coins+=1});
       toast('信到了：+1 铸币，军团未满再 +1')}break;
     case 'ev_shell': S.players.forEach(p=>{const n=p.army.filter(a=>UMAP[a.id].fac==='sea').length;
@@ -3950,6 +4000,10 @@ function buildFighters(p, evFlags){
   if(bt.edge>=2)    fs.forEach(f=>{if(inEdge(f.id))f.edgeCrit=true});               // 锋锐档2:首击必暴(新旗·接 simulateBattle 暴击判定)
   if(bt.persist>=1) fs.forEach(f=>{if(inPer(f.id)){f.hp+=4;f.maxhp+=4;f.persistTier=bt.persist}}); // 坚韧档1:+4 最大生命；留显式旗给战报反馈
   if(bt.persist>=2) fs.filter(f=>inPer(f.id)).slice(0,1).forEach(f=>f.spellRevive=true); // 坚韧满档:只给最左坚韧复起，阵型位置成为成本/反制点
+  // —— 批㉛ 布衣结义：凑齐低稀有成军,弃高稀有的机会成本换真实战力(叠加寒门翻身三星曲线=弱卡流派天花板) ——
+  const inFolk=id=>BONDS.folk.ids.includes(id);
+  if(bt.folk>=1)    fs.forEach(f=>{if(inFolk(f.id)){f.atk+=1;f.hp+=3;f.maxhp+=3}});
+  if(bt.folk>=2)    fs.forEach(f=>{if(inFolk(f.id)){f.atk+=1;f.hp+=2;f.maxhp+=2;f.shield+=2}}); // 满档累计:+2攻+5命+2盾
   // 正典小队联动：只给克制的小幅护盾/速度，不另开第三条主羁绊轴。
   const rosterHas=ids=>ids.every(id=>p.army.some(a=>a.id===id));
   if(rosterHas(['ziyu','hai','qi','hao']))fs.forEach(f=>f.shield+=1);               // 四海同光
@@ -4531,6 +4585,36 @@ function runSelftest(){
   ok('火象t1: 火象单位+1攻·非火不加', (()=>{const F=buildFighters(parmy('lin','yin','guard'),{});return F.find(f=>f.id==='lin').atk===UMAP['lin'].atk+1&&F.find(f=>f.id==='guard').atk===UMAP['guard'].atk})());
   ok('土象t1: 全队+3命(含非土成员)', (()=>{const F=buildFighters(parmy('lu','guard','lin'),{});return F.every(f=>f.hp===UMAP[f.id].hp+3)})());
   ok('残片接线在 sideFlags(防注释吞字段回归)', sideFlags({army:[],relics:['shards']}).shards===true);
+  // —— 批㉛ 布衣结义（弱卡流派）——
+  ok('布衣 ids 由稀有度派生且不含高稀有', BONDS.folk.ids.length>=8&&BONDS.folk.ids.every(id=>['N','R'].includes(UMAP[id].rar))&&PLAY_AXES.includes('folk'));
+  {const pickFolk=n=>{const sel=[],cnt={};
+    for(const id of BONDS.folk.ids){const el=unitElem(id);
+      const ax=PLAY_AXES.filter(k=>k!=='folk'&&BONDS[k].ids.includes(id));
+      if(sel.some(s=>unitElem(s)===el))continue;           // 异象各一,不点亮四象羁绊
+      if(ax.some(k=>(cnt[k]||0)>=1))continue;              // 其余打法轴≤1,不点亮别的流派
+      sel.push(id);ax.forEach(k=>cnt[k]=(cnt[k]||0)+1);
+      if(sel.length===n)break}
+    return sel};
+   const f3=pickFolk(3);
+   ok('可选出3名互不点亮其他羁绊的布衣', f3.length===3);
+   const parmyS2=(...ids)=>({army:ids.map(id=>({uid:uidSeq++,id,star:2,gAtk:0,gHp:0})),relics:[]});
+   ok('布衣 3名★★→档1 / ★1不结义(探针基线不动) / 同名不叠', bondTier(parmyS2(...f3),'folk')===1&&bondTier(parmy(...f3),'folk')===0&&bondTier(parmyS2(f3[0],f3[0]),'folk')===0);
+   const F1=buildFighters(parmyS2(...f3),{});
+   ok('布衣档1精确值：+1攻+3命(基于★★属性)', F1.every(f=>{const b=instBase({id:f.id,star:2,gAtk:0,gHp:0});return f.atk===b.atk+1&&f.maxhp===b.hp+3}));
+   const f5=BONDS.folk.ids.slice(0,5);
+   const F2=buildFighters(parmyS2(...f5),{});
+   ok('布衣满档(5名★★)：布衣≥+2攻≥+5命且开战+2盾', bondTier(parmyS2(...f5),'folk')===2&&F2.every(f=>{const b=instBase({id:f.id,star:2,gAtk:0,gHp:0});return f.atk>=b.atk+2&&f.maxhp>=b.hp+5&&f.shield>=2}));
+   ok('布衣不足3名不触发·高稀有不吃加成', bondTier(parmyS2(f3[0],f3[1],'wolf'),'folk')===0&&buildFighters(parmyS2(f3[0],f3[1],'wolf'),{}).find(f=>f.id==='wolf').atk===instBase({id:'wolf',star:2,gAtk:0,gHp:0}).atk);
+  }
+  // —— 批㉛ 鎏金狂宴（多人欢乐局经济）——
+  {const _S=S;
+   S={act:1,feast:true};
+   ok('鎏金狂宴：判定加币翻倍(ok4/hard6/snap2/bad0)', judgeGain('ok')===4&&judgeGain('hard')===6&&judgeGain('snap')===2&&judgeGain('bad')===0);
+   ok('鎏金狂宴：4币1息封顶5(16币→4息)·军团上限act1=4', previewInterest({coins:16,relics:[],strats:[]})===4&&armyCap()===4);
+   ok('鎏金狂宴：牌力半价(act1→2级费2)·刷新1币·newState开局8币且feast入档', nextTierCost({tier:1})===2&&rrCost()===1&&(()=>{const st=newState(['甲'],3,8,true,true);return st.feast===true&&st.players[0].coins===8})());
+   S={act:1,feast:false};
+   ok('经典局回归：加币2·16币→3息·上限3·牌力4·刷新2·开局3币', judgeGain('ok')===2&&previewInterest({coins:16,relics:[],strats:[]})===3&&armyCap()===3&&nextTierCost({tier:1})===4&&rrCost()===2&&newState(['甲'],3,8,true).players[0].coins===3);
+   S=_S;}
   // —— 牌力（金币消耗出口 + 高稀有门控）——
   S={act:3};
   ok('牌力保底封顶2级（act3→2级，升牌力才解锁tier3+）', tierFloor()===2);
@@ -5782,7 +5866,7 @@ function actEnd(){
   S.waveJudge=0;S.players.forEach(p=>{p.waveN=0}); // 答题仪表盘按幕清零（「本幕判定」从此名副其实）
   if(S.act>=S.actsTotal){finale();return}
   S.act++;setAct(Math.min(S.act,3));
-  toast(`${ACT_CN[S.act]} · ${ACT_NAMES[S.act]} —— 军团上限 ${ARMY_CAP[Math.min(S.act,3)]}`,3000);
+  toast(`${ACT_CN[S.act]} · ${ACT_NAMES[S.act]} —— 军团上限 ${armyCap()}`,3000);
   startWave();
 }
 
@@ -6045,7 +6129,7 @@ const BOUNTIES=[
  {id:'b_elem2', n:'双象并立', d:'两条四象羁绊同时成阵时取胜', r:4, lock:'bounties',
    chk:p=>['earth','wind','fire','water'].filter(e=>bondTier(p,e)>=1).length>=2},
  {id:'b_full',  n:'满编出征', d:'以满编军团(达军团上限)取胜',  r:3, lock:'bounties',
-   chk:(p,c)=>p.army.length>=(ARMY_CAP[Math.min(S.act,3)]||5)},
+   chk:(p,c)=>p.army.length>=(armyCap()||5)},
  {id:'b_bridge',n:'一牌两算', d:'军团中有桥牌单位(双轴同计)时取胜', r:4, lock:'bounties',
    chk:p=>(typeof bridgeUnits==='function')&&bridgeUnits(p).length>0},
 ];
@@ -6463,7 +6547,7 @@ function showStratPick(){
   });
 }
 function soloBuildFoe(round,diff){
-  const cap=ARMY_CAP[Math.min(S.act,3)];
+  const cap=armyCap();
   const diffMul=[0.85,1.05,1.32][diff]||1;
   // 目标战力预算。第 7 关起加陡坡：淬炼(每关+1攻+2血)与三星让玩家后期指数走强，
   // 线性敌军会被甩开（实测毕业队 r9 胜率 95%+）。全程提斜率会打崩前期(r3 50%→29%)，故只压后段。
@@ -7123,7 +7207,8 @@ function finale(){
   clearSave();
   // 多人课堂榜上传按钮（LB_ON 才显示；roster 即刻闭包捕获，clearSave 后不依赖 S）
   const cbtn=$('#btn-classup');
-  if(cbtn){ if(LB_ON){const roster=sorted.map(p=>({name:p.name,crowns:p.crowns,wins:p.wins,coins:p.coins,relics:(p.relics&&p.relics.length)||0,power:Math.min(999,armyPower(p)),glory:gloryScore(p)}));
+  if(cbtn){ if(LB_ON&&S&&S.feast){cbtn.style.display='';cbtn.disabled=true;cbtn.textContent='鎏金狂宴 · 欢乐局不计榜'} // 经济翻倍局刷分不公平,榜单只收经典局
+    else if(LB_ON){const roster=sorted.map(p=>({name:p.name,crowns:p.crowns,wins:p.wins,coins:p.coins,relics:(p.relics&&p.relics.length)||0,power:Math.min(999,armyPower(p)),glory:gloryScore(p)}));
       cbtn.style.display='';cbtn.disabled=false;cbtn.textContent='上传课堂榜';
       cbtn.onclick=()=>classUploadPrompt(roster);
     } else cbtn.style.display='none'; }
@@ -7356,6 +7441,7 @@ function showHowto(){
   +sec('征募（三选一）与牌力',`
   按排名<b>从后往前</b>轮流选卡——落后者先挑。<b>星级合成</b>：同名第 2 张→<b>★★合星</b>；★★ 再集 2 张碎片→<b>★★★三星觉醒</b>（属性质变、技能随星增强）。合成把 4 张压成 1 格、越深越强。
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。<br><br>
+  <b style="color:var(--gold2)">鎏金狂宴</b>（开局可选的多人欢乐风格）：开局 8 币、答题加币<b>翻倍</b>、每存 4 币生 1 息（封顶 5）、牌力<b>半价</b>、刷新 1 币、军团上限<b>全程 +1</b>（4 → 5 → 6），开席人人随机领一件遗物——铸币洪流下更多流派施展得开，适合期末、节日与奖励课。欢乐局成绩<b>不计课堂榜</b>。<br><br>
   征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕起≥2级，<b>保底封顶 2 级</b>——3级以上必须花铸币升），
   也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 4/6/8/10 递增）——中后期铸币多，与其溢出，
   不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i><br><br>
@@ -7392,7 +7478,8 @@ function showHowto(){
   <b style="color:var(--gold2)">向死而生</b>（亡语）：2名 同袍阵亡时随机友军+1攻／3名 全队+1攻。<br>
   <b style="color:var(--gold2)">制敌之势</b>（制御）：2名 开战敌全体-1速／4名 敌全体-2速且敌方最高攻再-2攻。<br>
   <b style="color:var(--gold2)">不倒之志</b>（坚韧）：3名 坚韧成员+4生命／5名 最左坚韧成员首次阵亡再以半血归队——把谁放在前排吃复起，是阵型抉择。<br>
-  <b style="color:var(--gold2)">锋锐首击</b>（锋锐）：2名 锋锐成员首击额外+2伤／3名 首击必定暴击×2。<br><br>
+  <b style="color:var(--gold2)">锋锐首击</b>（锋锐）：2名 锋锐成员首击额外+2伤／3名 首击必定暴击×2。<br>
+  <b style="color:var(--gold2)">布衣结义</b>（布衣＝全部 N·R 低稀有，<b>只数升到★★及以上的布衣</b>）：3名★★布衣 全体布衣+1攻+3命／5名★★ 累计+2攻+5命且开战+2盾。低稀有卡两张就能合星、三星倍率又最陡（寒门翻身），肯把铸币砸进弱卡合星的平民军团，满档后真能与 SSR/UR 豪阵掰腕子——<b>结义要真投入，弃高稀有的机会成本换整队质变</b>。<br><br>
   开战时战报会直接播报已触发羁绊与本场精确效果；征募页军团下方也会常驻显示，避免“图标亮了却不知道有没有生效”。<br><br>
   <b style="color:var(--gold2)">正典搭档</b>：增与浩组成「谷地双壁」（二人各+2盾，增+1攻）；梓与狼先生都升到<b>★2</b>后才会开启终极追求「灯火相承」——全队+3盾，二人中首次倒下的一位会因另一人守灯而以半数生命归队，守灯者同时+2攻。这个组合上限最高，但占两张低权重高稀有牌、要求双二星，不会挤掉常规阵容的生存空间。<br><br>
   <i style="color:var(--ink3)">两轴的妙处：军团位子有限（3→4→5），同象满档要 4 人、打法满档也要 4 人——用<b>一牌两算</b>的桥牌单位（既推象又推打法，如梓=土+穿透、增=风+嘲讽、麒=火+嘲讽）才能双档齐开。<br>
