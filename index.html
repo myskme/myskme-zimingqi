@@ -888,6 +888,8 @@ body.arok .av-reliquary-frame{display:block}
 .pod.first .medal{width:56px;height:56px}
 .pod h3{font-weight:500;letter-spacing:.14em;margin:6px 0 3px;font-size:17px}
 .pod .pod-title{color:var(--gold2);font-size:11.5px;letter-spacing:.22em;margin:0 0 4px;opacity:.92} /* 加冕称号 */
+#btn-share-report.share-glow{border-color:var(--gold);animation:shareGlow 1.7s ease-in-out infinite} /* 新纪录=传播时刻 */
+@keyframes shareGlow{0%,100%{box-shadow:0 0 10px rgba(232,199,104,.22)}50%{box-shadow:0 0 26px rgba(232,199,104,.5)}}
 .pod .sc{font-family:var(--mono);color:var(--gold2);font-size:15px}
 .pod .shadow-tally{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;color:var(--purple);font-family:var(--mono);font-size:13px}
 .pod .army-line{margin-top:7px;font-size:16px;letter-spacing:2px}
@@ -2799,6 +2801,7 @@ $('#btn-start').onclick=()=>{
     assignBounties(); // 狼牙悬赏:每局3张(种子内发,断电续局不重抽)
     setAct(1);hud();startOriginDraft();save();BGM.auto('play',true); // 单人娱乐默认开背景音乐
     ghostPull(); // 影军回响:异步拉同学军团(离线静默跳过)
+    applyEntryGifts(); // 传灯礼(批㉝):分享过的人开局+2币,每天一次
   }else{
     const feast=segVal('#seg-feast')===1;
     S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1,feast);
@@ -4648,6 +4651,17 @@ function runSelftest(){
    const T=titlesFor([A,B,C,D]);
    ok('加冕称号：布衣封侯/鎏金巨富/答题先锋各归其主·四人互不重复', T[0]==='布衣封侯'&&T[1]==='鎏金巨富'&&T[2]==='答题先锋'&&!!T[3]&&new Set([T[0],T[1],T[2],T[3]]).size===4);
    S=_S;}
+  // —— 批㉝ 传灯有礼 + 分享文案 ——
+  {const _S=S;const KEYS=['zmq_lamp','zmq_lamp_used','zmq_echo_gift'];const bak={};
+   try{KEYS.forEach(k=>{bak[k]=localStorage.getItem(k);localStorage.removeItem(k)})}catch(e){}
+   ok('传灯礼：同日只点一次·只领一次', lampGiftGrant()===true&&lampGiftGrant()===false&&lampGiftTake()===true&&lampGiftTake()===false);
+   ok('应战礼：同日一次', echoGiftTake()===true&&echoGiftTake()===false);
+   S={solo:true,endless:true,difficulty:1,_cleared:12};
+   ok('分享文案(单人)：带层数难度·战书版有第4关之约·非战书版邀上回廊', shareTextFor(true).includes('第 12 关')&&shareTextFor(true).includes('第 4 关')&&shareTextFor(false).includes('世界回廊'));
+   S={solo:false,feast:true,_finalTitles:{0:'布衣封侯'},players:[{i:0,name:'甲',crowns:3,coins:5,wins:2,army:[],relics:[]},{i:1,name:'乙',crowns:0,coins:1,wins:0,army:[],relics:[]}]};
+   ok('分享文案(多人)：冠军带称号·狂宴标风格', shareTextFor(false).includes('布衣封侯')&&shareTextFor(false).includes('鎏金狂宴')&&shareTextFor(false).includes('甲'));
+   try{KEYS.forEach(k=>{if(bak[k]==null)localStorage.removeItem(k);else localStorage.setItem(k,bak[k])})}catch(e){}
+   S=_S;}
   // —— 牌力（金币消耗出口 + 高稀有门控）——
   S={act:3};
   ok('牌力保底封顶2级（act3→2级，升牌力才解锁tier3+）', tierFloor()===2);
@@ -6220,6 +6234,7 @@ function startEchoChallenge(rival){ // 从分享链接开局：第4关必遇这�
   S=newState([nm],3,0,false);S.solo=true;S.difficulty=rival.difficulty|0;S.round=1;S.soloFoe=null;S.soloWins=0;
   S.sharedRival={name:rival.name,army:rival.army,difficulty:rival.difficulty|0,cleared:rival.cleared|0};
   lifeInit();rng=mulberry32(S.seed);assignBounties();setAct(1);hud();startOriginDraft();save();BGM.auto('play',true);ghostPull();
+  applyEntryGifts({echo:true}); // 应战礼(批㉝):接灯的人也有光
   toast(`战书已启封 —— 第 4 关迎战 ${rival.name} 的真实军团`,4200);
 }
 async function copyLink(text){
@@ -6228,8 +6243,33 @@ async function copyLink(text){
 }
 async function shareGame(){
   const data={title:'自鸣棋 · 回响战书',text:'一枚棋子，一支军团。来世界回廊留下你的真实回响。',url:SHARE_URL};
-  try{if(navigator.share){await navigator.share(data);return}}catch(e){if(e&&e.name==='AbortError')return}
+  try{if(navigator.share){await navigator.share(data);lampGiftToast();return}}catch(e){if(e&&e.name==='AbortError')return}
   const ok=await copyLink(SHARE_URL);toast(ok?'入口已复制 —— 发给下一位棋手':'请复制地址：'+SHARE_URL,3200);
+  if(ok)lampGiftToast();
+}
+/* ============ 批㉝ 传灯有礼：传播的两端都有光 ============
+   递灯（分享成功/复制成功）→ 点亮传灯礼：今天的下一局单人开局 +2 铸币；
+   接灯（启封别人的战书开局）→ 应战礼：+2 铸币。各每天一次，叠加封顶 +4。
+   奖励刻意压小（约一次利息），无尽回廊纪录不会被它抬动——传播动机来自「有来有往」，不是数值购买。 */
+function giftDay(){const d=new Date();return ''+d.getFullYear()+String(d.getMonth()+1).padStart(2,'0')+String(d.getDate()).padStart(2,'0')}
+function lampGiftGrant(){try{const d=giftDay();if(localStorage.getItem('zmq_lamp')===d)return false;localStorage.setItem('zmq_lamp',d);return true}catch(e){return false}}
+function lampGiftTake(){try{const d=giftDay();if(localStorage.getItem('zmq_lamp')===d&&localStorage.getItem('zmq_lamp_used')!==d){localStorage.setItem('zmq_lamp_used',d);return true}}catch(e){}return false}
+function echoGiftTake(){try{const d=giftDay();if(localStorage.getItem('zmq_echo_gift')!==d){localStorage.setItem('zmq_echo_gift',d);return true}}catch(e){}return false}
+function lampGiftToast(){if(lampGiftGrant())setTimeout(()=>toast('传灯礼已点亮——今天的下一局单人试炼，开局 +2 铸币',3600),900)}
+function applyEntryGifts(opts){ // 单人开局统一入口：三个单人入口(启程/接战书/复仇战)都走这里
+  let add=0;const msg=[];
+  if(lampGiftTake()){add+=2;msg.push('传灯礼 +2')}
+  if(opts&&opts.echo&&echoGiftTake()){add+=2;msg.push('应战礼 +2')}
+  if(add&&S&&S.players&&S.players[0]){S.players[0].coins+=add;save();setTimeout(()=>toast(msg.join(' · ')+' —— 开局铸币已入账',3000),1500)}
+}
+// 分享文案（纯函数，#selftest 可测）：带称号与战绩的具体数字，比口号更能让人点开
+function shareTextFor(echo){
+  if(S&&S.solo){const fl=S._cleared|0,mode=S.endless?'无尽回廊':'单人试炼',diff=SOLO_DIFF[S.difficulty]||'';
+    return (echo&&fl>=4)?`我在自鸣棋${mode}（${diff}）打到第 ${fl} 关，这是我的真实军团——接下战书，第 4 关见。`
+      :`我在自鸣棋${mode}（${diff}）打到第 ${fl} 关。来世界回廊留下你的成绩。`}
+  const t=(S&&S._finalTitles)||{}, champ=(S&&S.players&&S.players.length)?finalSort()[0]:null;
+  if(champ)return `${(S&&S.feast)?'鎏金狂宴落幕，':''}冠军「${t[champ.i]||'加冕王者'}」${champ.name} 已加冕——自鸣棋，一节课一局的策略对战。`;
+  return '来世界回廊留下你的真实回响。';
 }
 /* ============ 复仇战(20260717·纯前端零后端)：输给某支影军→记本地,下次影军关优先遇到它,斩它=复仇成功 ============ */
 const RIVAL_KEY='zmq_rivals', RIVAL_MAX=6;
@@ -6260,6 +6300,7 @@ function startRevengeRun(rival){ // 复仇战入口:开一局指定难度,锁定
   S.revengeTargetKey=rivalKey(rival); // 锁定 → pickRivalFoe 优先
   lifeInit(); rng=mulberry32(S.seed); assignBounties();
   setAct(1);hud();startOriginDraft();save();BGM.auto('play',true); ghostPull();
+  applyEntryGifts(); // 传灯礼(批㉝)
   toast(`复仇启程 —— 目标:${rival.name} 的军团,在影军关狭路相逢`,3800);
 }
 function showRevenge(){ // 仇敌名单:看见+主动发起(把复仇战从"隐形"变"显眼")
@@ -7115,6 +7156,7 @@ function soloEnd(victory){
   drawReport([you]);
   const _cb=$('#btn-classup');if(_cb)_cb.style.display='none'; // 单人结算隐藏多人课堂榜上传
   go('final');flash(false);shake();
+  {const sb=$('#btn-share-report');if(sb)sb.classList.toggle('share-glow',!!(isNew&&cleared>=6))} // 新纪录=最好的传播时刻,战书按钮点金(批㉝)
   if(isNew||victory)burst(innerWidth/2,innerHeight/4,null,44),SFX.play('crown');
   clearSave();
   const be=$('#btn-endless');
@@ -7241,6 +7283,7 @@ function finale(){
   S._finalTitles=titles; // 战报卡(drawReport)读它:finale 已算好,canvas 不再重算
   drawReport(sorted);
   go('final');
+  {const sb=$('#btn-share-report');if(sb)sb.classList.remove('share-glow')} // 金光只属于单人新纪录
   flash(false);shake();SFX.play('crown');
   burst(innerWidth/2,innerHeight/4,['#c9a64a','#e8c768','#fff','#9cc0e8','#d56060'],44);
   clearSave();
@@ -7336,7 +7379,7 @@ async function drawReport(sorted){
   ctx.fillStyle=ink2;ctx.font=serif(26);
   const subT=S&&S.solo
     ?('MYSKME 自鸣棋 · '+(S.daily?'今日试炼':'单人试炼')+(S._victory?' · 通关战报':'战报')+' · ')
-    :'MYSKME 自鸣棋 · '+((S&&S.feast)?'鎏金狂宴 · ':'')+'演武战报 · '; // 狂宴局战报标明风格,家长群不与经典局成绩混淆
+    :'MYSKME 自鸣棋 · '+((S&&S.feast)?'鎏金狂宴 · ':'')+'演武战报 · '+((S&&S.waveJudge>0)?('全班答题 '+S.waveJudge+' 道 · '):''); // 狂宴标风格;答题数上卡=家长看得见这节课学了东西(批㉝口碑线)
   ctx.fillText(subT+new Date().toLocaleDateString('zh-CN'),W/2,196);
   // 分隔
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,232);ctx.lineTo(W-120,232);ctx.stroke();
@@ -7474,14 +7517,15 @@ $('#btn-share-report').onclick=async()=>{
   const btn=$('#btn-share-report'),old=btn.innerHTML,link=echoLinkFromRun()||SHARE_URL;
   btn.disabled=true;btn.textContent='正在封装战书…';
   const echo=link!==SHARE_URL;
-  const data={title:'自鸣棋 · 回响战书',text:echo?'这是我本局留下的真实军团。接下战书，第 4 关见。':'来世界回廊留下你的真实成绩。',url:link};
+  const data={title:'自鸣棋 · 回响战书',text:shareTextFor(echo),url:link}; // 文案带称号/层数——可炫耀的具体数字(批㉝)
   try{
     const blob=await new Promise(resolve=>$('#report-canvas').toBlob(resolve,'image/png'));
     if(blob&&typeof File!=='undefined'){const file=new File([blob],'MYSKME自鸣棋回响战报.png',{type:'image/png'});
       if(navigator.canShare&&navigator.canShare({files:[file]}))data.files=[file];}
-    if(navigator.share){await navigator.share(data);toast(echo?'回响战书已发出 —— 等下一位棋手应战':'战报已分享',3000);return}
+    if(navigator.share){await navigator.share(data);toast(echo?'回响战书已发出 —— 等下一位棋手应战':'战报已分享',3000);lampGiftToast();return}
     const ok=await copyLink(link);toast(ok?(echo?'战书链接已复制 —— 发给下一位棋手':'游戏入口已复制'):'分享失败，请保存战报卡后手动发送',3400);
-  }catch(e){if(!(e&&e.name==='AbortError')){const ok=await copyLink(link);toast(ok?'战书链接已复制':'分享失败，请保存战报卡后手动发送',3200)}}
+    if(ok)lampGiftToast();
+  }catch(e){if(!(e&&e.name==='AbortError')){const ok=await copyLink(link);toast(ok?'战书链接已复制':'分享失败，请保存战报卡后手动发送',3200);if(ok)lampGiftToast()}}
   finally{btn.disabled=false;btn.innerHTML=old}
 };
 
@@ -7510,6 +7554,7 @@ function showHowto(){
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。<br><br>
   <b style="color:var(--gold2)">鎏金狂宴</b>（开局可选的多人欢乐风格）：开局 8 币、答题加币<b>翻倍</b>、每存 4 币生 1 息（封顶 5）、牌力<b>半价</b>、刷新 1 币、军团上限<b>全程 +1</b>（4 → 5 → 6），开席人人随机领一件遗物——铸币洪流下更多流派施展得开，适合期末、节日与奖励课。狂宴还有<b>专属命运事件</b>（鎏金骤雨、豪商驾到、点石成金），只在欢乐局出现。欢乐局成绩<b>不计课堂榜</b>。<br><br>
   <b style="color:var(--gold2)">加冕称号</b>：终局加冕时每人获得一枚四字称号——布衣封侯、答题先锋、鎏金巨富、输出之王……按你这一局的打法与功绩授予，全班不重样，也会印在战报卡终榜上。<br><br>
+  <b style="color:var(--gold2)">传灯有礼</b>：把战报或回响战书分享出去（系统分享或复制链接成功），点亮「传灯礼」——当天下一局单人试炼开局 +2 铸币；<b>启封别人的战书</b>开局另有「应战礼」+2 铸币。两礼各每天一次。灯要传，也要有人接。<br><br>
   征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕起≥2级，<b>保底封顶 2 级</b>——3级以上必须花铸币升），
   也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 4/6/8/10 递增）——中后期铸币多，与其溢出，
   不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i><br><br>
