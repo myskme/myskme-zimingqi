@@ -1,5 +1,5 @@
 /* 自鸣棋 PWA：壳层离线、运行资源按需缓存；排行榜/API 与所有写请求永不入缓存。 */
-const RELEASE='20260818c';
+const RELEASE='20260818d';
 const SHELL_CACHE='zmq-shell-'+RELEASE;
 const ASSET_CACHE='zmq-assets-'+RELEASE;
 const CORE_SHELL=[
