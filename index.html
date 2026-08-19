@@ -887,6 +887,7 @@ body.arok .av-reliquary-frame{display:block}
 .pod .medal.m3{color:#c88f5e;border-color:rgba(200,143,94,.55)}
 .pod.first .medal{width:56px;height:56px}
 .pod h3{font-weight:500;letter-spacing:.14em;margin:6px 0 3px;font-size:17px}
+.pod .pod-title{color:var(--gold2);font-size:11.5px;letter-spacing:.22em;margin:0 0 4px;opacity:.92} /* 加冕称号 */
 .pod .sc{font-family:var(--mono);color:var(--gold2);font-size:15px}
 .pod .shadow-tally{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:8px;color:var(--purple);font-family:var(--mono);font-size:13px}
 .pod .army-line{margin-top:7px;font-size:16px;letter-spacing:2px}
@@ -2015,6 +2016,10 @@ const EVENTS = [
  {id:'ev_mourn', n:'挽歌余响', icon:'挽', d:'走廊尽头有人替倒下的人哼了一段。本幕演武：带「阵亡时」技能的单位 +3 生命 +1 攻——薪火要传得更久。', w:8},
  // —— 批⑭ 副阵营事件（双身份正典角色：只点亮羁绊计数，本幕生效）——
  // (四象改版:ev_roll/ev_edge 副阵营事件退役——阵营羁绊已由星象四象取代,「计入阵营」无处生效;fac2 机制保留备用)
+ // —— 批㉜ 鎏金狂宴专属事件（feastOnly:仅狂宴局入池,经典局/单人/平衡探针一律不见——疯狂只属于欢乐局）——
+ {id:'ev_feast_rain',  n:'鎏金骤雨', icon:'雨', d:'狂宴的云也淌金。所有人 +5 铸币，最后一名再 +3。', w:10, feastOnly:true, catchup:true},
+ {id:'ev_feast_bazaar',n:'豪商驾到', icon:'商', d:'豪商在狂宴上摆开全场货架。所有人牌力 +1（封顶 5 级）。', w:9, feastOnly:true},
+ {id:'ev_feast_midas', n:'点石成金', icon:'金', d:'指尖过处皆是金。所有人立即按当前存款多结一次利息。', w:9, feastOnly:true},
 ];
 
 // 幽灵军 & Boss（幕数索引）
@@ -3869,11 +3874,13 @@ $('#btn-draft-done').onclick=()=>{
 function lastPlace(){return [...S.players].sort((a,b)=>a.crowns-b.crowns||a.coins-b.coins)[0]}
 function crownGap(){const c=S.players.map(p=>p.crowns);return Math.max(...c)-Math.min(...c)}
 
+// 事件池（纯函数，#selftest 可测）：暴走关闭时「叶王的注视」是空事件不进池；狂宴专属事件只在鎏金狂宴入池
+function eventPool(){return EVENTS.filter(e=>!(e.once&&S.hornUsed)&&!(e.id==='ev_gaze'&&!S.rageMax)&&(!e.feastOnly||!!(S&&S.feast)))}
 function startEvent(){
   S.phase='event';
   // 抽取本幕事件（仅本幕抽一次；续局走 resumePhase 复用已存事件，不重抽、不重发）
   const gap=crownGap();
-  const pool=EVENTS.filter(e=>!(e.once&&S.hornUsed)&&!(e.id==='ev_gaze'&&!S.rageMax)); // 暴走关闭时「叶王的注视」是空事件，不进池
+  const pool=eventPool();
   const weights=pool.map(e=>e.w*(e.catchup&&gap>=2?2.2:1));
   const total=weights.reduce((a,b)=>a+b,0);
   let r=rng()*total,ev=pool[0];
@@ -3922,6 +3929,9 @@ function applyEvent(ev){
     case 'ev_tea': S.players.forEach(p=>{const n=p.army.filter(a=>UMAP[a.id].fac==='academy').length;
       if(n)p.coins+=n});toast('学院单位的主人们领了茶钱');break;
     case 'ev_market': S.freeRerollNext=true;toast('下一幕征募：每人免费刷新 4 次');break;
+    case 'ev_feast_rain': {S.players.forEach(p=>p.coins+=5);const lp=lastPlace();lp.coins+=3;toast(`鎏金骤雨：所有人 +5 铸币，${lp.name} 再 +3`)}break;
+    case 'ev_feast_bazaar': S.players.forEach(p=>{p.tier=Math.min(5,(p.tier||1)+1)});toast('豪商驾到：所有人牌力 +1');break;
+    case 'ev_feast_midas': S.players.forEach(p=>{const i=previewInterest(p);if(i>0)p.coins+=i});toast('点石成金：所有人立即多结一次利息');break;
     case 'ev_swing': {const lp=lastPlace();
       const cap=armyCap();
       const u=pick(UNITS.filter(u=>u.fac==='swing'));
@@ -4615,6 +4625,29 @@ function runSelftest(){
    S={act:1,feast:false};
    ok('经典局回归：加币2·16币→3息·上限3·牌力4·刷新2·开局3币', judgeGain('ok')===2&&previewInterest({coins:16,relics:[],strats:[]})===3&&armyCap()===3&&nextTierCost({tier:1})===4&&rrCost()===2&&newState(['甲'],3,8,true).players[0].coins===3);
    S=_S;}
+  // —— 批㉜ 狂宴事件包 + 加冕称号 ——
+  {const _S=S;
+   S={feast:false,hornUsed:false,rageMax:8};
+   const classic=eventPool().length;
+   S={feast:true,hornUsed:false,rageMax:8};
+   ok('事件池：经典局 22 张不见狂宴事件,狂宴局 +3', classic===22&&eventPool().length===25);
+   S={feast:true,players:[{i:0,name:'甲',coins:10,crowns:1,army:[],relics:[],strats:[],tier:1},{i:1,name:'乙',coins:0,crowns:0,army:[],relics:[],strats:[],tier:5}],evLog:[],evFlags:{}};
+   applyEvent(EVENTS.find(e=>e.id==='ev_feast_rain'));
+   ok('鎏金骤雨：全员+5·最后一名再+3', S.players[0].coins===15&&S.players[1].coins===8);
+   applyEvent(EVENTS.find(e=>e.id==='ev_feast_bazaar'));
+   ok('豪商驾到：全员牌力+1封顶5', S.players[0].tier===2&&S.players[1].tier===5);
+   S.players[0].coins=16;S.players[1].coins=3;
+   applyEvent(EVENTS.find(e=>e.id==='ev_feast_midas'));
+   ok('点石成金：狂宴4币1息·16币+4·3币+0', S.players[0].coins===20&&S.players[1].coins===3);
+   S=_S;}
+  {const _S=S;
+   const mk=(i,name,o)=>Object.assign({i,name,coins:0,crowns:0,wins:0,waveN:0,relics:[],strats:[],tier:1,army:[]},o);
+   S={act:3,feast:false,dmgTally:{},uidMeta:{}};
+   const folkArmy=BONDS.folk.ids.slice(0,5).map((id,k)=>({uid:'tt'+k,id,star:2,gAtk:0,gHp:0}));
+   const A=mk(0,'布衣王',{army:folkArmy}), B=mk(1,'富豪',{coins:20}), C=mk(2,'学霸',{waveN:9}), D=mk(3,'路人',{});
+   const T=titlesFor([A,B,C,D]);
+   ok('加冕称号：布衣封侯/鎏金巨富/答题先锋各归其主·四人互不重复', T[0]==='布衣封侯'&&T[1]==='鎏金巨富'&&T[2]==='答题先锋'&&!!T[3]&&new Set([T[0],T[1],T[2],T[3]]).size===4);
+   S=_S;}
   // —— 牌力（金币消耗出口 + 高稀有门控）——
   S={act:3};
   ok('牌力保底封顶2级（act3→2级，升牌力才解锁tier3+）', tierFloor()===2);
@@ -4912,7 +4945,7 @@ function runSelftest(){
       {uid:'c',id:'guard',star:1,gAtk:0,gHp:0},{uid:'d',id:'lin',star:1,gAtk:0,gHp:0},{uid:'e',id:'yin',star:1,gAtk:0,gHp:0}],relics:[]}).length===1);}
   }
   // —— 副阵营 fac2 机制已随四象改版封存（阵营羁绊退役,「计入阵营」无处生效;ev_roll/ev_edge 已退池,case 空转兼容旧档）——
-  {ok('fac2事件已退池 · 事件总数=22(批㉗+穿透/亡语流事件2)', EVENTS.every(e=>e.id!=='ev_roll'&&e.id!=='ev_edge')&&EVENTS.length===22);}
+  {ok('fac2事件已退池 · 事件总数=25(22常规+批㉜狂宴专属3)', EVENTS.every(e=>e.id!=='ev_roll'&&e.id!=='ev_edge')&&EVENTS.length===25);}
   // —— 批⑬ 新内容：3 单位 / 4 遗物 / 3 事件 ——
   {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'c'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
    const withR=(ids,relics)=>({army:ids.map((id,i)=>({uid:'r'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics,strats:[]});
@@ -4991,7 +5024,7 @@ function runSelftest(){
     const hit=()=>ghostFighters([{id:'h',n:'锤',glyph:'锤',atk:2,hp:40,spd:9,skill:{k:'none'}}]);
     const r=simulateBattle(hit(),van(),{},sideFlags(parmy('guard','lin')),mulberry32(5),{thornEv:true});
     ok('空耳机的回响（事件）：无羁绊无遗物也反震 1', r.log.some(e=>e.tag==='反震'&&e.amt===1));}
-   ok('RELICS=22 · EVENTS=22（内容量锚·批㉗ 穿透/亡语流各 +1 遗物 +1 事件）', RELICS.length===22&&EVENTS.length===22);
+   ok('RELICS=22 · EVENTS=25（内容量锚·批㉜ +3 狂宴专属事件,feastOnly 不进经典池）', RELICS.length===22&&EVENTS.length===25&&EVENTS.filter(e=>e.feastOnly).length===3);
    ok('批㉗ 流派配套遗物+事件：云梭穿透+2速 / 薪火陶罐死亡→随机友军+1攻(sideFlags.urn+processDeaths) / 云隙天光穿透流 / 挽歌余响亡语流(阵亡技单位)', (()=>{
      const bf=buildFighters.toString();
      if(bf.indexOf("hasRelic(p,'shuttle')")<0||bf.indexOf('evFlags.rift')<0||bf.indexOf('evFlags.mourn')<0)return false; // 接线
@@ -5393,7 +5426,10 @@ $('#btn-battle-next').onclick=()=>{
 
 /* —— 战斗播放 —— */
 let PB={speed:1,skip:false,timer:null};
-$('#btn-speed').onclick=()=>{PB.speed=PB.speed===1?2:1;const b=$('#btn-speed');b.querySelector('.speed-label').textContent=PB.speed===2?'一倍速':'二倍速';b.setAttribute('aria-label',PB.speed===2?'切换为一倍速':'切换为二倍速');b.setAttribute('aria-pressed',PB.speed===2?'true':'false')};
+try{if(localStorage.getItem('zmq_speed')==='2')PB.speed=2}catch(e){} // 二倍速记忆:上局开了这局还开,不用每场重按
+function syncSpeedBtn(){const b=$('#btn-speed');if(!b)return;b.querySelector('.speed-label').textContent=PB.speed===2?'一倍速':'二倍速';b.setAttribute('aria-label',PB.speed===2?'切换为一倍速':'切换为二倍速');b.setAttribute('aria-pressed',PB.speed===2?'true':'false')}
+$('#btn-speed').onclick=()=>{PB.speed=PB.speed===1?2:1;try{localStorage.setItem('zmq_speed',String(PB.speed))}catch(e){};syncSpeedBtn()};
+syncSpeedBtn();
 $('#btn-skipb').onclick=()=>{PB.skip=true;vfxClear()};
 
 function unitEl(f){
@@ -7192,14 +7228,17 @@ function finale(){
   const medals=['壹','贰','叁']; // 碑铭方章，弃 emoji 奖牌
   const top=sorted.slice(0,3);
   const order=top.length>=3?[top[1],top[0],top[2]]:top;
+  const titles=titlesFor(sorted); // 加冕称号:领奖台与战报卡终榜共用同一份,别各算一遍(不重复分配有全局状态)
   order.forEach(p=>{
     const rank=sorted.indexOf(p);
     const d=document.createElement('div');d.className='pod stag'+(rank===0?' first':'');
     d.innerHTML=`<div class="medal m${rank+1}">${medals[rank]||''}</div><h3>${p.name}</h3>
+      <div class="pod-title">${titles[p.i]||''}</div>
       <div class="sc"><span class="icon-label" aria-label="王座分 ${p.crowns}">${uiIcon('score-throne')}${p.crowns}</span> · <span class="icon-label" aria-label="铸币 ${p.coins}">${uiIcon('currency-coin')}${p.coins}</span></div>
       <div class="army-line">${p.army.map(a=>UMAP[a.id].n[0]).join(' ')||'—'}</div>`;
     pod.appendChild(d);
   });
+  S._finalTitles=titles; // 战报卡(drawReport)读它:finale 已算好,canvas 不再重算
   drawReport(sorted);
   go('final');
   flash(false);shake();SFX.play('crown');
@@ -7219,6 +7258,33 @@ function mvpInfo(){
     if(S.dmgTally[uid]>amt){amt=S.dmgTally[uid];best=uid}}
   if(!best||!S.uidMeta||!S.uidMeta[best])return null;
   return {...S.uidMeta[best],amt};
+}
+// —— 批㉜ 加冕称号（纯函数，#selftest 可测）：终局给每人一枚四字称号——课堂的笑点与谈资 ——
+// 规则：正典特例(布衣封侯/守灯之人) > 全场之最(答题/输出/富豪) > 构筑印记(三星/牌力/收藏/满编/无冕) > 流派回退 > 兜底；称号全局不重复。
+function playerDmg(p){let t=0;for(const uid in ((S&&S.dmgTally)||{})){const m=S.uidMeta&&S.uidMeta[uid];if(m&&m.owner===p.name)t+=S.dmgTally[uid]}return t}
+function titlesFor(sorted){
+  const used=new Set(), out={};
+  const give=(p,t)=>{if(t&&!used.has(t)){used.add(t);out[p.i]=t;return true}return false};
+  const maxBy=f=>{let b=null,v=-1;sorted.forEach(p=>{const x=f(p);if(x>v){v=x;b=p}});return {p:b,v}};
+  const mCoin=maxBy(p=>p.coins||0), mWave=maxBy(p=>p.waveN||0), mDmg=maxBy(p=>playerDmg(p)), mStar3=maxBy(p=>(p.army||[]).filter(a=>(a.star||1)>=3).length);
+  const AX_TITLE={earth:'厚土卫士',wind:'疾风信使',fire:'烈焰先锋',water:'潮汐旅人',pierce:'破云箭手',vanguard:'铁壁门神',death:'薪火行者',control:'制敌智囊',persist:'不倒勇士',edge:'锋锐剑客',folk:'布衣义士'};
+  sorted.forEach(p=>{
+    if(bondTier(p,'folk')>=2&&give(p,'布衣封侯'))return;
+    if(['zi','wolf'].every(id=>(p.army||[]).some(a=>a.id===id&&(a.star||1)>=2))&&give(p,'守灯之人'))return;
+    if(mWave.p===p&&mWave.v>=5&&give(p,'答题先锋'))return;
+    if(mDmg.p===p&&mDmg.v>0&&give(p,'输出之王'))return;
+    if(mCoin.p===p&&mCoin.v>=12&&give(p,'鎏金巨富'))return;
+    if(mStar3.p===p&&mStar3.v>=1&&give(p,'三星宗师'))return;
+    if((p.tier||1)>=5&&give(p,'牌力大亨'))return;
+    if(((p.relics&&p.relics.length)||0)>=3&&give(p,'收藏大家'))return;
+    if((p.army||[]).length>=armyCap()&&give(p,'满编统帅'))return;
+    if((p.crowns|0)===0&&(p.wins|0)>=2&&give(p,'无冕之王'))return;
+    const bb=bondBadges(p)[0];
+    if(bb&&give(p,AX_TITLE[bb.f]))return;
+    for(const t of ['历战棋手','星夜行者','云端旅人','谷地来客','断云过客','静水深流','厚积薄发'])if(give(p,t))return;
+    out[p.i]='历战棋手'; // 兜底池耗尽的理论极端才允许重复
+  });
+  return out;
 }
 function drawCanvasGameIcon(ctx,name,cx,cy,size,color){
   ctx.save();ctx.translate(cx-size/2,cy-size/2);ctx.scale(size/24,size/24);
@@ -7270,7 +7336,7 @@ async function drawReport(sorted){
   ctx.fillStyle=ink2;ctx.font=serif(26);
   const subT=S&&S.solo
     ?('MYSKME 自鸣棋 · '+(S.daily?'今日试炼':'单人试炼')+(S._victory?' · 通关战报':'战报')+' · ')
-    :'MYSKME 自鸣棋 · 演武战报 · ';
+    :'MYSKME 自鸣棋 · '+((S&&S.feast)?'鎏金狂宴 · ':'')+'演武战报 · '; // 狂宴局战报标明风格,家长群不与经典局成绩混淆
   ctx.fillText(subT+new Date().toLocaleDateString('zh-CN'),W/2,196);
   // 分隔
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,232);ctx.lineTo(W-120,232);ctx.stroke();
@@ -7357,8 +7423,9 @@ async function drawReport(sorted){
   if(!(S&&S.solo)){
   ctx.strokeStyle='rgba(201,166,74,.5)';ctx.beginPath();ctx.moveTo(120,y-30);ctx.lineTo(W-120,y-30);ctx.stroke();
   ctx.fillStyle=gold;ctx.font=serif(30);ctx.fillText('终 榜',W/2,y+14);y+=64;
+  const _titles=(S&&S._finalTitles)||{}; // finale 已算好的加冕称号;双列(≥6人)版面挤,只在单列行尾缀
   const rankRow=(p,k,xL,xR,yy,fs)=>{
-    const nameTxt=(k===0?'冠军 · ':'')+`${k+1} · ${p.name}`, scoreTxt=`王座 ${p.crowns}　铸币 ${p.coins}`;
+    const nameTxt=(k===0?'冠军 · ':'')+`${k+1} · ${p.name}`+(fs>=30&&_titles[p.i]?` · ${_titles[p.i]}`:''), scoreTxt=`王座 ${p.crowns}　铸币 ${p.coins}`;
     ctx.font=serif(fs,k===0?500:400);ctx.fillStyle=k===0?gold:ink;
     ctx.textAlign='left';ctx.fillText(nameTxt,xL,yy);
     const nw=ctx.measureText(nameTxt).width;
@@ -7441,7 +7508,8 @@ function showHowto(){
   +sec('征募（三选一）与牌力',`
   按排名<b>从后往前</b>轮流选卡——落后者先挑。<b>星级合成</b>：同名第 2 张→<b>★★合星</b>；★★ 再集 2 张碎片→<b>★★★三星觉醒</b>（属性质变、技能随星增强）。合成把 4 张压成 1 格、越深越强。
   存币有利息：每存 5 币下幕 +1（上限 3）。军团上限随幕数 3 → 4 → 5。<br><br>
-  <b style="color:var(--gold2)">鎏金狂宴</b>（开局可选的多人欢乐风格）：开局 8 币、答题加币<b>翻倍</b>、每存 4 币生 1 息（封顶 5）、牌力<b>半价</b>、刷新 1 币、军团上限<b>全程 +1</b>（4 → 5 → 6），开席人人随机领一件遗物——铸币洪流下更多流派施展得开，适合期末、节日与奖励课。欢乐局成绩<b>不计课堂榜</b>。<br><br>
+  <b style="color:var(--gold2)">鎏金狂宴</b>（开局可选的多人欢乐风格）：开局 8 币、答题加币<b>翻倍</b>、每存 4 币生 1 息（封顶 5）、牌力<b>半价</b>、刷新 1 币、军团上限<b>全程 +1</b>（4 → 5 → 6），开席人人随机领一件遗物——铸币洪流下更多流派施展得开，适合期末、节日与奖励课。狂宴还有<b>专属命运事件</b>（鎏金骤雨、豪商驾到、点石成金），只在欢乐局出现。欢乐局成绩<b>不计课堂榜</b>。<br><br>
+  <b style="color:var(--gold2)">加冕称号</b>：终局加冕时每人获得一枚四字称号——布衣封侯、答题先锋、鎏金巨富、输出之王……按你这一局的打法与功绩授予，全班不重样，也会印在战报卡终榜上。<br><br>
   征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕起≥2级，<b>保底封顶 2 级</b>——3级以上必须花铸币升），
   也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 4/6/8/10 递增）——中后期铸币多，与其溢出，
   不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i><br><br>
@@ -7811,6 +7879,28 @@ $('#btn-menu').onclick=showMenu;
       navigator.serviceWorker.register('./sw.js',{scope:'./'}).catch(()=>{});
     },{once:true});
   }
+  // 开屏每日一签：狼先生语录按日轮换,节日有专属签——每天来都有一句新的(品牌人格的低成本复利,原金句保底在池)
+  try{
+    const q=document.querySelector('#scr-title .title-quote');
+    if(q){
+      const F={'1-1':'「新年第一局，把去年的教条一并清盘。」','6-1':'「儿童节快乐——今天允许全员幼稚。」','9-10':'「教师节快乐。判分的手，今天也请对自己温柔一点。」'};
+      const Q=['「拒绝一切死板的教条。世界值得有趣地活一次。」',
+        '「棋子不会自己走路——所以每一步都算数。」',
+        '「答错的题喂给暴走槽，答对的题喂给你自己。」',
+        '「弱卡不弱，只是还没遇到肯给它合星的人。」',
+        '「存下的铸币会生息，存下的问题只会生锈。」',
+        '「前排挡刀，后排藏箭——人生站位同理。」',
+        '「叶王在看着你的错题本。」',
+        '「三星不是运气，是你把同一件事做了三遍。」',
+        '「输一场掉的是命脉，不敢开局输掉的是整条回廊。」',
+        '「小黑猫今天也在某个角落。」',
+        '「牌力先于运气。先升级，再抱怨。」',
+        '「云层再厚，穿透单位也知道后排在哪。」'];
+      const d=new Date(), key=(d.getMonth()+1)+'-'+d.getDate();
+      const dayN=Math.floor((d-new Date(d.getFullYear(),0,0))/864e5);
+      q.textContent=F[key]||Q[dayN%Q.length];
+    }
+  }catch(e){}
   document.documentElement.dataset.boot='ready';
   window.__ZMQ_BOOT_MS=Math.round(performance.now()-bootStarted);
 })();
