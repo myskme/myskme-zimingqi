@@ -1,5 +1,5 @@
 /* 自鸣棋 PWA：壳层离线、运行资源按需缓存；排行榜/API 与所有写请求永不入缓存。 */
-const RELEASE='20260820a';
+const RELEASE='20260820c';
 const SHELL_CACHE='zmq-shell-'+RELEASE;
 const ASSET_CACHE='zmq-assets-'+RELEASE;
 const CORE_SHELL=[
@@ -15,7 +15,12 @@ const OPTIONAL_SHELL=[
   './assets/artifacts-20260820/artifact-earth-seal.webp',
   './assets/artifacts-20260820/artifact-water-mirror.webp',
   './assets/artifacts-20260820/artifact-fire-heart.webp',
-  './assets/artifacts-20260820/artifact-wind-wheel.webp'
+  './assets/artifacts-20260820/artifact-wind-wheel.webp',
+  // 首发四位 SP 运行图约 1.23MB：安装时并行尽力缓存，失败不阻断核心壳；首次获得仍优先走本地缓存。
+  './assets/sp-launch-20260820/zi-sp.jpg',
+  './assets/sp-launch-20260820/xin-sp.jpg',
+  './assets/sp-launch-20260820/xuan-sp.png',
+  './assets/sp-launch-20260820/xi-sp.png'
 ];
 
 async function boundedFetch(input,options,timeoutMs){
