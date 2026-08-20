@@ -8,6 +8,8 @@ MYSKME × 王老师（Mr. Wang）· **神秘策略肉鸽自走棋** —— 年�
 **灾备地址：** https://myskme.github.io/myskme-zimingqi/
 **作品总目：** https://myskme.com/
 
+**当前稳定基线：** 2026-08-20 神器炉与首发四位 SP 天命异格，正式提交 `ec344bb`，详见 [`docs/RELEASE-20260820-ARTIFACT-SP.md`](docs/RELEASE-20260820-ARTIFACT-SP.md)。
+
 ## 核心循环（一节课一局 · 30–40 分钟 · 1–8 人（含 1 对 1 课堂））
 
 ```
@@ -61,6 +63,8 @@ MYSKME × 王老师（Mr. Wang）· **神秘策略肉鸽自走棋** —— 年�
 ## Claude / Codex 协作
 
 两台电脑开始工作前都先读 [`AI-COLLABORATION.md`](AI-COLLABORATION.md)，从 GitHub 最新 `main` 开始；结束时记录基线 SHA、文件、资产目录和自测结果。禁止强推和用旧版 `index.html` 整体覆盖另一方的更新。
+
+当前接力应以 [`docs/RELEASE-20260820-ARTIFACT-SP.md`](docs/RELEASE-20260820-ARTIFACT-SP.md) 为发布锚点；其中记录了神器、SP、版本号、验证证据和下一批不可破坏的边界。
 
 ## 技术
 
