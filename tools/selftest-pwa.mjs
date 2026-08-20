@@ -4,7 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {extname,resolve} from 'node:path';
 
 const ROOT=resolve(process.argv[2]||'.');
-const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.mp3':'audio/mpeg','.m4a':'audio/mp4'};
+const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.webmanifest':'application/manifest+json','.png':'image/png','.jpg':'image/jpeg','.webp':'image/webp','.svg':'image/svg+xml','.mp3':'audio/mpeg','.m4a':'audio/mp4'};
 let navigationMode='normal';
 const served=[];
 const server=createServer(async(req,res)=>{

@@ -1,13 +1,15 @@
 import {readFile,stat} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 
 const text=async path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 const checks=[];
 const ok=(name,value)=>checks.push({name,ok:Boolean(value)});
 
-const [html,manifestRaw,sw,edge]=await Promise.all([
-  text('index.html'),text('manifest.webmanifest'),text('sw.js'),text('edgeone.json')
+const [html,manifestRaw,sw,edge,spManifestRaw]=await Promise.all([
+  text('index.html'),text('manifest.webmanifest'),text('sw.js'),text('edgeone.json'),text('assets/sp-launch-20260820/manifest.json')
 ]);
 const manifest=JSON.parse(manifestRaw);
+const spManifest=JSON.parse(spManifestRaw);
 JSON.parse(edge);
 
 ok('正式域名 canonical',html.includes('<link rel="canonical" href="https://zimingqi.myskme.com/">'));
@@ -41,6 +43,10 @@ ok('四象星图从现有数据源实时派生',html.includes("const ATLAS_ELEMS
 ok('图鉴立绘四路按当前页延迟加载',html.includes('while(_atlasImgActive<4&&_atlasImgQueue.length)')&&html.includes("querySelectorAll('img[data-atlas-src]')")&&html.includes('requestAnimationFrame(atlasHydrateImages)'));
 ok('高清星图支持移动端系统分享与桌面下载',html.includes('navigator.canShare({files:[file]})')&&html.includes("a.download=file.name")&&html.includes("const ATLAS_POSTER=ATLAS_DIR+'zimingqi-atlas-2400.png'"));
 ok('高清海报与游戏共用四象羁绊秘契数据',html.includes("['earth','wind','fire','water'].map(posterElement)")&&html.includes('ATLAS_PLAYS.map(posterBond)')&&html.includes('COMBOS.map(posterCombo)')&&html.includes('<section class="ap-cycle"><strong>四象相克环</strong>'));
+ok('首发四位 SP 数据与本体互斥规则齐备',html.includes("const SP_VARIANTS = [")&&html.includes("id:'zi_sp'")&&html.includes("id:'xin_sp'")&&html.includes("id:'xuan_sp'")&&html.includes("id:'xi_sp'")&&html.includes('SP_PITY_HARD=12')&&html.includes('一局至多拥有一位 SP'));
+ok('SP 降临、专属战报事件与固定一星限制齐备',html.includes('function spAwakenReveal')&&html.includes("t:'spProc'")&&html.includes('SP 的稀有性来自固定机制')&&html.includes('RAR_STAR.SP'));
+ok('SP 弱网首见原画进入尽力缓存',sw.includes("'./assets/sp-launch-20260820/zi-sp.jpg'")&&sw.includes("'./assets/sp-launch-20260820/xin-sp.jpg'")&&sw.includes("'./assets/sp-launch-20260820/xuan-sp.png'")&&sw.includes("'./assets/sp-launch-20260820/xi-sp.png'"));
+ok('SP 跨端 manifest 四象、尺寸与统一规则完整',spManifest.units?.length===4&&new Set(spManifest.units.map(u=>u.element)).size===4&&spManifest.dimensions?.width===540&&spManifest.dimensions?.height===756&&spManifest.rules?.maxPerPlayer===1&&spManifest.rules?.hardPity===12);
 
 for(const path of [
   'assets/pwa-20260809/app-icon-192.png',
@@ -58,10 +64,25 @@ for(const path of [
   'assets/codex-atlas-20260810/zimingqi-atlas-1200.jpg',
   'assets/codex-atlas-20260810/zimingqi-atlas-preview-600.jpg',
   'assets/codex-atlas-20260810/atlas-data.json',
-  'assets/codex-atlas-20260810/manifest.json'
+  'assets/codex-atlas-20260810/manifest.json',
+  'assets/artifacts-20260820/artifact-earth-seal.webp',
+  'assets/artifacts-20260820/artifact-water-mirror.webp',
+  'assets/artifacts-20260820/artifact-fire-heart.webp',
+  'assets/artifacts-20260820/artifact-wind-wheel.webp',
+  'assets/sp-launch-20260820/zi-sp.jpg',
+  'assets/sp-launch-20260820/xin-sp.jpg',
+  'assets/sp-launch-20260820/xuan-sp.png',
+  'assets/sp-launch-20260820/xi-sp.png',
+  'assets/sp-launch-20260820/manifest.json'
 ]){
   const info=await stat(new URL('../'+path,import.meta.url));
   ok(path,info.isFile()&&info.size>1024);
+}
+
+for(const unit of spManifest.units||[]){
+  const data=await readFile(new URL('../assets/sp-launch-20260820/'+unit.art,import.meta.url));
+  const sha=createHash('sha256').update(data).digest('hex');
+  ok(`SP manifest 校验 ${unit.id}`,data.length===unit.bytes&&sha===unit.sha256);
 }
 
 for(const item of checks)console.log(`${item.ok?'✓':'✗'} ${item.name}`);

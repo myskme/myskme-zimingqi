@@ -1,0 +1,70 @@
+{
+  "version": "20260820",
+  "brand": "MYSKME",
+  "system": "自鸣棋首发 SP 天命异格",
+  "sourceBatch": [
+    "assets/cards-sp-20260722/web",
+    "Documents/游戏制作/assets/cards/source"
+  ],
+  "assetPolicy": "沿用 MYSKME 已有 SP 成品立绘，不重绘、不覆写源文件；梓与欣使用定稿 JPG，璇与晰使用透明母图的 540×756 运行副本，供 Web、微信与未来 iOS 复用。",
+  "dimensions": {
+    "width": 540,
+    "height": 756,
+    "formats": ["JPEG", "PNG"]
+  },
+  "rules": {
+    "maxPerPlayer": 1,
+    "identityExclusive": true,
+    "fixedStar": 1,
+    "affixEnabled": false,
+    "eligibleTier": 4,
+    "hardPity": 12,
+    "groupRoll": true
+  },
+  "units": [
+    {
+      "id": "zi_sp",
+      "base": "zi",
+      "name": "梓",
+      "title": "归星先见",
+      "element": "earth",
+      "role": "预见与致命伤保护",
+      "art": "zi-sp.jpg",
+      "bytes": 121373,
+      "sha256": "1bce8c9aa578ad7cd2c36c4b009b195b6eac8fdd5d1f0eefb47fe5e1ba87aac7"
+    },
+    {
+      "id": "xin_sp",
+      "base": "xin",
+      "name": "欣",
+      "title": "八返不熄",
+      "element": "fire",
+      "role": "高比例复起与团队续航",
+      "art": "xin-sp.jpg",
+      "bytes": 83772,
+      "sha256": "c09aa6be06326a7221ef38c3a7330d224d6a99374ed92489d3abea242035907d"
+    },
+    {
+      "id": "xuan_sp",
+      "base": "xuan",
+      "name": "璇",
+      "title": "盛装诱导者",
+      "element": "wind",
+      "role": "最高攻诱导、锁敌暴击与首杀收锋",
+      "art": "xuan-sp.png",
+      "bytes": 470068,
+      "sha256": "acea6244fad04a79ecbf5080d5f2c60d21b4c4b62d2a14ebd16c27ec9f05cfb2"
+    },
+    {
+      "id": "xi_sp",
+      "base": "xi",
+      "name": "晰",
+      "title": "月糖快刃",
+      "element": "water",
+      "role": "四次受击成长与双段反切",
+      "art": "xi-sp.png",
+      "bytes": 586208,
+      "sha256": "0cad19a6b1bd8b2ac6a464f590d3f6db9622fc2e761fb5e7c7834a3acd70195c"
+    }
+  ]
+}

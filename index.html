@@ -31,6 +31,7 @@
   --fac-swing:#c3bda8; --fac-dark:#b48ce6; --fac-novice:#9fd49f;
   --fac-pierce:#7fb0e0; --fac-vanguard:#d9964a;
   --fac-control:#6fd6ff; --fac-persist:#73d69b; --fac-edge:#ff8a5b; --fac-death:#e1a35a;
+  --sp:#f08aaa; --sp2:#ffd5df; --sp-deep:#6d2844;
   --line:rgba(201,166,74,.24); --line2:rgba(201,166,74,.10);
   --glow-gold:0 0 22px rgba(201,166,74,.38);
   --glow-red:0 0 22px rgba(168,48,48,.5);
@@ -240,6 +241,8 @@ body.playing #hud{display:flex}
 .mini-u{width:26px;height:26px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;
   font-size:14px;position:relative;background:rgba(0,0,0,.25);overflow:hidden}
 .mini-u .mua{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 14%}
+.mini-u .mua.sp-face,.bunit .g .mua.sp-face{object-fit:cover;object-position:center 16%;filter:saturate(1.05) contrast(1.04)}
+.mini-u:has(.sp-face),.bunit:has(.sp-face){border-color:rgba(255,213,223,.72);box-shadow:0 0 12px rgba(240,138,170,.24)}
 .mini-u{position:relative}
 .mini-u:has(>img.mua),.bunit .g:has(>img.mua){color:transparent} /* 透明头像成功时藏垫底字；img 移除后自动恢复 */
 .star-pips{position:absolute;top:-7px;right:-5px;display:inline-flex;gap:0;pointer-events:none}
@@ -295,6 +298,7 @@ body.playing #hud{display:flex}
 .r-SR .glyph{color:#c77dff;text-shadow:0 0 14px rgba(199,125,255,.5)}
 .r-SSR .glyph{color:#ffd166;text-shadow:0 0 12px rgba(255,209,102,.55)}
 .r-UR .glyph{color:#ff8c42;text-shadow:0 0 12px rgba(255,140,66,.7),0 0 34px rgba(255,140,66,.4)}
+.r-SP .glyph{color:var(--sp2);text-shadow:0 0 14px rgba(240,138,170,.8),0 0 36px rgba(240,138,170,.48)}
 /* UR 呼吸感改由虚线环旋转承担（text-shadow 逐帧动画在投影设备上代价过高，已移除） */
 /* ── 透明立绘/宝物图漏底字修复（20260715c · 王老师报「锚」字浮层，同「荣」字病根）──
    历来模式：占位字(.glyph/.beast/.g)垫底 + artTag 的 <img> 覆盖。图不透明时盖住，但多数立绘/宝物是透明PNG，
@@ -304,7 +308,7 @@ body.playing #hud{display:flex}
 .badge:has(> img.art) > .beast,
 .u .face:has(> img.art) > .g{visibility:hidden}
 /* —— 稀有度边框：靠边框颜色+粗细+外发光在投屏/偏色/后排下可辨；只在边缘，不遮挡立绘 —— */
-.badge.r-N{border-color:rgba(154,150,134,.4);background:radial-gradient(ellipse at center,rgba(154,150,134,.08),transparent 70%)} /* 五档语义色精确同 TIER_COLOR */
+.badge.r-N{border-color:rgba(154,150,134,.4);background:radial-gradient(ellipse at center,rgba(154,150,134,.08),transparent 70%)} /* 六档语义色精确同 TIER_COLOR */
 .badge.r-R{border-color:rgba(127,196,216,.6);box-shadow:inset 0 0 0 1px rgba(127,196,216,.32)}
 .badge.r-SR{border-color:rgba(199,125,255,.72);
   box-shadow:inset 0 0 0 2px rgba(199,125,255,.4),0 0 14px rgba(199,125,255,.2)}
@@ -314,6 +318,8 @@ body.playing #hud{display:flex}
   box-shadow:inset 0 0 0 2px rgba(255,140,66,.74),0 0 32px rgba(255,140,66,.48)}
 /* UR 结构性阶差：徽章外一圈静止细描边（框外不遮立绘、不旋转不裁切；投影泛白下"形制差">"亮度差"） */
 .badge.r-UR::after{content:'';position:absolute;inset:-6px;border:1px solid rgba(255,140,66,.5);pointer-events:none}
+.badge.r-SP{border-color:var(--sp2);box-shadow:inset 0 0 0 2px rgba(240,138,170,.72),0 0 34px rgba(240,138,170,.5)}
+.badge.r-SP::after{content:'';position:absolute;inset:-7px;border:1px solid rgba(255,213,223,.68);box-shadow:0 0 18px rgba(240,138,170,.28);pointer-events:none}
 /* —— 六系阵营统一视觉语言：程序化纹章 + 阵营色氛围（军规四徽章构图 · 军规七统一发光）——
    稀有度管边框/光晕(上方)，阵营管纹章+色调(这里)，两条正交视觉轴各自可读 */
 .fac-emblem{display:inline-block;line-height:0;color:currentColor}
@@ -334,9 +340,10 @@ body.playing #hud{display:flex}
 .badge[data-fac=swing]{background:radial-gradient(ellipse at 50% 46%,rgba(195,189,168,.14),transparent 72%)}
 .badge[data-fac=dark]{background:radial-gradient(ellipse at 50% 46%,rgba(180,140,230,.17),transparent 72%)}
 .badge[data-fac=novice]{background:radial-gradient(ellipse at 50% 46%,rgba(159,212,159,.15),transparent 72%)}
-/* 征募卡整卡光晕：SSR 传世金 / UR 秘藏橙，精确对应全局五档色阶。 */
+/* 征募卡整卡光晕：SSR 传世金 / UR 秘藏橙 / SP 天命玫瑰金，精确对应全局六档色阶。 */
 .offer.rare-SSR{box-shadow:0 0 0 1px rgba(255,209,102,.4),0 14px 40px rgba(255,209,102,.14)}
 .offer.rare-UR{box-shadow:0 0 0 1px rgba(255,140,66,.6),0 14px 46px rgba(255,140,66,.24)}
+.offer.rare-SP{box-shadow:0 0 0 1px rgba(255,213,223,.78),0 14px 54px rgba(240,138,170,.34)}
 /* 发现时刻：新 offers 首次亮相翻牌（backwards=收尾不锁 transform，悬停位移不受影响）；全程不锁输入 */
 .offer.deal{animation:dealFlip .45s cubic-bezier(.2,.7,.25,1) backwards}
 @keyframes dealFlip{0%{transform:perspective(900px) rotateY(88deg)}100%{transform:perspective(900px) rotateY(0deg)}}
@@ -352,7 +359,8 @@ body.playing #hud{display:flex}
 /* 稀有度文字与徽章边框同源分级：投屏后排一眼读出 */
 .rar-tag.rt-N{color:#9a9686}.rar-tag.rt-R{color:#7fc4d8}.rar-tag.rt-SR{color:#c77dff}
 .rar-tag.rt-SSR{color:#ffd166;text-shadow:0 0 8px rgba(255,209,102,.45)}
-.rar-tag.rt-UR{color:#ff8c42;text-shadow:0 0 10px rgba(255,140,66,.6)} /* 全局色阶:白→蓝→紫→金→橙(与词缀/遗物同源) */
+.rar-tag.rt-UR{color:#ff8c42;text-shadow:0 0 10px rgba(255,140,66,.6)} /* 全局色阶:白→蓝→紫→金→橙→玫瑰(与词缀/遗物同源) */
+.rar-tag.rt-SP{color:var(--sp2);text-shadow:0 0 10px rgba(240,138,170,.86),0 0 22px rgba(240,138,170,.42)}
 .offer .stats{display:flex;justify-content:center;gap:13px;margin:9px 0;font-family:var(--mono);font-size:14.5px}
 .offer .stats .atk{color:var(--red2)} .offer .stats .hp{color:#9fd49f} .offer .stats .spd{color:#9cc0e8}
 .offer .skill{font-size:12.5px;color:var(--ink2);line-height:1.65;min-height:3.3em;padding:0 4px}
@@ -384,6 +392,10 @@ body.playing #hud{display:flex}
 .side.bond-flare{box-shadow:inset 0 0 32px rgba(232,199,104,.12);border-color:rgba(232,199,104,.38)}
 .side.bond-flare.edge{box-shadow:inset 0 0 34px rgba(255,138,91,.16)}
 .side.bond-flare.persist{box-shadow:inset 0 0 34px rgba(115,214,155,.15)}
+.side.sp-flare{border-color:rgba(255,213,223,.58);box-shadow:inset 0 0 38px rgba(240,138,170,.18),0 0 24px rgba(240,138,170,.12)}
+.side.artifact-flare{animation:artifactSide 760ms cubic-bezier(.16,1,.3,1)}
+.side.artifact-flare.earth{--afl:#9fc78e}.side.artifact-flare.water{--afl:#8ed8e8}.side.artifact-flare.fire{--afl:#ff9a55}.side.artifact-flare.wind{--afl:#a7e8d8}
+@keyframes artifactSide{0%{box-shadow:inset 0 0 0 transparent}35%{box-shadow:inset 0 0 50px color-mix(in srgb,var(--afl) 22%,transparent);border-color:color-mix(in srgb,var(--afl) 60%,transparent)}100%{box-shadow:inset 0 0 12px transparent}}
 .bunit{border:1px solid var(--line);background:var(--panel);padding:7px 10px;text-align:center;
   transition:border-color .2s;position:relative;min-width:78px}
 .bunit:hover{border-color:var(--gold)}
@@ -612,10 +624,25 @@ body.arok .av-reliquary-frame{display:block}
 @media(prefers-reduced-motion:reduce){
   .affix-veil,.av-shell,.affix-veil .av-in,.av-reliquary{animation:none!important}
   .av-unit{filter:drop-shadow(0 0 16px color-mix(in srgb,var(--tc) 35%,transparent))}}
+/* SP 天命降临：复用角色原画，程序化构成玫瑰金仪式；不新增大体积视频或滤镜资产。 */
+.sp-awaken-veil{position:fixed;inset:0;z-index:99;display:flex;align-items:center;justify-content:center;padding:max(18px,var(--sat)) max(16px,var(--sar)) max(18px,var(--sab)) max(16px,var(--sal));box-sizing:border-box;background:radial-gradient(ellipse at 36% 42%,rgba(109,40,68,.5),rgba(5,7,12,.97) 70%);cursor:pointer;animation:fade .28s both}
+.sp-awaken{position:relative;isolation:isolate;width:min(1040px,100%);height:min(700px,calc(100dvh - 36px));display:grid;grid-template-columns:minmax(260px,.92fr) minmax(300px,1.08fr);align-items:center;overflow:hidden;border:1px solid rgba(255,213,223,.48);background:linear-gradient(132deg,rgba(40,13,29,.9),rgba(5,12,20,.96));box-shadow:0 28px 100px rgba(0,0,0,.82),0 0 54px rgba(240,138,170,.28);animation:spAwakenIn .82s cubic-bezier(.16,1,.3,1) both}
+.sp-awaken::before,.sp-awaken::after{content:'';position:absolute;pointer-events:none;z-index:-1}.sp-awaken::before{inset:-52%;background:conic-gradient(from 190deg,transparent 0 38%,rgba(240,138,170,.22) 44%,rgba(232,199,104,.12) 48%,transparent 55%);animation:spOrbit 12s linear infinite}.sp-awaken::after{inset:14px;border:1px solid rgba(232,199,104,.22);box-shadow:inset 0 0 70px rgba(240,138,170,.1)}
+.sp-awaken-art{position:relative;align-self:stretch;min-height:0;overflow:hidden;background:#130c15}.sp-awaken-art img{width:100%;height:100%;display:block;object-fit:cover;object-position:center top;animation:spPortraitIn 1s .08s cubic-bezier(.16,1,.3,1) both}.sp-awaken-art::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 65%,rgba(8,9,15,.86)),linear-gradient(0deg,rgba(8,9,15,.72),transparent 32%);pointer-events:none}
+.sp-awaken-copy{padding:clamp(24px,5vw,64px);text-align:center}.sp-awaken-kicker{color:var(--sp2);font-size:12px;letter-spacing:.52em;padding-left:.52em}.sp-awaken-rarity{margin:12px 0 3px;color:#fff5f8;font:300 clamp(50px,8vw,92px)/1 var(--serif);letter-spacing:.16em;padding-left:.16em;text-shadow:0 0 24px rgba(240,138,170,.75),0 0 70px rgba(240,138,170,.38)}.sp-awaken-title{font-size:clamp(18px,3vw,30px);letter-spacing:.3em;color:var(--sp2);margin-top:15px}.sp-awaken-name{font-size:clamp(26px,4vw,42px);letter-spacing:.22em;margin:7px 0 18px;color:#fff}.sp-awaken-skill{max-width:460px;margin:0 auto;padding:15px 17px;border-top:1px solid rgba(255,213,223,.25);border-bottom:1px solid rgba(232,199,104,.18);color:var(--ink);font-size:13px;line-height:1.85;letter-spacing:.055em}.sp-awaken-rule{margin-top:16px;color:var(--ink3);font-size:10.5px;letter-spacing:.2em}.sp-awaken-hint{margin-top:24px;color:rgba(255,213,223,.66);font-size:10px;letter-spacing:.32em}
+@keyframes spAwakenIn{from{opacity:0;transform:scale(.93);filter:brightness(.55)}to{opacity:1;transform:scale(1);filter:brightness(1)}}
+@keyframes spPortraitIn{from{opacity:0;transform:scale(1.08);filter:blur(7px)}to{opacity:1;transform:scale(1);filter:blur(0)}}
+@keyframes spOrbit{to{transform:rotate(360deg)}}
+@media(orientation:portrait){.sp-awaken{height:min(860px,calc(100dvh - 30px));grid-template-columns:1fr;grid-template-rows:minmax(0,1.25fr) auto}.sp-awaken-art::after{background:linear-gradient(0deg,rgba(8,9,15,.9),transparent 38%)}.sp-awaken-copy{padding:18px 20px 24px}.sp-awaken-rarity{font-size:52px;margin-top:7px}.sp-awaken-title{font-size:17px;margin-top:8px}.sp-awaken-name{font-size:29px;margin-bottom:10px}.sp-awaken-skill{padding:10px 12px;font-size:12px;line-height:1.6}.sp-awaken-rule{margin-top:10px}.sp-awaken-hint{margin-top:12px}}
+@media(prefers-reduced-motion:reduce){.sp-awaken-veil,.sp-awaken,.sp-awaken::before,.sp-awaken-art img,.offer.rec-card.sp-unit .rec-frame::before{animation:none!important}}
 /* 单位本体词缀光(珍/传世) */
 .af-glow{border-color:var(--afc) !important;box-shadow:0 0 14px -2px var(--afc),inset 0 0 18px -8px var(--afc)}
 /* 遗物色阶边 */
 .relic-tiered{border-left:3px solid var(--rtc)}
+.relic-tiered::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.28;
+  background:linear-gradient(112deg,transparent 14%,color-mix(in srgb,var(--rtc) 32%,transparent) 38%,transparent 58%);
+  transform:translateX(-115%);transition:transform .65s cubic-bezier(.16,1,.3,1)}
+.relic-tiered:hover::after,.relic-tiered:focus-within::after{transform:translateX(115%)}
 /* 星芒角标+词缀品质点(2026-07-14 星辉词缀) */
 .halo-tag{position:absolute;top:-6px;right:-4px;font-size:10px;color:var(--gold2);text-shadow:0 0 6px rgba(232,199,104,.6);letter-spacing:0;display:inline-flex;align-items:center;gap:1px}
 .af-dot{position:absolute;bottom:-3px;right:-3px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,.5);box-shadow:0 0 5px currentColor}
@@ -703,9 +730,25 @@ body.arok .av-reliquary-frame{display:block}
 .u.final-blow{animation:finalBlow .9s cubic-bezier(.16,1,.3,1)}
 @keyframes finalBlow{0%{transform:scale(1)}30%{transform:scale(1.14);filter:brightness(1.8)}100%{transform:scale(1)}}
 #relic-shelf{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.relic-chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px 3px 5px;letter-spacing:.1em;cursor:help;background:rgba(4,8,12,.32)}
+.relic-chip{--rc:var(--gold3);position:relative;isolation:isolate;display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--rc);color:var(--gold2);font-size:11.5px;padding:3px 10px 3px 5px;letter-spacing:.1em;cursor:help;background:rgba(4,8,12,.44);overflow:hidden}
+.relic-chip::after{content:'';position:absolute;inset:-50%;z-index:-1;pointer-events:none;background:conic-gradient(from 90deg,transparent 0 40%,color-mix(in srgb,var(--rc) 22%,transparent) 50%,transparent 60%);opacity:0;animation:relicGlint 5.5s linear infinite}
+.relic-chip:hover::after,.relic-chip:focus-visible::after{opacity:1}
+.relic-chip .relic-family-dot{width:5px;height:5px;border:1px solid currentColor;transform:rotate(45deg);opacity:.8;flex:0 0 auto}
+.relic-chip.artifact-chip{--rc:#ffe59a;color:#ffe8a8;border-color:rgba(255,213,108,.75);background:radial-gradient(circle at 18% 30%,rgba(255,208,91,.14),transparent 45%),rgba(4,8,12,.76);box-shadow:inset 0 0 16px rgba(255,196,69,.08),0 0 12px rgba(255,183,64,.12)}
+.relic-chip.artifact-chip::before{content:'神器';font-size:8px;letter-spacing:.15em;color:#ffcf63;border:1px solid rgba(255,207,99,.45);padding:1px 3px;margin-left:1px}
+.relic-chip.artifact-chip::after{opacity:.75}
+.relic-chip.resonance-chip{--rc:rgba(157,114,214,.48);color:var(--purple);cursor:default;background:rgba(157,114,214,.055);font-size:10px;padding-inline:9px}
+.relic-chip.resonance-chip.ready{--rc:rgba(232,199,104,.65);color:var(--gold2);box-shadow:0 0 10px rgba(201,166,74,.12)}
+@keyframes relicGlint{to{transform:rotate(1turn)}}
 .relic-art{width:28px;height:28px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.62))}
 .relic-detail-art{display:block;width:min(180px,54vw);height:min(180px,54vw);object-fit:contain;margin:4px auto 16px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.65))}
+.relic-detail{--rdc:var(--gold2);position:relative;text-align:center;padding:8px 6px 4px}
+.relic-detail.artifact-detail{margin:-6px -8px 0;padding:20px 18px 12px;background:radial-gradient(circle at 50% 22%,color-mix(in srgb,var(--rdc) 14%,transparent),transparent 52%)}
+.artifact-detail .relic-detail-art{width:min(250px,66vw);height:min(250px,66vw);filter:drop-shadow(0 16px 28px rgba(0,0,0,.72)) drop-shadow(0 0 18px color-mix(in srgb,var(--rdc) 26%,transparent));animation:artifactFloat 4.8s ease-in-out infinite}
+.relic-kicker{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.28em;color:var(--rdc);text-indent:.28em;margin-bottom:7px}
+.relic-effect{line-height:1.9;color:var(--ink);max-width:480px;margin:0 auto}.relic-lore{font-size:11.5px;color:var(--ink3);letter-spacing:.06em;margin:10px auto 0;max-width:480px}
+.relic-family-note{display:inline-block;margin-top:10px;padding:2px 9px;border:1px solid color-mix(in srgb,var(--rdc) 45%,transparent);font-size:10px;color:var(--rdc);letter-spacing:.14em}
+@keyframes artifactFloat{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(-7px) rotate(.4deg)}}
 /* 羁绊进度（让"发现协同"可见）：未激活灰 / 2档紫 / 大档金晕 */
 #bond-shelf,#bounty-shelf{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:9px;align-items:center}
 .bond-lab{color:var(--ink3);font-size:11px;letter-spacing:.24em}
@@ -805,6 +848,8 @@ body.arok .av-reliquary-frame{display:block}
 @keyframes lungeKF{0%{transform:translateY(-2px) translateX(0)}42%{transform:translateY(-6px) translateX(var(--lunge,0))}100%{transform:translateY(-7px) translateX(0)}}
 .u.hit{animation:hitKB .3s cubic-bezier(.2,.85,.3,1)}
 .u.hit.hit-hard{animation:hitKB .44s cubic-bezier(.2,.85,.3,1)} /* 暴击/击杀：弹更远、停更久 */
+.u.sp-proc{border-color:var(--sp2);box-shadow:3px 3px 0 rgba(0,0,0,.45),0 0 30px rgba(240,138,170,.58);animation:spProc .68s ease-out both}
+@keyframes spProc{0%{filter:brightness(1);transform:translateY(-2px)}35%{filter:brightness(1.65);transform:translateY(-9px) scale(1.04)}100%{filter:brightness(1);transform:translateY(-7px) scale(1)}}
 @keyframes hitKB{0%{filter:brightness(2.3);transform:translateX(0) scale(1.05)}
   30%{transform:translateX(var(--kb,0)) scale(1.03)}
   48%{transform:translateX(calc(var(--kb,0)*.72)) scale(1.02)} /* 弹退峰值多停一拍＝hitstop 手感 */
@@ -1094,7 +1139,11 @@ body.cfok .rar-badge::before{content:'';position:absolute;inset:0;background:cur
 body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-radius:0;box-shadow:none;
   background:currentColor !important;
   -webkit-mask:var(--cfq) center/100% 100% no-repeat;mask:var(--cfq) center/100% 100% no-repeat}
-.sp-tag{position:absolute;top:2px;right:2px;background:#b4372e;color:#fff;font-size:10px;letter-spacing:.16em;padding:2px 8px;font-weight:700;box-shadow:0 0 9px rgba(180,55,46,.6)}
+.sp-tag{position:absolute;top:2px;right:2px;background:linear-gradient(135deg,var(--sp-deep),#a74f70);color:#fff6f8;font-size:10px;letter-spacing:.16em;padding:2px 8px;font-weight:700;box-shadow:0 0 12px rgba(240,138,170,.48)}
+.sp-tag.collector{background:rgba(42,31,20,.88);color:var(--gold2);box-shadow:0 0 9px rgba(201,166,74,.3)}
+.sp-detail-title{display:block;margin:0 0 4px;color:var(--sp2);font-size:11px;letter-spacing:.32em;font-weight:500}
+.sp-compare{max-width:560px;margin:14px auto;padding:10px 13px;border:1px solid rgba(240,138,170,.28);background:linear-gradient(90deg,rgba(109,40,68,.17),rgba(201,166,74,.06));display:grid;grid-template-columns:auto 1fr;gap:10px;text-align:left;font-size:12px;line-height:1.65}
+.sp-compare b{color:var(--sp2);letter-spacing:.16em;white-space:nowrap}.sp-compare span{color:var(--ink2)}
 /* ============ 全幅立绘征募卡（20260715b · 王老师确认无投屏、多人=围桌传 iPad 后照 Codex spec 落地）============
    征募三选一从「信息表格卡」升级为「3:4 全幅立绘卡」：立绘铺满卡框，决策信息(名/稀/三维/技能/穿透)压在底部文字板。
    典故(lore)移到详情弹窗——手持够读，不再挤在卡面。缺图自然降级：无框=暗底卡、无立绘=汉字glyph，仍可读可点。 */
@@ -1128,6 +1177,15 @@ body.cfok .af-dot{width:26px;height:8px;right:-6px;bottom:-5px;border:0;border-r
 /* 稀有卡光晕挪到卡框上（.offer 已无边框） */
 .offer.rec-card.rare-SSR .rec-frame{box-shadow:0 0 0 1px rgba(255,209,102,.5),0 12px 34px rgba(255,209,102,.18)}
 .offer.rec-card.rare-UR .rec-frame{box-shadow:0 0 0 1px rgba(255,140,66,.7),0 12px 40px rgba(255,140,66,.3)}
+.offer.rec-card.rare-SP .rec-frame{border:1px solid rgba(255,213,223,.82);box-shadow:0 0 0 2px rgba(109,40,68,.72),0 0 0 3px rgba(232,199,104,.34),0 15px 50px rgba(240,138,170,.38)}
+.offer.rec-card.sp-unit .rec-frame::before{content:'';position:absolute;inset:-45%;z-index:2;pointer-events:none;opacity:.38;background:conic-gradient(from 210deg,transparent 0 34%,rgba(255,213,223,.5) 42%,transparent 49% 100%);animation:spCardSweep 6.8s linear infinite}
+.offer.rec-card.sp-unit .rec-art{left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:center top;filter:saturate(1.04) contrast(1.03)}
+.offer.rec-card.sp-unit:not(.cf-op) .rec-art{object-fit:contain;object-position:center bottom;padding:4% 2% 1%;box-sizing:border-box;background:radial-gradient(ellipse at 50% 43%,rgba(109,40,68,.34),rgba(7,10,18,.96) 72%)}
+.offer.rec-card.sp-unit .rec-plate{background:linear-gradient(180deg,transparent,rgba(30,9,22,.68) 28%,rgba(8,8,14,.96) 78%)}
+.sp-epithet{display:block;margin:0 0 4px;color:var(--sp2);font-size:10px;letter-spacing:.28em;text-shadow:0 0 12px rgba(240,138,170,.72)}
+.sp-law{margin:7px auto 0;color:rgba(255,213,223,.82);font-size:9.5px;letter-spacing:.14em;line-height:1.5}
+.sp-pity{color:var(--sp2)!important;border-left:1px solid rgba(240,138,170,.28);padding-left:7px;margin-left:6px}
+@keyframes spCardSweep{to{transform:rotate(360deg)}}
 .rec-card.sold .rec-frame{filter:grayscale(.85)}
 @media(max-width:760px){.rec-frame{max-width:320px;margin:0 auto}.rec-plate .skill{font-size:12.5px}}
 /* 跨单位联动提示(20260717·搭配可见性):on=金亮可触发 / off=灰待伙伴。只在有联动的卡显示,大多数卡不显不挤 */
@@ -1483,6 +1541,32 @@ html.atlas-poster-mode,html.atlas-poster-mode body{width:2400px;height:3000px;mi
 .strat-card:hover{transform:translateY(-4px);box-shadow:var(--glow-gold);border-color:var(--gold)}
 .strat-card b{color:var(--gold2);font-size:19px;letter-spacing:.18em;font-weight:500}
 .strat-card span{color:var(--ink2);font-size:13px;line-height:1.7}
+.artifact-forge{background:
+  radial-gradient(circle at 50% 35%,rgba(224,184,89,.12),transparent 38%),
+  linear-gradient(160deg,rgba(3,8,13,.985),rgba(8,13,18,.97))!important;overflow-x:hidden;overflow-y:auto}
+.artifact-forge::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.28;background:
+  repeating-conic-gradient(from 0deg at 50% 50%,rgba(232,199,104,.12) 0deg 1deg,transparent 1deg 18deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 18%,#000 18.2% 47%,transparent 47.2%);mask:radial-gradient(circle,transparent 0 18%,#000 18.2% 47%,transparent 47.2%);animation:forgeTurn 42s linear infinite}
+.forge-lineages{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:0 0 18px;position:relative}
+.forge-lineages span{font-size:10px;letter-spacing:.16em;color:var(--ink3);border:1px solid rgba(201,166,74,.24);padding:3px 8px;background:rgba(0,0,0,.22)}
+.forge-lineages span.on{color:var(--gold2);border-color:rgba(232,199,104,.55);box-shadow:0 0 10px rgba(201,166,74,.12)}
+.artifact-row{position:relative;z-index:1}
+.artifact-card{--ac:#ffd166;min-width:190px;max-width:236px;padding:14px 15px 18px;border-color:color-mix(in srgb,var(--ac) 62%,transparent)!important;background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 8%,var(--panel2)),var(--panel2))!important;box-shadow:inset 0 0 24px color-mix(in srgb,var(--ac) 6%,transparent)}
+.artifact-card::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,color-mix(in srgb,var(--ac) 18%,transparent) 44%,transparent 63%);transform:translateX(-120%);transition:transform .7s cubic-bezier(.16,1,.3,1)}
+.artifact-card:hover::after,.artifact-card:focus-visible::after{transform:translateX(120%)}
+.artifact-card .artifact-art{width:112px;height:112px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.7)) drop-shadow(0 0 12px color-mix(in srgb,var(--ac) 23%,transparent));transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.artifact-card:hover .artifact-art{transform:translateY(-4px) scale(1.035)}
+.artifact-card .artifact-fit{display:inline-flex;align-self:center;color:var(--ac);border:1px solid color-mix(in srgb,var(--ac) 42%,transparent);font-size:9.5px;letter-spacing:.15em;padding:2px 7px}
+.artifact-card .artifact-rule{color:var(--ink);font-size:12px;line-height:1.72}.artifact-card .artifact-lore{color:var(--ink3);font-size:10.5px;line-height:1.55}
+.artifact-awaken{animation:forgeAwaken 1.1s cubic-bezier(.16,1,.3,1) both}
+@keyframes forgeTurn{to{transform:rotate(1turn)}}
+@keyframes forgeAwaken{0%{filter:brightness(.7);transform:scale(.96)}35%{filter:brightness(1.75);transform:scale(1.025)}100%{filter:none;transform:none}}
+@media(max-width:760px){
+  #strat-veil.artifact-forge{justify-content:flex-start;padding-top:max(34px,var(--sat));padding-bottom:calc(24px + var(--sab))}
+  .artifact-row{width:100%;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:8vw;padding:4px 8vw 16px;-webkit-overflow-scrolling:touch}
+  .artifact-card{flex:0 0 min(78vw,286px);max-width:none;scroll-snap-align:center}.artifact-card:first-child{scroll-snap-align:start}
+  .artifact-card .artifact-art{width:126px;height:126px}
+}
 /* 玩法说明手风琴 */
 #modal-box details{border:1px solid var(--line2);margin:8px 0;background:rgba(0,0,0,.18)}
 #modal-box summary{cursor:pointer;padding:9px 14px;color:var(--ink);letter-spacing:.14em;font-weight:500;list-style:none;position:relative}
@@ -1504,7 +1588,9 @@ html.atlas-poster-mode,html.atlas-poster-mode body{width:2400px;height:3000px;mi
   #rage-bar.life.warn~#rage-num .life-pips .mi,.life-pips.last .mi:first-child,
   #title-kv.show,#boss-art.show,#final-art.show,.result-banner,.result-banner h1,.result-banner .hint,
   #boss-veil.on,#boss-veil h1,#boss-veil .snake,#boss-veil .boss-tr,.stamp.show,#strat-veil,
-  .u.acting,.u.hit,.u.hit.hit-hard,.u.final-blow,.u .hpb.low i,.float-num{animation:none!important}
+  .u.acting,.u.hit,.u.hit.hit-hard,.u.sp-proc,.u.final-blow,.u .hpb.low i,.float-num,
+  .relic-chip::after,.artifact-detail .relic-detail-art,.artifact-forge::before,.artifact-awaken{animation:none!important}
+  .relic-tiered::after,.artifact-card::after,.artifact-card .artifact-art{transition:none!important}
   .offer .cardback{display:none!important}
   .stamp.show{opacity:1!important;transform:none!important}
   .float-num{opacity:1!important;transform:translate(-50%,-14px)!important}
@@ -1961,6 +2047,36 @@ const UNITS = [
 ];
 const UMAP = Object.fromEntries(UNITS.map(u=>[u.id,u]));
 
+// 首发 SP 天命异格（20260820）：不是新人物，而是四位正典人物在另一条命途中抵达巅峰。
+// 规则：每位玩家一局至多拥有 1 位 SP；SP 与普通形态互斥；固定一星、无词缀、不可合星。
+// UNITS 继续只记录 43 名正典/通用本体，避免图鉴海报与全勤成就把“异格”误计成新人口。
+const SP_VARIANTS = [
+ {id:'zi_sp', base:'zi', n:'梓', spTitle:'归星先见', fac:'academy', cost:5, atk:5, hp:9, spd:8, rar:'SP', w:0, tg:'pierce', beast:'鹿',
+  skill:{k:'spForetell', v:1, t:'归星先见：开战全队 +1 攻；为生命最低的同伴写下预见，其首次致命伤改为 1 命与 3 盾'},
+  lore:'她不是回到过去，而是从所有可能的明日里，带回唯一能让同伴活下来的那一页星图。'},
+ {id:'xin_sp', base:'xin', n:'欣', spTitle:'八返不熄', fac:'academy', cost:5, atk:3, hp:9, spd:5, rar:'SP', w:0, beast:'界',
+  skill:{k:'spEighth', v:3, t:'八返不熄：首次阵亡以 75% 生命归队、攻击 +3，并治疗其余存活友军 2'},
+  lore:'耳机仍旧安静，世界却再也不能替她决定边界。第八次站起时，身边的人也跟着听见了心跳。'},
+ {id:'xuan_sp', base:'xuan', n:'璇', spTitle:'盛装诱导者', fac:'dark', cost:5, atk:6, hp:8, spd:9, rar:'SP', w:0, tg:'pierce', beast:'狞',
+  skill:{k:'spVelvetHunt', v:2, t:'绮宴狩心：开战诱导敌方最高攻 -2；首击锁定该目标并必定暴击。若目标真正退场，自身 +2 攻并获 3 盾'},
+  lore:'最柔软的邀请，也能成为陷阱。她在宴会最亮处写下猎物的名字，等掌声替刀锋合上。'},
+ {id:'xi_sp', base:'xi', n:'晰', spTitle:'月糖快刃', fac:'novice', cost:5, atk:4, hp:12, spd:7, rar:'SP', w:0, beast:'糖',
+  skill:{k:'spMoonReversal', v:1, t:'月糖折返：开战 3 盾；每次被普攻命中 +1 攻（最多 4 次），第 2、4 次以月糖快刃反切攻击者 4 伤'},
+  lore:'越柔软的光，越知道如何刺穿。她不再承受风暴，而是让每一次碰撞都折返成自己的航向。'},
+];
+SP_VARIANTS.forEach(u=>{UMAP[u.id]=u});
+const ALL_UNITS=[...UNITS,...SP_VARIANTS];
+const SP_IDS=new Set(SP_VARIANTS.map(u=>u.id));
+function isSPUnit(value){const u=typeof value==='string'?UMAP[value]:value;return !!(u&&u.rar==='SP')}
+function baseIdentity(id){const u=UMAP[id];return u&&u.base?u.base:id}
+function playerSP(p){return ownedUnits(p).find(a=>isSPUnit(a.id))||null}
+function ownsIdentity(p,id){const base=baseIdentity(id);return ownedUnits(p).some(a=>baseIdentity(a.id)===base)}
+function eligibleSPUnits(p){
+  if(playerSP(p))return [];
+  const owned=new Set(ownedUnits(p).map(a=>baseIdentity(a.id)));
+  return SP_VARIANTS.filter(u=>!owned.has(u.base));
+}
+
 // 遗物（军团级，一人多件可叠不同）
 const RELICS = [
  {id:'teapot', n:'茶壶',       t:'每幕征募开始 +2 铸币', icon:'茶'},
@@ -1982,13 +2098,40 @@ const RELICS = [
  // —— 批⑬ 新遗物：跨角色呼应，且各补一处机制空位 ——
  {id:'thorn',  n:'欣的空耳机', t:'嘲讽单位被普攻命中时 反震 +1 伤（与不退之誓叠加）', icon:'耳'},
  {id:'anchor', n:'麒的船锚',   t:'嘲讽单位 +1 攻（浪来了先站在前面）', icon:'锚'},
- {id:'seal',   n:'狼先生的铜印',t:'高稀有单位 +3 最大生命（至多 3 名 SSR/UR）', icon:'印'},
+ {id:'seal',   n:'狼先生的铜印',t:'高稀有单位 +3 最大生命（至多 3 名 SSR/UR/SP）', icon:'印'},
  {id:'diary',  n:'菀的旧日记', t:'己方单位阵亡时 +1 铸币（每写一页就更透明一寸）', icon:'记'},
  // —— 批㉗ 流派配套遗物(20260717·穿透流/亡语流)——
  {id:'shuttle',n:'云梭',       t:'穿透单位 +2 速（先手一刀，正合破云）', icon:'梭'},   // 穿透流:提速→pierceCrit首击必暴 synergy
  {id:'urn',    n:'薪火陶罐',   t:'己方单位阵亡时，随机存活友军 +1 攻（薪火相传）', icon:'陶'}, // 亡语流:死亡供能,与向死而生叠加
+ // —— 神器(20260820):只由单人云阶神器炉铸成；不进商店/狂宴随机池，一局至多一件 ——
+ {id:'earthseal', n:'山河镇星印', kind:'artifact', elem:'earth', icon:'镇',
+  t:'最前排 +5 最大生命、+2 护盾；其首次倒下时，以 1 命、3 护盾镇回阵中', lore:'山河在匣中缩成一寸，仍压得住一颗将坠的星。'},
+ {id:'tideglass', n:'归潮镜', kind:'artifact', elem:'water', icon:'潮',
+  t:'每战首名友军真正阵亡时：血量比例最低的存活友军回复 4 命，并获得 2 护盾', lore:'镜中之潮不追逝者，只把仍在场的人送回岸边。'},
+ {id:'emberheart',n:'长明燧心', kind:'artifact', elem:'fire', icon:'燧',
+  t:'每战首名友军真正阵亡时：存活友军中攻击最高者 +2 攻、+2 速度', lore:'火不是留给倒下的人，而是交给还要继续走的人。'},
+ {id:'skywheel',  n:'天衡风轮', kind:'artifact', elem:'wind', icon:'衡',
+  t:'速度最高的友军 +2 速度；其首次基本攻击追击另一名敌人，造成 4 伤', lore:'风轮不替你选方向，只让第一个决定来得更快。'},
 ];
 const RMAP = Object.fromEntries(RELICS.map(r=>[r.id,r]));
+const RELIC_FAMILIES={
+  craft:{n:'天工',c:'#e7c579',d:'征募、铸币与牌库经营'},
+  assault:{n:'破阵',c:'#e99169',d:'先手、输出与穿透攻势'},
+  guard:{n:'守望',c:'#88c59a',d:'前排、护盾与反击承伤'},
+  echo:{n:'余响',c:'#9caee2',d:'阵亡、速度与战局回声'},
+};
+const RELIC_FAMILY={
+  teapot:'craft',astro:'craft',mask:'craft',dustbag:'craft',goldleaf:'craft',scale:'craft',card:'craft',
+  ruler:'assault',quiver:'assault',bell:'assault',anchor:'assault',shuttle:'assault',
+  tassel:'guard',plaque:'guard',lamp:'guard',thorn:'guard',seal:'guard',
+  letter:'echo',shards:'echo',quill:'echo',diary:'echo',urn:'echo',
+};
+function isArtifact(r){return !!(r&&r.kind==='artifact')}
+function normalRelics(){return RELICS.filter(r=>!isArtifact(r))}
+function artifacts(){return RELICS.filter(isArtifact)}
+function artifactOf(p){return p&&Array.isArray(p.relics)?p.relics.map(id=>RMAP[id]).find(isArtifact)||null:null}
+function relicFamilyIds(p){return [...new Set(((p&&p.relics)||[]).map(id=>RELIC_FAMILY[id]).filter(Boolean))]}
+function artifactReady(p){return !artifactOf(p)&&relicFamilyIds(p).length>=3}
 
 // 命运事件（征募后翻一张，作用于本幕演武或经济）
 const EVENTS = [
@@ -2401,6 +2544,7 @@ const VISUAL_BATCH3_DIR=ART_DIR+VISUAL_BATCH3_REL;
 const VISUAL_CLOSING_REL='visual-closing-20260718/';
 const CLASSROOM_RITUAL_REL='classroom-ritual-20260721/';
 const CLASSROOM_RITUAL_DIR=ART_DIR+CLASSROOM_RITUAL_REL;
+const SP_LAUNCH_REL='sp-launch-20260820/';
 const B3_PROFILE_DIR=VISUAL_BATCH3_DIR+'profile/';
 const B3_EMBLEM_DIR=VISUAL_BATCH3_DIR+'emblems/';
 let _cr4ProbeStarted=false;
@@ -2441,6 +2585,11 @@ const ART={
   ming:'characters-six-20260810-v2/unit-ming.webp', jun:'characters-six-20260810-v2/unit-jun.webp', jie:'characters-six-20260810-v2/unit-jie.webp',
   card_ziyu:'characters-six-20260810-v2/unit-ziyu.webp', card_ke:'characters-six-20260810-v2/unit-ke.webp', card_chen:'characters-six-20260810-v2/unit-chen.webp',
   card_ming:'characters-six-20260810-v2/unit-ming.webp', card_jun:'characters-six-20260810-v2/unit-jun.webp', card_jie:'characters-six-20260810-v2/unit-jie.webp',
+  // 首发四位 SP：直接使用 MYSKME 现有成品立绘；璇/晰复用透明母图，避免在游戏卡框内再次嵌套旧版有字卡框。
+  zi_sp:SP_LAUNCH_REL+'zi-sp.jpg', card_zi_sp:SP_LAUNCH_REL+'zi-sp.jpg', avatar_zi_sp:SP_LAUNCH_REL+'zi-sp.jpg',
+  xin_sp:SP_LAUNCH_REL+'xin-sp.jpg', card_xin_sp:SP_LAUNCH_REL+'xin-sp.jpg', avatar_xin_sp:SP_LAUNCH_REL+'xin-sp.jpg',
+  xuan_sp:SP_LAUNCH_REL+'xuan-sp.png', card_xuan_sp:SP_LAUNCH_REL+'xuan-sp.png', avatar_xuan_sp:SP_LAUNCH_REL+'xuan-sp.png',
+  xi_sp:SP_LAUNCH_REL+'xi-sp.png', card_xi_sp:SP_LAUNCH_REL+'xi-sp.png', avatar_xi_sp:SP_LAUNCH_REL+'xi-sp.png',
   majun:'unit-majun.webp', xi:'unit-xi.webp',   jia:'unit-jia.webp', // 批⑬三人（复用本地资源包 alpha/web 源合成，零 Codex）
   lin:'unit-lin.webp',   yin:'unit-yin.webp',   lu:'unit-lu.webp',     wolf:'unit-wolf.webp',
   guard:'unit-guard.webp', carter:'unit-carter.webp',
@@ -2466,6 +2615,10 @@ const ART={
   relic_scale:'relic-scale.webp', relic_card:'relic-card.webp', relic_lamp:'relic-lamp.webp',
   relic_thorn:'relic-thorn.webp', relic_anchor:'relic-anchor.webp', relic_seal:'relic-seal.webp', relic_diary:'relic-diary.webp',
   relic_shuttle:VISUAL_BATCH2_REL+'relics/relic-shuttle.webp', relic_urn:VISUAL_BATCH2_REL+'relics/relic-urn.webp',
+  relic_earthseal:'artifacts-20260820/artifact-earth-seal.webp',
+  relic_tideglass:'artifacts-20260820/artifact-water-mirror.webp',
+  relic_emberheart:'artifacts-20260820/artifact-fire-heart.webp',
+  relic_skywheel:'artifacts-20260820/artifact-wind-wheel.webp',
   // 命运事件插图（768×512 横版）
   ev_rain:'event-rain.webp',   ev_wind:'event-wind.webp',   ev_swing:'event-swing.webp',
   ev_gaze:'event-gaze.webp',   ev_crane:'event-crane.webp', ev_purple:'event-purple.webp',
@@ -2487,7 +2640,7 @@ const ART_DPR=new Set([
   'relic_shuttle','relic_urn','ev_rift','ev_mourn'
 ]);
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260810b'; // 六人终版立绘 v2：钧普通版更新为成熟完整站姿
+const ART_VER='20260820c'; // 首发四位 SP 天命异格（梓/欣/璇/晰）+ 既有神器原画
 function artURLAt(key,suffix){
   suffix=suffix||'';
   const base=ART[key];if(!base)return null;
@@ -2511,10 +2664,20 @@ function artTag(key,cls){const u=artURL(key),ss=artSrcset(key);
 function avatarArtTag(id,cls){
   const key='avatar_'+id;if(!ART[key])return artTag(id,cls||'mua');
   const src=artURLAt(key),ss=artSrcset(key),fb=artURL(id)||'';
-  return '<img class="'+(cls||'mua')+'" src="'+src+'"'+(ss?' srcset="'+ss+'"':'')+' data-fb="'+fb+'" alt="" decoding="async" onerror="if(this.dataset.fb){this.srcset=\'\';this.src=this.dataset.fb;this.dataset.fb=\'\'}else this.remove()">';
+  const sp=isSPUnit(id)?' sp-face sp-face-'+id:'';
+  return '<img class="'+(cls||'mua')+sp+'" src="'+src+'"'+(ss?' srcset="'+ss+'"':'')+' data-fb="'+fb+'" alt="" decoding="async" onerror="if(this.dataset.fb){this.srcset=\'\';this.src=this.dataset.fb;this.dataset.fb=\'\'}else this.remove()">';
 }
 function relicArtTag(id,cls){return artTag('relic_'+id,cls||'relic-art')}
-function relicDetailHTML(r){return `${relicArtTag(r.id,'relic-detail-art')}<h3>${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`}
+function relicColor(r){const f=RELIC_FAMILIES[RELIC_FAMILY[r&&r.id]];return isArtifact(r)?(ELEM_COLOR2[r.elem]||'#ffd166'):(f?f.c:TIER_COLOR[relicTier(r.id)])}
+function relicChipHTML(r,attr){if(!r)return '';
+  const f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],cl=isArtifact(r)?' artifact-chip':'';
+  return `<span class="relic-chip${cl}" ${attr||''} style="--rc:${relicColor(r)}" title="${r.t}">${relicArtTag(r.id)}${f?`<i class="relic-family-dot" style="color:${f.c}" aria-hidden="true"></i>`:''}<span>${r.n}</span></span>`}
+function relicDetailHTML(r){const f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],artifact=isArtifact(r),c=relicColor(r);
+  return `<div class="relic-detail${artifact?' artifact-detail':''}" style="--rdc:${c}">
+    <div class="relic-kicker">${artifact?`${elemGlyph(r.elem)} ${ELEM_CN[r.elem]}象神器`:`${f?f.n:'遗物'}谱系 · ${TIER_NAME[relicTier(r.id)]}`}</div>
+    ${relicArtTag(r.id,'relic-detail-art')}<h3>${r.n}</h3><div class="relic-effect">${r.t}</div>
+    ${r.lore?`<div class="relic-lore">${r.lore}</div>`:''}
+    <span class="relic-family-note">${artifact?'一局至多一件 · 仅神器炉铸成':`${f?f.n:'遗物'} · ${f?f.d:'军团级永久效果'}`}</span></div>`}
 function showFinalArt(){
   const wrap=$('#final-art');if(!wrap)return;
   const large=artURL('ending'),small=artURL('endingSmall'),im=wrap.querySelector('img');
@@ -2584,7 +2747,7 @@ function newState(names,acts,rageMax,eventsOn,feast){
     v:1, act:1, actsTotal:acts, phase:'wave', rage:0, rageMax, eventsOn, feast:!!feast,
     waveJudge:0, hornUsed:false, freeRerollNext:false,
     players:names.map((n,i)=>({i, name:n, coins:feast?8:3, crowns:0, wins:0,
-      army:[], reserve:[], relics:[], revenge:0, pity:0, tier:1})),
+      army:[], reserve:[], relics:[], revenge:0, pity:0, spPity:0, tier:1})),
     // 征募运行时
     draftQueue:[], draftIdx:0, offers:[], offersSold:[], spellsPend:[],
     // 演武运行时
@@ -2613,6 +2776,7 @@ const RAR_STAR={
   SR: {a:[1,1.6,2.2], h:[1,1.5,1.9]},
   SSR:{a:[1,1.55,2.1],h:[1,1.45,1.85]},
   UR: {a:[1,1.5,2.0], h:[1,1.4,1.8]},
+  SP: {a:[1,1,1],      h:[1,1,1]}, // 天命异格固定一星；数组只为旧档/调试输入提供安全钳位
 };
 const STAR_ATK=RAR_STAR.SR.a, STAR_HP=RAR_STAR.SR.h; // 兼容旧引用(默认SR曲线)
 function instBase(inst){const u=UMAP[inst.id];const s=(inst.star||1)-1;const rs=RAR_STAR[u.rar]||RAR_STAR.SR;
@@ -2677,7 +2841,9 @@ const ZODIAC={ // id:[星座,象] · 星座=正典characters.json(马将军/鹦�
   xiao:['处女','earth'],
   xi:['双鱼','water'],
   toll:['巨蟹','water'], // 批㉘ 通用新单位:更漏人=水象(潮汐·制御)
-  flint:['白羊','fire']  // 批㉘ 通用新单位:燧石=火象(擦火·锋锐)
+  flint:['白羊','fire'], // 批㉘ 通用新单位:燧石=火象(擦火·锋锐)
+  // SP 是同一人物的天命异格，不另造人口；命盘通常继承本体，璇的盛装异格例外由摩羯·土转为水瓶·风。
+  zi_sp:['处女','earth'],xin_sp:['射手','fire'],xuan_sp:['水瓶','wind'],xi_sp:['双鱼','water']
 };
 const ELEM_CN={wind:'风象',fire:'火象',earth:'土象',water:'水象'};
 const ELEM_COUNTER={earth:'water', water:'fire', fire:'wind', wind:'earth'}; // 土掩水/水灭火/火灼风/风蚀土
@@ -2807,7 +2973,7 @@ $('#btn-start').onclick=()=>{
     S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1,feast);
     rng=mulberry32(S.seed);
     if(feast){ // 狂宴开席礼：人人一件随机遗物（独立 Math.random，不碰玩法 rng 流）
-      S.players.forEach(p=>{const r=RELICS[Math.floor(Math.random()*RELICS.length)];p.relics.push(r.id)});
+      {const pool=normalRelics();S.players.forEach(p=>{const r=pool[Math.floor(Math.random()*pool.length)];p.relics.push(r.id)})}
       setTimeout(()=>toast('鎏金狂宴开席——铸币洪流、军团更宽、牌力半价，人人先领一件遗物！',4200),700);
     }
     setAct(1);hud();startOriginDraft();save();BGM.auto('play',false); // 多人课堂默认不开（不打扰讲课）
@@ -3155,15 +3321,16 @@ const BONDS={
   // —— 批㉛ 布衣结义(20260818·王老师:弱卡要能靠羁绊成流派压过SSR/UR)。ids=全体N/R派生;minStar=2:结义要真投入(合星),★1白给会抬动探针基线 ——
   folk:   {n:'布衣结义', chip:'布衣', th:[3,5], minStar:2, d:['★★布衣(N·R)单位 +1 攻 +3 命（只数二星以上的布衣）','★★布衣 累计 +2 攻 +5 命 · 开战 +2 护盾（寒门亦可封侯）']},
 };
-// 两轴成员均由单一事实源派生：四象←ZODIAC,打法←UNITS 的 tg/taunt——绝不手抄名单
-['wind','fire','earth','water'].forEach(e=>BONDS[e].ids=UNITS.filter(u=>unitElem(u.id)===e).map(u=>u.id));
-BONDS.pierce.ids  = UNITS.filter(u=>u.tg==='pierce').map(u=>u.id);
-BONDS.vanguard.ids= UNITS.filter(u=>u.taunt).map(u=>u.id);
-BONDS.death.ids   = UNITS.filter(u=>['splashDeath','boostLin','buffAdj','coinDeath'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 亡语=有阵亡时技能(屿/音/慧/车夫),由技能k派生不手抄名单
-BONDS.control.ids = UNITS.filter(u=>['slowFast','snipeBack','probeCore'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 制御=开战干扰敌方(减速/狙击/探问)
-BONDS.persist.ids = UNITS.filter(u=>['revive1','growth','soak'].includes(u.skill&&u.skill.k)).map(u=>u.id);          // 坚韧=复起/成长/软抵抗(越战越不倒)
-BONDS.edge.ids    = UNITS.filter(u=>['firstCrit','firstPlus'].includes(u.skill&&u.skill.k)).map(u=>u.id);            // 锋锐=首击强化(必暴/首击+伤)
-BONDS.folk.ids    = UNITS.filter(u=>u.rar==='N'||u.rar==='R').map(u=>u.id);                                          // 布衣=全体低稀有,由 rar 派生不手抄名单
+// 两轴成员均由单一事实源派生：四象←ZODIAC,打法←ALL_UNITS 的 tg/taunt/技能——绝不手抄名单。
+// SP 与本体互斥，所以加入 ids 只提供“换一种入阵方式”，不会把同一人物重复计数。
+['wind','fire','earth','water'].forEach(e=>BONDS[e].ids=ALL_UNITS.filter(u=>unitElem(u.id)===e).map(u=>u.id));
+BONDS.pierce.ids  = ALL_UNITS.filter(u=>u.tg==='pierce').map(u=>u.id);
+BONDS.vanguard.ids= ALL_UNITS.filter(u=>u.taunt).map(u=>u.id);
+BONDS.death.ids   = ALL_UNITS.filter(u=>['splashDeath','boostLin','buffAdj','coinDeath'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 亡语=有阵亡时技能(屿/音/慧/车夫),由技能k派生不手抄名单
+BONDS.control.ids = ALL_UNITS.filter(u=>['slowFast','snipeBack','probeCore'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 制御=开战干扰敌方(减速/狙击/探问)
+BONDS.persist.ids = ALL_UNITS.filter(u=>['revive1','growth','soak','spForetell','spEighth','spMoonReversal'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 坚韧=复起/成长/软抵抗/天命续航
+BONDS.edge.ids    = ALL_UNITS.filter(u=>['firstCrit','firstPlus','spVelvetHunt'].includes(u.skill&&u.skill.k)).map(u=>u.id); // 锋锐=首击强化(必暴/首击+伤/锁敌)
+BONDS.folk.ids    = ALL_UNITS.filter(u=>u.rar==='N'||u.rar==='R').map(u=>u.id);                                        // 布衣=全体低稀有,由 rar 派生不手抄名单
 const PLAY_AXES=['pierce','vanguard','death','control','persist','edge','folk']; // 打法轴单一事实源——bondAdvList/bridgeUnits/bond-proof/bondJustLit 全用它,别再各抄一份(批㉘漏抄教训)
 function bondTier(p,fac){const c=synCount(p,fac),th=BONDS[fac].th;return c>=th[1]?2:(c>=th[0]?1:0)}
 function bondName(f){return (BONDS[f]&&BONDS[f].chip)||(FACS[f]&&FACS[f].n)||f}
@@ -3320,44 +3487,61 @@ const TIER_MULT={
   4:{N:.7, R:.95, SR:1.1,SSR:1.3,UR:1.5},
   5:{N:.5, R:.85, SR:1.2,SSR:1.5,UR:2},
 };
+const SP_RATE={4:.018,5:.045},SP_PITY_HARD=12; // 每次“整组征募”只判一次，非三卡各判；满级基础 4.5%，第12次合资格征募必见
+function isHighUnit(u){return !!(u&&['SSR','UR','SP'].includes(u.rar))}
+function injectSP(p,offers){
+  const tier=effTier(p),candidates=eligibleSPUnits(p);
+  if(tier<4||!candidates.length){if(playerSP(p))p.spPity=0;return null}
+  const misses=Math.max(0,Math.min(SP_PITY_HARD-1,p.spPity||0));
+  const rate=Math.min(.12,(SP_RATE[tier]||0)+misses*.006);
+  if(misses<SP_PITY_HARD-1&&rng()>=rate){p.spPity=misses+1;return null}
+  const unitSlots=offers.map((o,i)=>o.type==='unit'?i:-1).filter(i=>i>=0);if(!unitSlots.length)return null;
+  const sp=pick(candidates),slot=pick(unitSlots);offers[slot]={type:'unit',id:sp.id};p.spPity=0;
+  // 同一组三选一不同时摆出本体与异格，避免玩家先点普通形态后才发现稀有卡已被身份互斥锁死。
+  const normalPool=UNITS.filter(u=>u.id!==sp.base);
+  offers.forEach((o,i)=>{if(i!==slot&&o.type==='unit'&&baseIdentity(o.id)===sp.base)offers[i]={type:'unit',id:pick(normalPool).id}});
+  return sp;
+}
 function rrCost(){return (S&&S.feast)?1:2} // 刷新费：鎏金狂宴 1 币（保留成本感,不设免费防课堂无限刷卡拖时间）
 function tierFloor(){return Math.min(2, S.act||1)}            // 幕数免费保底封顶 tier2；升牌力才解锁 tier3+ 的高稀有，否则终幕也只停在轻压制的 tier2（治"不升科技也能刷高级单位"）
 function effTier(p){return Math.min(5, Math.max(p.tier||1, tierFloor()))}
 function nextTierCost(p){const nt=effTier(p)+1; if(nt>5)return null; const c=[0,0,4,6,8,10][nt]; return (S&&S.feast)?Math.ceil(c/2):c} // 低两档：2级在第一幕买得起有独享期，4/5级第三幕来得及回本；鎏金狂宴半价
 function genOffers(p){
   const mult=TIER_MULT[effTier(p)]; // 牌力(非幕数)驱动稀有度
-  const isHigh=u=>u.rar==='SSR'||u.rar==='UR';
   // 软保底：连续 pity 轮没出高稀有 → SSR/UR 权重逐步提升（每轮×1.6，封顶×4）
   const pity=p.pity||0;
   const soft=Math.min(4,Math.pow(1.6,pity));
-  const pool=UNITS.map(u=>({u,w:u.w*(mult[u.rar]||1)*(isHigh(u)?soft:1)}));
+  const pool=UNITS.filter(u=>!playerSP(p)||baseIdentity(u.id)!==baseIdentity(playerSP(p).id)).map(u=>({u,w:u.w*(mult[u.rar]||1)*(isHighUnit(u)?soft:1)}));
   const total=pool.reduce((s,x)=>s+x.w,0);
   const draw=()=>{let r=rng()*total,ch=pool[0].u;for(const x of pool){r-=x.w;if(r<=0){ch=x.u;break}}return ch};
   const offers=[];
   for(let i=0;i<3;i++)offers.push({type:'unit',id:draw().id});
   // 22% 第三格换成遗物——但不覆盖「本轮唯一的高稀有」(否则遗物白吞保底、又触发补发窗口=遗物零代价)
   const owned=new Set(p.relics);
-  const avail=RELICS.filter(r=>!owned.has(r.id));
+  const avail=normalRelics().filter(r=>!owned.has(r.id));
   { // 第三格特殊物:遗物(22%) / 灵光(16%·仅单人)——都不覆盖「本轮唯一高稀有」(否则白吞保底)
-    const slot2SoleHigh=isHigh(UMAP[offers[2].id]) && !offers.slice(0,2).some(o=>isHigh(UMAP[o.id]));
+    const slot2SoleHigh=isHighUnit(UMAP[offers[2].id]) && !offers.slice(0,2).some(o=>isHighUnit(UMAP[o.id]));
     if(!slot2SoleHigh){const r3=rng();
       if(avail.length&&r3<0.22){offers[2]={type:'relic',id:pick(avail).id}}
       else if(S.solo&&r3<0.38){offers[2]={type:'spell',id:pick(SPELLS).id}} // 灵光是一次性即时战术牌
     }
   }
+  // SP 天命判定独立于 SSR/UR 保底：牌力4级才开门，整组至多一张，第12次合资格征募硬保底。
+  injectSP(p,offers);
   // 硬保底：pity≥3 且最终单位格无高稀有 → 强制补一张（严格封顶旱期≤3轮）
   const unitSlots=offers.map((o,i)=>o.type==='unit'?i:-1).filter(i=>i>=0);
-  if(pity>=3 && unitSlots.length && !unitSlots.some(i=>isHigh(UMAP[offers[i].id]))){
-    const highs=UNITS.filter(isHigh), hw=u=>u.w*(u.rar==='UR'?0.45:1);
+  if(pity>=3 && unitSlots.length && !unitSlots.some(i=>isHighUnit(UMAP[offers[i].id]))){
+    const highs=UNITS.filter(isHighUnit), hw=u=>u.w*(u.rar==='UR'?0.45:1);
     let ht=highs.reduce((s,u)=>s+hw(u),0), r=rng()*ht, hc=highs[0];
     for(const u of highs){r-=hw(u);if(r<=0){hc=u;break}}
     offers[pick(unitSlots)]={type:'unit',id:hc.id};
   }
   // 更新 pity：最终展示了高稀有单位则清零，否则+1
-  p.pity=offers.some(o=>o.type==='unit'&&isHigh(UMAP[o.id]))?0:pity+1;
+  p.pity=offers.some(o=>o.type==='unit'&&isHighUnit(UMAP[o.id]))?0:pity+1;
   return offers;
 }
 function unitPrice(p,u){let c=u.cost;
+  if(isSPUnit(u))return c; // 天命价固定，不吃面具/名帖折扣
   if(u.fac==='dark'&&u.rar!=='UR'&&hasRelic(p,'mask'))c=Math.max(1,c-1);
   if(u.cost>=3&&hasRelic(p,'card'))c=Math.max(1,c-1);return c} // 减费排除航：面具只免吞币，不再叠双折扣
 function archOf(u){return u.tg==='pierce'?{t:'穿透',c:'p'}:(u.taunt?{t:'嘲讽',c:'t'}:null)} // 目标 archetype 展示
@@ -3390,16 +3574,16 @@ function comboHints(p,u){ // 返回该单位相关的联动 [{on,txt}]:u 是主�
   }
   return out;
 }
-// 拥有扑克 SP 典藏立绘的高级角色
-const SP_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen','ziyu','ke','chen','ming','jun','jie']);
+// 拥有旧版扑克典藏立绘的角色；与本次实际可征募的 SP 天命异格严格分名，避免概念混淆。
+const COLLECTOR_ART_UNITS=new Set(['lin','yin','lu','wolf','nuo','yu','qi','wan','xuan','hui','hang','yue','wen','ziyu','ke','chen','ming','jun','jie']);
 // 单位详情弹窗（点立绘/长按触发，新手友好）。inst 可选(带 star/gAtk/gHp 则显示实际属性)
-/* 卡框（Codex 20260715a）。CF_OPAQUE = 6 张带深蓝不透明底的正式立绘：底板已按两类素材共同设计，
+/* 卡框（Codex 20260715a）。CF_OPAQUE = 带深色不透明底的正式立绘：底板已按多类素材共同设计，
    接线时不强抠背景，只改 object-fit（透明底 contain 贴底 / 不透明底 cover 顶对齐）。 */
 const CF_DIR='assets/card-frames-20260715/';
-const CF_OPAQUE=new Set(['jin','han','hao','rui','hai','xin','ziyu','ke','chen','ming','jun','jie']);
+const CF_OPAQUE=new Set(['jin','han','hao','rui','hai','xin','ziyu','ke','chen','ming','jun','jie','zi_sp','xin_sp']);
 const AFFIX_QFILE=['common','fine','rare','legendary']; // 凡/秀/珍/传世 —— 与 AFFIX_QC 同序
-function cfFrame(rar){return CF_DIR+'recruit-frame-'+String(rar).toLowerCase()+'.webp'}
-function cfCorner(rar){return CF_DIR+'rarity-corner-'+String(rar).toLowerCase()+'.svg'}
+function cfFrame(rar){return CF_DIR+'recruit-frame-'+(rar==='SP'?'ur':String(rar).toLowerCase())+'.webp'}
+function cfCorner(rar){return CF_DIR+'rarity-corner-'+(rar==='SP'?'ur':String(rar).toLowerCase())+'.svg'}
 function cfAffix(q){return CF_DIR+'affix-quality-'+(AFFIX_QFILE[q]||'common')+'.svg'}
 /* 资源探针：mask 缺图会露实心块，所以探到一枚代表资源才点亮 body.cfok。file:// 与断网自动退回原表现。 */
 function cfProbe(){const im=new Image();
@@ -3453,22 +3637,23 @@ function showUnitDetail(id,inst){
     :'<b>近战</b> —— 攻击敌方最前排';
   const _zo=ZODIAC[id], _el=_zo&&_zo[1], kf=_el&&ELEM_COUNTER[_el], bkf=_el&&Object.keys(ELEM_COUNTER).find(k=>ELEM_COUNTER[k]===_el);
   const clashTxt=_zo?`<b style="color:var(--gold2)">${_zo[0]}座 · ${ELEM_CN[_el]}</b> —— 克制 <b style="color:var(--teal)">${ELEM_CN[kf]}</b>（基本攻击 +25%）· 被 <b style="color:#9a9686">${ELEM_CN[bkf]}</b> 克制（-20%）`:'不参与星象相克';
-  const isSP=SP_UNITS.has(id);
+  const collectorArt=COLLECTOR_ART_UNITS.has(id), variant=u.base?UMAP[u.base]:SP_VARIANTS.find(x=>x.base===u.id);
   modal(`<div class="udetail-card cf-${u.rar.toLowerCase()}${CF_OPAQUE.has(id)?' cf-op':''}">
       <img class="ud-art" src="${cardURL(id)}" srcset="${cardSrcset(id)}" alt="" onerror="this.remove()">
       <i class="cf-frame" style="background-image:url(${cfFrame(u.rar)})" aria-hidden="true"></i>
       <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
-      ${isSP?'<span class="sp-tag">SP 典藏</span>':''}</div>
-    <h3>${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b class="halo-inline">'+uiIcon('state-halo')+inst.halo+'</b>':''}</span></h3>
+      ${isSPUnit(u)?'<span class="sp-tag">SP 天命</span>':(collectorArt?'<span class="sp-tag collector">典藏立绘</span>':'')}</div>
+    <h3>${u.spTitle?`<small class="sp-detail-title">${u.spTitle}</small>`:''}${u.n} <span style="font-size:12px;color:var(--ink3);letter-spacing:.1em">${u.rar}${star>1?' · '+'★'.repeat(star):''}${inst&&inst.halo?' <b class="halo-inline">'+uiIcon('state-halo')+inst.halo+'</b>':''}</span></h3>
     <div style="text-align:center;margin:-6px 0 3px">${_el?elemGlyph(_el):''}<b style="color:${ELEM_COLOR2[_el]||'var(--gold2)'}">${ELEM_CN[_el]||'无象'}</b>${_zo?` · <span style="color:var(--ink2)">${_zo[0]}座</span>`:''} · 征募价 ${u.cost} 铸币</div>
     <div style="text-align:center;margin:0 0 12px;font-size:10.5px;color:var(--ink4);letter-spacing:.14em">剧情归属 · ${FACS[u.fac].n}</div>
     ${affixLine(inst)}
     ${inst&&(inst.gAtk||inst.gHp)?`<div style="text-align:center;font-size:11px;color:var(--gold2);margin:2px 0 4px">永久强化累计 · 攻 +${inst.gAtk||0} · 命 +${inst.gHp||0}（淬炼与成长）</div>`:''}
-    ${(inst&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${(S.freeReforge||0)>0?'免费':(4+2*(inst.rf||0))+' 铸币'}</span></button></div>`:''}
+    ${(inst&&!isSPUnit(u)&&S&&S.phase==='draft'&&(()=>{try{const _p=curDrafter();return _p&&_p.army.includes(inst)}catch(e){return false}})())?`<div style="text-align:center;margin:2px 0 10px"><button class="btn" onclick="reforgeAffix(${inst.uid})">${uiIcon('action-forge')}<span>重铸词缀 · ${(S.freeReforge||0)>0?'免费':(4+2*(inst.rf||0))+' 铸币'}</span></button></div>`:''}
     <div class="stat-set" style="font-size:16px;margin-bottom:6px">
       ${statToken('stat-attack',b.atk,'攻击','atk')}${statToken('stat-vitality',b.hp,'生命','hp')}${statToken('stat-speed',b.spd,'速度','spd')}</div>
     <h4>作战方式</h4>${archTxt}
     <h4>技能</h4>${u.skill.t}
+    ${variant?`<div class="sp-compare"><b>${isSPUnit(u)?'现世本体':'天命异格'}</b><span>${isSPUnit(u)?`${variant.n} · ${variant.rar} · ${variant.skill.t}`:`${variant.spTitle} · ${variant.n} · 牌力 4 级后方可寻得`}</span></div>`:''}
     <h4>星象相克</h4>${clashTxt}
     <h4>档案</h4><i style="color:var(--ink3)">${u.lore}</i>`);
 }
@@ -3512,7 +3697,8 @@ function renderDraft(fresh){
     return `<span class="${cls}">${S.players[pi].name}</span>`}).join('');
   $('#drafter-name').innerHTML=S.solo?`<em>${p.name}</em> 的军团`:`轮到 <em>${p.name}</em>`;
   const _int=previewInterest(p),_per=(S&&S.feast)?4:(hasRelic(p,'dustbag')?4:5),_capT=Math.floor(p.coins/_per)>_int; // 已到息上限:公式与实得矛盾时明说,多余的钱该花掉;_per 须与 previewInterest 同源(狂宴4币1息)
-  $('#draft-coins').setAttribute('aria-label','铸币 '+p.coins);$('#draft-coins').innerHTML=uiIcon('currency-coin')+' '+p.coins+'<i class="int-hint">存'+_per+'生1 · 下'+(S.solo?'关':'幕')+'息+'+_int+(_capT?'（已封顶）':'')+'</i>';
+  const _spHunt=!origin&&effTier(p)>=4&&!playerSP(p);
+  $('#draft-coins').setAttribute('aria-label','铸币 '+p.coins);$('#draft-coins').innerHTML=uiIcon('currency-coin')+' '+p.coins+'<i class="int-hint">存'+_per+'生1 · 下'+(S.solo?'关':'幕')+'息+'+_int+(_capT?'（已封顶）':'')+'</i>'+(_spHunt?`<i class="int-hint sp-pity" title="牌力4级开启SP天命；第12次合资格征募必定出现">天命 ${p.spPity||0}/${SP_PITY_HARD}</i>`:'');
   if(p._notes&&p._notes.length){toast(`${p.name}：${p._notes.join(' · ')}`,2600);p._notes=null}
   const box=$('#offers');box.innerHTML='';
   const rv=dealReveal;dealReveal=false; // 发现时刻：一次性消费，买卡/撤销/换位/续局的重渲染走原 stag 路径不重播
@@ -3524,8 +3710,9 @@ function renderDraft(fresh){
     d.style.animationDelay=(idx*(rv?0.1:0.08))+'s';
     if(o.type==='unit'){
       const u=UMAP[o.id];const price=origin?0:unitPrice(p,u);
-      if(u.rar==='SSR'||u.rar==='UR')d.classList.add('rare-'+u.rar);
-      const mergeHint=origin?'':(ownedUnits(p).some(a=>a.id===u.id&&a.star===3)?' · '+uiIcon('state-halo')+'星芒可叠':(ownedUnits(p).some(a=>a.id===u.id&&a.star===2)?' · '+uiIcon('action-merge')+'★★★可觉醒':(ownedUnits(p).some(a=>a.id===u.id&&a.star===1)?' · '+uiIcon('action-merge')+'★★可合星':'')));
+      if(isHighUnit(u))d.classList.add('rare-'+u.rar);
+      if(isSPUnit(u))d.classList.add('sp-unit');
+      const mergeHint=origin?'':(isSPUnit(u)?' · 天命唯一':(ownedUnits(p).some(a=>a.id===u.id&&a.star===3)?' · '+uiIcon('state-halo')+'星芒可叠':(ownedUnits(p).some(a=>a.id===u.id&&a.star===2)?' · '+uiIcon('action-merge')+'★★★可觉醒':(ownedUnits(p).some(a=>a.id===u.id&&a.star===1)?' · '+uiIcon('action-merge')+'★★可合星':''))));
       // 羁绊推进徽标：紫=在攒（N/门槛）· 金=买它立刻成套。开局点将不显（人人第一张）
       const advs=origin?[]:bondAdvList(p,u);
       const advHTML=advs.length
@@ -3541,10 +3728,12 @@ function renderDraft(fresh){
           <div class="rec-fac rec-elem" style="color:${ELEM_COLOR2[unitElem(u.id)]||'var(--ink2)'}">${elemGlyph(unitElem(u.id))}<span>${ELEM_CN[unitElem(u.id)]||''}</span></div>
           <i class="cf-corner rar-tag rt-${u.rar}" style="--cfc:url(${cfCorner(u.rar)})"><b>${u.rar}</b></i>
           <div class="rec-plate">
+            ${u.spTitle?`<span class="sp-epithet">${u.spTitle}</span>`:''}
             <div class="rec-name"><h3>${u.n}</h3><span class="rar-tag rt-${u.rar}">${u.rar}${mergeHint}</span></div>
             <div class="stats">${statToken('stat-attack',u.atk,'攻击','atk')}${statToken('stat-vitality',u.hp,'生命','hp')}${statToken('stat-speed',u.spd,'速度','spd')}</div>
             ${(a=>a?`<div class="arch-tag arch-${a.c}">${archIcon(a)}${a.t}</div>`:'')(archOf(u))}
             <div class="skill">${u.skill.t}</div>
+            ${isSPUnit(u)?'<div class="sp-law">一局一位 · 本体互斥 · 固定一星</div>':''}
             ${origin?'':(()=>{const h=comboHints(p,u);return h.length?`<div class="combo-row">${h.map(x=>`<span class="combo-tag${x.on?' on':''}">${uiIcon('state-halo')}${x.txt}</span>`).join('')}</div>`:'';})()}
           </div>
         </div>
@@ -3574,30 +3763,30 @@ function renderDraft(fresh){
         <button class="btn mini gold cost-btn">施展 · ${sp.cost} 铸币</button>`;
       d.querySelector('.cost-btn').onclick=()=>buySpell(idx,sp);
     }else{
-      const r=RMAP[o.id];
+      const r=RMAP[o.id],f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],rc=relicColor(r);
       d.innerHTML=`
-        <div class="fac" style="color:var(--gold2)">遗 物</div>
+        <div class="fac" style="color:${f.c}">遗 物 · ${f.n}谱系</div>
         <div class="badge r-SSR"><span class="glyph" style="font-size:36px">${r.icon}</span>${artTag('relic_'+r.id)}</div>
-        <h3>${r.n}</h3><div class="rar-tag" style="color:${TIER_COLOR[relicTier(r.id)]}">遗物 · ${TIER_NAME[relicTier(r.id)]}</div>
+        <h3>${r.n}</h3><div class="rar-tag" style="color:${rc}">${f.n} · ${TIER_NAME[relicTier(r.id)]}</div>
         <div class="stats" style="color:var(--ink3)">军团级 · 永久生效</div>
         <div class="skill">${r.t}</div>
-        <div class="lore">云上的馈赠</div>
+        <div class="lore">${f.d}</div>
         <button class="btn mini gold cost-btn">收下 · 3 铸币</button>`;
-      d.style.setProperty('--rtc',TIER_COLOR[relicTier(r.id)]);d.classList.add('relic-tiered'); // 遗物也进全局色阶
+      d.style.setProperty('--rtc',rc);d.classList.add('relic-tiered'); // 遗物也进全局色阶
       d.querySelector('.cost-btn').onclick=()=>buyRelic(idx,r);
     }
     if(rv){const cb=document.createElement('div');cb.className='cardback'; // 真实 div 卡背（.ornate 伪元素已被四角碑铭占用）
       cb.style.animationDelay=(idx*0.1)+'s';d.appendChild(cb)}
     cards.push(d);box.appendChild(d);
   });
-  // 高稀有发现时刻：金光只给本轮最高稀有度一张（多张齐 burst 投屏老机掉帧），对齐翻面时机
-  if(rv){const hi=S.offers.map((o,i)=>({o,i})).filter(x=>x.o.type==='unit'&&(UMAP[x.o.id].rar==='SSR'||UMAP[x.o.id].rar==='UR'))
-      .sort((a,b)=>((UMAP[b.o.id].rar==='UR')?1:0)-((UMAP[a.o.id].rar==='UR')?1:0))[0];
-    if(hi){const ur=UMAP[hi.o.id].rar==='UR', card=cards[hi.i];
+  // 高稀有发现时刻：只给本轮最高档一张；SP 使用玫瑰金+加冕音，仍不阻断输入。
+  if(rv){const hi=S.offers.map((o,i)=>({o,i})).filter(x=>x.o.type==='unit'&&isHighUnit(UMAP[x.o.id]))
+      .sort((a,b)=>tierOfRar(UMAP[b.o.id].rar)-tierOfRar(UMAP[a.o.id].rar))[0];
+    if(hi){const u=UMAP[hi.o.id],ur=u.rar==='UR',sp=isSPUnit(u),card=cards[hi.i];
       setTimeout(()=>{
         if(!card||!card.isConnected)return; // 秒买/秒刷已重建 DOM：这张卡被摘走 → 不在错位/错卡上炸金光
         const r=card.getBoundingClientRect();
-        burst(r.left+r.width/2,r.top+90,null,ur?26:14);SFX.play('reveal')},hi.i*100+250)}}
+        burst(r.left+r.width/2,r.top+90,sp?['#f08aaa','#ffd5df','#e8c768','#fff']:null,sp?42:(ur?26:14));SFX.play(sp?'crown':'reveal')},hi.i*100+250)}}
   renderBench(p);
   renderFoeIntel(p);
   const freeRr=p._freeRr>0||(hasRelic(p,'astro')&&!p._astroUsed);
@@ -3669,8 +3858,8 @@ function renderBench(p){
       snapDraft();reserveOf(p).push(p.army.splice(ai,1)[0]);toast(`${u.n} 转入候补——不再激活当前羁绊`);renderDraft();save()};
     bX.onclick=()=>{const doSell=()=>{snapDraft();p.army.splice(ai,1);p.coins+=refund;
         toast(`${u.n} 离队，返还 ${refund} 铸币`);renderDraft();save()};
-      if((a.star||1)>=2){ // 高星卖出连星级/词缀一起没,且3★净亏——触屏没有hover提示,补一次确认
-        modal(`<h3>出售确认</h3><p style="text-align:center;line-height:1.8">出售 ${'★'.repeat(a.star)} <b>${u.n}</b>，返还 <b style="color:var(--gold2)">${refund} 铸币</b><br>星级与词缀将一并失去${a.star>=3?'（比合成投入少，属净亏）':''}</p>
+      if((a.star||1)>=2||isSPUnit(u)){ // 高星/SP 卖出不可逆；触屏没有 hover 提示，补一次确认
+        modal(`<h3>出售确认</h3><p style="text-align:center;line-height:1.8">出售 ${isSPUnit(u)?'天命异格':'★'.repeat(a.star)} <b>${u.n}</b>，返还 <b style="color:var(--gold2)">${refund} 铸币</b><br>${isSPUnit(u)?'本局天命将解除，之后可重新追寻其他 SP':`星级与词缀将一并失去${a.star>=3?'（比合成投入少，属净亏）':''}`}</p>
           <div class="btnrow"><button class="btn gold" id="sell-yes">确认出售</button></div>`);
         const sy=$('#sell-yes');if(sy)sy.onclick=()=>{closeModal();doSell()};
       } else doSell()};
@@ -3691,13 +3880,14 @@ function renderBench(p){
       d.querySelector('.zone-toggle').onclick=()=>{if(p.army.length>=cap){toast('军团已满：先把一名上阵棋子转为候补');return}
         snapDraft();p.army.push(reserveOf(p).splice(ri0,1)[0]);toast(`${u.n} 部署上阵——羁绊已重新计算`);renderDraft();save()};
       d.querySelector('.bx').onclick=()=>{const doSell=()=>{snapDraft();reserveOf(p).splice(ri0,1);p.coins+=refund;toast(`${u.n} 候补离队，返还 ${refund} 铸币`);renderDraft();save()};
-        if((a.star||1)>=2){modal(`<h3>出售确认</h3><p style="text-align:center;line-height:1.8">出售候补 ${'★'.repeat(a.star)} <b>${u.n}</b>，返还 <b style="color:var(--gold2)">${refund} 铸币</b><br>星级与词缀将一并失去</p><div class="btnrow"><button class="btn gold" id="sell-reserve-yes">确认出售</button></div>`);
+        if((a.star||1)>=2||isSPUnit(u)){modal(`<h3>出售确认</h3><p style="text-align:center;line-height:1.8">出售候补 ${'★'.repeat(a.star)} <b>${u.n}</b>，返还 <b style="color:var(--gold2)">${refund} 铸币</b><br>${isSPUnit(u)?'本局天命将解除，之后可重新追寻其他 SP':'星级与词缀将一并失去'}</p><div class="btnrow"><button class="btn gold" id="sell-reserve-yes">确认出售</button></div>`);
           const sy=$('#sell-reserve-yes');if(sy)sy.onclick=()=>{closeModal();doSell()}}else doSell()};
       bindDetail(d.querySelector('.g'),()=>showUnitDetail(a.id,a));rx.appendChild(d);
     });
   }
-  $('#relic-shelf').innerHTML=p.relics.map(rid=>{const r=RMAP[rid];
-    return `<span class="relic-chip" data-rid="${rid}" title="${r.t}">${relicArtTag(rid)}<span>${r.n}</span></span>`}).join('');
+  $('#relic-shelf').innerHTML=p.relics.map(rid=>relicChipHTML(RMAP[rid],`data-rid="${rid}"`)).join('');
+  {const fams=relicFamilyIds(p),art=artifactOf(p);if(!art&&fams.length){$('#relic-shelf').insertAdjacentHTML('beforeend',
+    `<span class="relic-chip resonance-chip${fams.length>=3?' ready':''}" title="凑齐三个不同遗物谱系后，下一次选择宝库可开启神器炉">谱系共鸣 ${Math.min(3,fams.length)}/3${fams.length>=3?' · 神器炉已就绪':''}</span>`)}}
   // 触屏看不到 title 悬停——点 chip 弹详情
   $$('#relic-shelf .relic-chip[data-rid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.rid];
@@ -3740,6 +3930,13 @@ function bondJustLit(p,u){
 }
 function buyUnit(idx,u,price){
   const p=curDrafter();
+  if(isSPUnit(u)){
+    if(playerSP(p)){toast('天命不并立：一局至多拥有一位 SP');return}
+    if(ownsIdentity(p,u.id)){toast(`${UMAP[u.base].n} 的普通形态已在军团中——本体与 SP 异格不能同队`);return}
+  }else{
+    const clash=ownedUnits(p).find(a=>isSPUnit(a.id)&&baseIdentity(a.id)===u.id);
+    if(clash){toast(`${UMAP[clash.id].n} 已应天命——不能再征募同一人物的普通形态`);return}
+  }
   // 开局点将：免费领一名，选完自动轮到下一位
   if(S.phase==='origin'){
     snapDraft();
@@ -3753,7 +3950,7 @@ function buyUnit(idx,u,price){
   }
   if(p.coins<price){toast(S.solo?'铸币不够——过关自有进账':'铸币不够——先答题赚钱去');return}
   const cap=armyCap();
-  const maxed=ownedUnits(p).find(a=>a.id===u.id&&a.star===3);
+  const maxed=isSPUnit(u)?null:ownedUnits(p).find(a=>a.id===u.id&&a.star===3);
   if(maxed){ // ✦星芒:三星后的同名卡不再无用——每张 +1芒(+1攻+2命,无上限),合卡追求无尽化(替代7/8星方案)
     snapDraft();
     p.coins-=price;S.offersSold[idx]=true;
@@ -3761,8 +3958,8 @@ function buyUnit(idx,u,price){
     toast(`${u.n} 星芒 +1（共 ${maxed.halo} 芒）—— 攻+1 命+2`,2600);SFX.play('merge');
     renderDraft();hud();save();return;
   }
-  const twin2=ownedUnits(p).find(a=>a.id===u.id&&a.star===2); // 军团+备战席共同合星，避免候补成为死牌
-  const twin1=ownedUnits(p).find(a=>a.id===u.id&&a.star===1);
+  const twin2=isSPUnit(u)?null:ownedUnits(p).find(a=>a.id===u.id&&a.star===2); // 军团+备战席共同合星，避免候补成为死牌
+  const twin1=isSPUnit(u)?null:ownedUnits(p).find(a=>a.id===u.id&&a.star===1);
   const mergeTarget=twin2||twin1;
   if(!mergeTarget&&p.army.length>=cap&&reserveOf(p).length>=RESERVE_CAP){toast('军团和备战席都已满：先上阵、换下或出售一名棋子');return}
   snapDraft();
@@ -3783,12 +3980,16 @@ function buyUnit(idx,u,price){
     // 新单位上阵时才结算羁绊；军团满员则自动进候补，不会偷偷点亮战斗数值。
     const lit=toReserve?null:bondJustLit(p,u);  // 纯函数·六打法+四象全轴(含 control/persist/edge)
     target.push(inst);
-    if(toReserve){toast(`${u.n} 已收入备战席——不上场、不激活羁绊，可参与合星`,3000)}
+    if(toReserve){toast(`${u.n} 已收入备战席——不上场、不激活羁绊${isSPUnit(u)?'，部署后方可唤醒天命':'，可参与合星'}`,3000)}
     else if(lit){const t=bondTier(p,lit);
       toast(`${u.n} 入队 —— ${BONDS[lit].n}${t>=2?'满档':'成阵'}：${BONDS[lit].d[t-1]}`,3200);SFX.play('reveal');
       if(ELEM_RING_KEYS.has(lit))elemRingShow(lit,t); // 四象成阵环:只认四象键,pierce/vanguard 升档不播(接线单§2.3)
     }else toast(`${u.n} 入队`);
-    grantAffix(p,u,inst); // 星辉词缀:征募即roll(不中不扰,中了延时报喜)
+    if(isSPUnit(u)){
+      // SP 入手后，同组里理论上不应再有同身份；这道锁兼容旧锁牌快照与未来数据迁移。
+      S.offers.forEach((o,j)=>{if(j!==idx&&o.type==='unit'&&baseIdentity(o.id)===u.base)S.offersSold[j]=true});
+      spAwakenReveal(u);
+    }else grantAffix(p,u,inst); // 星辉词缀:征募即roll(不中不扰,中了延时报喜)
   }
   renderDraft();hud();save();
 }
@@ -3988,6 +4189,7 @@ function buildFighters(p, evFlags){
       atk:b.atk, hp:b.hp, maxhp:b.hp, spd:b.spd, shield:0, alive:true,
       tg:u.tg||'melee', taunt:!!u.taunt,
       first:true, usedRevive:false, skill:skillFor(u,inst.star), ix,
+      spCharges:u.skill.k==='spMoonReversal'?4:0,spHits:0,
       afId:inst.af?inst.af.id:null, afQ:inst.af?inst.af.q:0};
   });
   // 星辉词缀:数值直加;先声/狼视/荆棘走平行旗(与 skill/emberCrit 同权,见 simulateBattle 首击与反震)
@@ -4034,12 +4236,15 @@ function buildFighters(p, evFlags){
   if(hasRelic(p,'bell')&&fs.length){const m=fs.reduce((a,b)=>b.spd>a.spd?b:a);m.atk+=1;m.spd+=1}
   if(hasRelic(p,'lamp')&&fs.length){const m=fs.reduce((a,b)=>b.hp<a.hp?b:a);m.shield+=2}
   if(hasRelic(p,'anchor')) fs.forEach(f=>{if(f.taunt)f.atk+=1});          // 麒的船锚：治嘲讽组零输出
+  // 神器：同样走既有数值/事件通道，但每件改变一条构筑路线；一局至多一件由神器炉入口保证。
+  if(hasRelic(p,'earthseal')&&fs[0]){fs[0].hp+=5;fs[0].maxhp+=5;fs[0].shield+=2;fs[0].artifactEarth=true}
+  if(hasRelic(p,'skywheel')&&fs.length){const m=fs.reduce((a,b)=>b.spd>a.spd?b:a);m.spd+=2;m.artifactWind=true}
   // 狼先生的铜印：只加在走得远的人身上——高稀有单位各 +3 命（至多 3 名）。
   // ⚠ 初版是「每名 SSR/UR → 全队 +1 命(封顶3)」，看似温和实为 +3×5=15 总血：
   //   镜像对局(同阵容仅一方带遗物)实测 100% vs 剑穗 61% / 灯 49%，是无脑首选。
   //   「封顶」压的是每单位上限，压不住「×全队」这个乘数——全队增益的总量要按 N×队伍宽度算。
   if(hasRelic(p,'seal')){let n=0;fs.forEach(f=>{const u=UMAP[f.id];
-    if(n<3&&u&&(u.rar==='SSR'||u.rar==='UR')){f.hp+=3;f.maxhp+=3;n++}})}
+    if(n<3&&u&&['SSR','UR','SP'].includes(u.rar)){f.hp+=3;f.maxhp+=3;n++}})}
   // 单人秘策（run-identity：每局不同的构筑方向）
   const st=p.strats||[];
   if(st.includes('st_pierce'))fs.forEach(f=>{if((f.tg||'melee')==='pierce')f.atk+=2});
@@ -4078,17 +4283,17 @@ function resolveTarget(f, foes){
   return tk||foes[0];
 }
 function sideFlags(p){ // 边级效果
-  if(!p) return {seaTier:0,vanTier:0,deathTier:0,ctrlTier:0,edgeTier:0,persistTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false,urn:false};
+  if(!p) return {seaTier:0,vanTier:0,deathTier:0,ctrlTier:0,edgeTier:0,persistTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false,urn:false,artifact:null};
   // seaTier 字段名保留(sim内部锚点),语义=水象·潮汐同悲;deathTier=向死而生(亡语流)
   return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), deathTier:bondTier(p,'death'), ctrlTier:bondTier(p,'control'), edgeTier:bondTier(p,'edge'), persistTier:bondTier(p,'persist'), shards:hasRelic(p,'shards'),
     ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf'),
-    thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary'), urn:hasRelic(p,'urn')};
+    thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary'), urn:hasRelic(p,'urn'), artifact:(artifactOf(p)||{}).id||null};
 }
 
 function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   mods=mods||{};
   const sides=[A,B], flags=[flagsA,flagsB], log=[], dmgByUid={}, coinsGain=[0,0], diaryCoins=[0,0];
-  const rulerUsed=[false,false],lampUsed=[false,false];
+  const rulerUsed=[false,false],lampUsed=[false,false],artifactUsed=[false,false];
   const alive=s=>sides[s].filter(f=>f.alive);
   const foes=s=>alive(1-s);
   const front=s=>alive(s)[0];
@@ -4112,6 +4317,16 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   function processDeaths(){
     while(deathQ.length){
       const f=deathQ.shift();const s=dieSideOf(f);
+      // 山河镇星印：只镇回被指定的最前排一次；先于普通复起结算，二者可形成昂贵但可研究的双保险。
+      if(f.artifactEarth&&!artifactUsed[s]){artifactUsed[s]=true;f.alive=true;f.hp=1;f.shield+=3;
+        log.push({t:'artifactProc',side:s,key:'earthseal',d:f.uid,txt:'镇星 · 1 命 3 盾归阵'});continue}
+      // SP·梓「归星先见」：只改被写下预见者的第一次致命伤；假死不触发阵亡连锁。
+      if(f.spForeseen&&!f.spForeseenUsed){f.spForeseenUsed=true;f.alive=true;f.hp=1;f.shield+=3;
+        log.push({t:'spProc',side:s,key:'zi_sp',d:f.uid,hp:1,shield:3,txt:'预见成真 · 1 命 3 盾留阵'});continue}
+      // SP·欣「八返不熄」：占用一次复起位，归队后鼓舞仍存活的同伴。
+      if(f.skill.k==='spEighth'&&!f.usedRevive){f.usedRevive=true;f.alive=true;f.hp=Math.ceil(f.maxhp*.75);f.atk+=f.skill.v||3;
+        alive(s).filter(x=>x!==f).forEach(x=>{const heal=Math.min(2,x.maxhp-x.hp);if(heal>0){x.hp+=heal;log.push({t:'heal',d:x.uid,amt:heal})}});
+        log.push({t:'spProc',side:s,key:'xin_sp',d:f.uid,hp:f.hp,atk:f.skill.v||3,txt:`八返 · ${f.hp} 命归队，攻击 +${f.skill.v||3}`});continue}
       // 一次复起：复读机 / 欣共用已验证分支
       if((f.skill.k==='revive1'||f.spellRevive)&&!f.usedRevive){f.usedRevive=true;f.alive=true; // 欣「站起八次」/ 灵光「回光·不屈」共用一次复起不变量
         f.hp=Math.ceil(f.maxhp/2);if(f.spellReviveAtk)f.atk+=f.spellReviveAtk;log.push({t:'revive',d:f.uid});continue} // 不屈:复起后加攻
@@ -4144,6 +4359,13 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(flags[s].diary){diaryCoins[s]=(diaryCoins[s]||0);if(diaryCoins[s]<3){diaryCoins[s]++;coinsGain[s]+=1;log.push({t:'coin',side:s,amt:1})}}
       // 薪火陶罐(亡语流遗物):己方阵亡→随机存活友军 +1 攻(不制造新死亡·与向死而生叠加)
       if(flags[s].urn){const survs=alive(s);if(survs.length){const x=pickR(survs);x.atk+=1;log.push({t:'buff',d:x.uid,txt:'+1 攻 · 薪火陶罐'})}}
+      // 神器只在「真正阵亡」后触发；复起、接灯、蛇蜕都在上方 continue，不会白嫖阵亡收益。
+      if(!artifactUsed[s]&&flags[s].artifact==='tideglass'){const survs=alive(s);if(survs.length){artifactUsed[s]=true;
+        const x=survs.reduce((m,y)=>y.hp/y.maxhp<m.hp/m.maxhp?y:m,survs[0]),heal=Math.min(4,x.maxhp-x.hp);x.hp+=heal;x.shield+=2;
+        log.push({t:'artifactProc',side:s,key:'tideglass',d:x.uid,amt:heal,shield:2,txt:`归潮 · 回复 ${heal} 命并获 2 盾`})}}
+      if(!artifactUsed[s]&&flags[s].artifact==='emberheart'){const survs=alive(s);if(survs.length){artifactUsed[s]=true;
+        const x=survs.reduce((m,y)=>y.atk>m.atk?y:m,survs[0]);x.atk+=2;x.spd+=2;
+        log.push({t:'artifactProc',side:s,key:'emberheart',d:x.uid,atk:2,spd:2,txt:'长明 · 攻击 +2、速度 +2'})}}
     }
   }
   function foesOf(s){return alive(1-s)}
@@ -4153,6 +4375,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
 
   // 战斗开场先把玩家最容易误以为“没作用”的羁绊明确写进事件流：数值、单位范围与档位均可见。
   [0,1].forEach(s=>{
+    if(flags[s].artifact){const r=RMAP[flags[s].artifact];log.push({t:'artifact',side:s,key:r.id,elem:r.elem,txt:r.n+' 已苏醒'})}
     if(flags[s].edgeTier)log.push({t:'bond',side:s,key:'edge',tier:flags[s].edgeTier,txt:flags[s].edgeTier>=2?'锋锐满档 · 首击额外伤害并必暴':'锋锐成阵 · 首击额外 +2 伤'});
     if(flags[s].persistTier)log.push({t:'bond',side:s,key:'persist',tier:flags[s].persistTier,txt:flags[s].persistTier>=2?'坚韧满档 · +4 命，最左坚韧首次半血复起':'坚韧成阵 · 坚韧成员 +4 最大生命'});
     if(sides[s].some(f=>f.lampLink))log.push({t:'bond',side:s,key:'lamp',tier:2,txt:'灯火相承 · 全队 +3 盾，梓与狼先生相互接灯'});
@@ -4177,6 +4400,15 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(yu){yu.atk+=f.skill.v;f.atk+=f.skill.v;log.push({t:'buff',d:f.uid,txt:'兄弟羁绊 · 攻击 +2'})}}
     if(k==='inspireAll'){alive(s).forEach(x=>{x.atk+=f.skill.v});
       log.push({t:'buff',d:f.uid,txt:'攻击 +'+f.skill.v+' · 先见'})} // 梓：先见惠及全队（含自己）
+    if(k==='spForetell'){const mates=alive(s);mates.forEach(x=>x.atk+=f.skill.v||1);
+      const t=mates.reduce((m,x)=>x.maxhp<m.maxhp?x:m,mates[0]);t.spForeseen=true;
+      log.push({t:'spProc',side:s,key:'zi_sp',d:t.uid,txt:`归星先见 · 全队攻击 +${f.skill.v||1}，${t.n} 获得预见`})}
+    if(k==='spVelvetHunt'){const fo=foesOf(s);if(fo.length){const t=fo.reduce((m,x)=>x.atk>m.atk?x:m,fo[0]);
+      const cut=Math.min(f.skill.v||2,t.atk);t.atk-=cut;f.spQuarry=t.uid;
+      log.push({t:'debuff',d:t.uid,txt:`攻击 -${cut} · 绮宴诱导`});
+      log.push({t:'spProc',side:s,key:'xuan_sp',d:f.uid,s:t.uid,txt:`盛装诱导 · 锁定 ${t.n}，攻击 -${cut}`})}}
+    if(k==='spMoonReversal'){f.shield+=3;
+      log.push({t:'spProc',side:s,key:'xi_sp',d:f.uid,shield:3,txt:'月糖快刃 · 3 盾迎击，蓄势四次折返'})}
     if(k==='atone'&&alive(s).some(x=>x.fac==='dark')){        // 马将军：他知道那条路怎么走
       alive(s).forEach(x=>{x.atk+=f.skill.v});log.push({t:'buff',d:f.uid,txt:'攻击 +'+f.skill.v+' · 归正'})}
     if(k==='probeCore'){const fo=foesOf(s);if(fo.length){     // 佳：问题直击核心（打最高血，与诺的后排狙击正交）
@@ -4231,16 +4463,20 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     if(mods.fog){order.sort(()=>rand()-0.5)}else{order.sort((x,y)=>y[1].spd-x[1].spd||rand()-0.5)}
     for(const [s,f] of order){
       if(!f.alive)continue;
-      const t=resolveTarget(f,alive(1-s));if(!t)break; // 目标 archetype：melee打前排/被嘲讽拉住，pierce穿透后排
-      let amt=f.atk,crit=false;
+      const marked=f.first&&f.skill.k==='spVelvetHunt'?alive(1-s).find(x=>x.uid===f.spQuarry):null;
+      const t=marked||resolveTarget(f,alive(1-s));if(!t)break; // 盛装诱导首击锁定猎物；其余仍按 melee/穿透/嘲讽原规则
+      let amt=f.atk,crit=false;const wasFirst=f.first;
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
         if(f.afFirst)amt+=f.afFirst; // 词缀「先声」与 firstPlus 同权叠加
-        if(f.skill.k==='firstCrit'||f.emberCrit||f.afCrit||f.pierceCrit||f.spellCrit||f.edgeCrit){amt*=2;crit=true} // 秘策余烬/词缀狼视/穿透流破云满档/灵光破釜/锋锐流满档 同款首击暴击
+        if(f.skill.k==='firstCrit'||f.skill.k==='spVelvetHunt'||f.emberCrit||f.afCrit||f.pierceCrit||f.spellCrit||f.edgeCrit){amt*=2;crit=true} // 天命狩心/秘策余烬/词缀狼视/破云/破釜/锋锐满档同款首击暴击
       }
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
       dealDmg(s,f,t,amt,'攻击',crit,true); // isBasic=true：仅基本攻击吃相克
+      const huntedDown=wasFirst&&f.skill.k==='spVelvetHunt'&&t.uid===f.spQuarry&&t.hp<=0;
+      if(wasFirst&&f.artifactWind){const other=alive(1-s).find(x=>x!==t);if(other){dealDmg(s,f,other,4,'天衡追风');
+        log.push({t:'artifactProc',side:s,key:'skywheel',d:other.uid,s:f.uid,amt:4,txt:'风轮追击 · 另一名敌人 4 伤'})}}
       // 不退之誓 · 反震：打嘲讽的人被反刺（哪怕这一下打死了他）。
       // 不传 isBasic → 不吃相克；反震本身不在攻击循环里 → 嘲讽互打不会无限反弹。
       // 反震三来源可叠：不退之誓(羁绊) + 空耳机(遗物) + 空耳机的回响(事件)。没凑羁绊的人也有入口。
@@ -4249,7 +4485,15 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(thnAll)dealDmg(1-s,t,f,thnAll,'反震');
       // 晰 · 软抵抗：被打一次强一次（只随基本攻击；死了就不再叠）
       if(t.alive&&t.skill.k==='soak'){t.atk+=t.skill.v;log.push({t:'buff',d:t.uid,txt:'攻击 +'+t.skill.v+' · 软抵抗'})}
+      // SP·晰「月糖折返」：最多承接四次普攻，第2/4次反切；反切不是基本攻击，不会互相套娃。
+      if(t.alive&&t.skill.k==='spMoonReversal'&&t.spCharges>0){t.atk+=t.skill.v||1;t.spCharges--;t.spHits++;
+        log.push({t:'buff',d:t.uid,txt:`攻击 +${t.skill.v||1} · 月糖折返（${t.spHits}/4）`});
+        if(t.spHits===2||t.spHits===4){dealDmg(1-s,t,f,4,'月糖反切');
+          log.push({t:'spProc',side:1-s,key:'xi_sp',d:t.uid,s:f.uid,txt:`第 ${t.spHits} 刃折返 · 攻击者 4 伤`})}}
       processDeaths();
+      // SP·璇只有在猎物真正离场后才收下奖赏；预见/复起成功会让这次狩猎落空。
+      if(huntedDown&&!t.alive&&f.alive){f.atk+=2;f.shield+=3;
+        log.push({t:'spProc',side:s,key:'xuan_sp',d:f.uid,atk:2,shield:3,txt:'绮宴收锋 · 攻击 +2，获得 3 盾'})}
       if(!alive(1-s).length)break;
     }
   }
@@ -4302,10 +4546,11 @@ function runSelftest(){
      const die=src.lastIndexOf("e.t==='die'",death);                  // 往回找最近的 die 守卫
      if(die<0)return false;                                           // (第一处 e.t==='die' 在 delayFor 里，不能用 indexOf)
      return src.slice(die,death).indexOf('e.kill')<0})());            // 守卫到调用之间不许出现 e.kill
-   ok('卡框：5 档框/角标文件名与 Codex 交付一致 · 6 张不透明立绘 id 都在册', (()=>{
+   ok('卡框：常规5档框/角标与 SP 复用 UR 骨架 · 全部不透明立绘 id 都在册', (()=>{
      const rars=['N','R','SR','SSR','UR'];
      if(!rars.every(r=>cfFrame(r)===CF_DIR+'recruit-frame-'+r.toLowerCase()+'.webp'))return false;
      if(!rars.every(r=>cfCorner(r)===CF_DIR+'rarity-corner-'+r.toLowerCase()+'.svg'))return false;
+     if(cfFrame('SP')!==CF_DIR+'recruit-frame-ur.webp'||cfCorner('SP')!==CF_DIR+'rarity-corner-ur.svg')return false;
      if(AFFIX_QFILE.length!==AFFIX_QC.length)return false;          // 凡/秀/珍/传世 四品同序
      return [...CF_OPAQUE].every(id=>UMAP[id])})());
    ok('透明立绘/宝物图不漏底字：有 img.art 则占位字隐藏，img 移除则回退（治「荣」「锚」浮层复发，:has 时机免疫）', (()=>{
@@ -4787,6 +5032,48 @@ function runSelftest(){
   ok('印章副行映射：胜方恒空/败方分档', bossStampSub(true,true)===''&&bossStampSub(false,true)==='曾破一形'&&bossStampSub(false,false)==='');
   // —— 正典搭档重构：增/浩守线，梓/狼先生为双二星终极追求 ——
   ok('UNITS=43 且梓/增数据锚(UR穿透/SSR嘲讽/同属学院)+批㉘通用新单位 更漏人(制御slowFast)/燧石(锋锐firstCrit) 入池·有ZODIAC·并入新流派', UNITS.length===43&&UMAP['zi'].rar==='UR'&&UMAP['zi'].tg==='pierce'&&UMAP['zeng'].taunt===true&&UMAP['zi'].fac==='academy'&&UMAP['zeng'].fac==='academy'&&!!ZODIAC['toll']&&!!ZODIAC['flint']&&BONDS.control.ids.includes('toll')&&BONDS.edge.ids.includes('flint'));
+  // —— 首发 SP 天命异格（梓 / 欣 / 璇 / 晰）——
+  {const spIds=['zi_sp','xin_sp','xuan_sp','xi_sp'],spBases=spIds.map(id=>UMAP[id].base);
+   ok('首发 SP：4 位同名异格入 UMAP/ALL_UNITS，正典本体仍精确 43 位',
+     SP_VARIANTS.length===4&&ALL_UNITS.length===47&&UNITS.length===43&&spIds.every(id=>UMAP[id]&&UMAP[id].rar==='SP')&&new Set(spBases).size===4);
+   ok('首发 SP：土风火水四象各一位，立绘/卡面/头像均走独立版本目录',
+     new Set(spIds.map(unitElem)).size===4&&spIds.every(id=>/^sp-launch-20260820\//.test(ART[id]||'')&&ART['card_'+id]===ART[id]&&ART['avatar_'+id]===ART[id])
+     &&CF_OPAQUE.has('zi_sp')&&CF_OPAQUE.has('xin_sp')&&!CF_OPAQUE.has('xuan_sp')&&!CF_OPAQUE.has('xi_sp'));
+   ok('SP 身份规则：同人物本体互斥、一局只容一位、固定一星且无词缀', (()=>{
+     const p={army:[{uid:930,id:'zi',star:1,gAtk:0,gHp:0}],reserve:[],relics:[]},inst={uid:931,id:'zi_sp',star:1,gAtk:0,gHp:0};
+     grantAffix(p,UMAP.zi_sp,inst);
+     return ownsIdentity(p,'zi_sp')&&eligibleSPUnits(p).every(u=>u.base!=='zi')&&!inst.af
+       &&RAR_STAR.SP.a.every(x=>x===1)&&RAR_STAR.SP.h.every(x=>x===1)})());
+   ok('SP 独立硬保底：牌力5第12次合资格征募必出且同组不并列本体', (()=>{
+     const _S=S,_r=rng;
+     try{S={act:3};rng=mulberry32(820);const p={army:[],reserve:[],relics:[],tier:5,spPity:11};
+       const offers=[{type:'unit',id:'zi'},{type:'unit',id:'xuan'},{type:'unit',id:'xin'}],hit=injectSP(p,offers);
+       return !!hit&&p.spPity===0&&offers.filter(o=>o.type==='unit'&&isSPUnit(o.id)).length===1
+         &&!offers.some(o=>o.type==='unit'&&o.id===hit.base)}finally{S=_S;rng=_r}})());
+   {const mk=(...ids)=>({army:ids.map((id,i)=>({uid:'sp'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),reserve:[],relics:[],strats:[]});
+    const ziP=mk('guard','zi_sp'),ziF=buildFighters(ziP,{}),ziE=ghostFighters([{id:'sp-hammer',n:'重锤',glyph:'锤',atk:30,hp:140,spd:12,skill:{k:'none'}}]);
+    const ziR=simulateBattle(ziF,ziE,sideFlags(ziP),{},mulberry32(821),{});
+    ok('SP 梓：全队先见 +1 攻，最低生命同伴首次致命伤只触发一次预见留阵',
+      ziF[0].atk>=UMAP.guard.atk+1&&ziF[1].atk>=UMAP.zi_sp.atk+1&&ziR.log.filter(e=>e.t==='spProc'&&e.key==='zi_sp'&&/预见成真/.test(e.txt||'')).length===1);
+    const xuP=mk('xuan_sp'),xuF=buildFighters(xuP,{}),xuE=ghostFighters([
+      {id:'sp-front',n:'门卫',glyph:'门',atk:2,hp:30,spd:2,skill:{k:'none'}},
+      {id:'sp-carry',n:'主将',glyph:'将',atk:9,hp:10,spd:1,skill:{k:'none'}},
+      {id:'sp-back',n:'后卫',glyph:'后',atk:3,hp:30,spd:1,skill:{k:'none'}}]);
+    const xuR=simulateBattle(xuF,xuE,sideFlags(xuP),{},mulberry32(822),{}),carry=xuE.find(f=>f.id==='sp-carry');
+    ok('SP 璇：诱导敌最高攻-2，首击越过常规后排锁敌必暴；真退场后自身+2攻3盾',
+      carry.atk===7&&xuR.log.some(e=>e.t==='dmg'&&e.d===carry.uid&&e.crit&&e.amt===12)
+      &&xuR.log.filter(e=>e.t==='spProc'&&e.key==='xuan_sp'&&/绮宴收锋/.test(e.txt||'')&&e.atk===2&&e.shield===3).length===1&&xuF[0].atk>=8);
+    const xiP=mk('xin_sp'),xiF=buildFighters(xiP,{}),xiE=ghostFighters([{id:'sp-break',n:'破阵',glyph:'破',atk:40,hp:160,spd:12,skill:{k:'none'}}]);
+    const xiR=simulateBattle(xiF,xiE,sideFlags(xiP),{},mulberry32(823),{}),xiEv=xiR.log.filter(e=>e.t==='spProc'&&e.key==='xin_sp');
+    ok('SP 欣：首次阵亡75%生命归队、攻击+3，且只能复起一次',
+      xiEv.length===1&&xiEv[0].hp===Math.ceil(xiF[0].maxhp*.75)&&xiEv[0].atk===3&&xiF[0].usedRevive===true);
+    const siP=mk('xi_sp'),siF=buildFighters(siP,{}),siE=ghostFighters([{id:'sp-wall',n:'长夜',glyph:'夜',atk:1,hp:240,spd:10,skill:{k:'none'}}]);
+    const siR=simulateBattle(siF,siE,sideFlags(siP),{},mulberry32(824),{});
+    ok('SP 晰：开场3盾、受击成长严格封顶4次，第2/4次各反切4伤',
+      siF[0].spHits===4&&siF[0].spCharges===0&&siF[0].atk===UMAP.xi_sp.atk+4
+      &&siR.log.filter(e=>e.tag==='月糖反切'&&e.amt===4).length===2&&siR.log.filter(e=>e.t==='spProc'&&e.key==='xi_sp'&&/^第 [24] 刃折返/.test(e.txt||'')).length===2);
+   }
+  }
   {const mk=ids=>ids.map(id=>({uid:uidSeq++,id,star:1,gAtk:0,gHp:0}));
    const dummy=()=>ghostFighters([{id:'d',n:'靶',glyph:'靶',atk:1,hp:40,spd:1,skill:{k:'none'}}]);
    const A1=buildFighters({army:mk(['zi','guard']),relics:[]},{});
@@ -4831,8 +5118,8 @@ function runSelftest(){
   ok('第二批立绘与档案图全部走独立版本子目录', ['rui','hai','xin'].every(id=>
     /^image2-characters-20260713-b2\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]));
   ok('43 个角色 id 全部唯一', new Set(UNITS.map(u=>u.id)).size===43);
-  ok('旧第二批仍不扩穿透/嘲讽轴；六人按定位把穿透扩至7、嘲讽扩至6', ['rui','hai','xin'].every(id=>
-    !UMAP[id].tg&&!UMAP[id].taunt)&&BONDS.pierce.ids.length===7&&BONDS.vanguard.ids.length===6);
+  ok('旧第二批仍不扩穿透/嘲讽轴；正典本体按定位保持穿透7、嘲讽6', ['rui','hai','xin'].every(id=>
+    !UMAP[id].tg&&!UMAP[id].taunt)&&BONDS.pierce.ids.filter(id=>!isSPUnit(id)).length===7&&BONDS.vanguard.ids.filter(id=>!isSPUnit(id)).length===6);
   {const totalW=UNITS.reduce((n,u)=>n+u.w,0),academyW=UNITS.filter(u=>u.fac==='academy').reduce((n,u)=>n+u.w,0);
    ok('学院基础抽取权重低于36%（六人入棋后仍不过度挤压其他剧情归属）', academyW/totalW<.36);}
   // —— 2026-08-10 六人正典入棋（子鱼 + VOL.3 五人）——
@@ -4844,7 +5131,7 @@ function runSelftest(){
      UMAP.chen.tg==='pierce'&&UMAP.jie.tg==='pierce'&&UMAP.jun.taunt===true&&
      BONDS.control.ids.includes('ke')&&UMAP.ming.skill.k==='growAtk');
    ok('六人星座四象与 512×768 版本化立绘映射齐备', ids.every(id=>!!ZODIAC[id]&&
-     /^characters-six-20260810-v2\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]&&SP_UNITS.has(id)&&CF_OPAQUE.has(id)));
+     /^characters-six-20260810-v2\/unit-/.test(ART[id]||'')&&ART['card_'+id]===ART[id]&&COLLECTOR_ART_UNITS.has(id)&&CF_OPAQUE.has(id)));
    const allSeen=Object.fromEntries(ACH_STUDENT_IDS.map(id=>[id,1]));
    ok('全勤学员门槛随六人扩为41名正典单位且不靠本地单位顶替', ACH_STUDENT_IDS.length===41&&ACH_MAP.a_seenAll.chk({seen:allSeen})&&!ACH_MAP.a_seenAll.chk({seen:{...allSeen,ziyu:0,toll:1,flint:1}}));
   }
@@ -4880,8 +5167,10 @@ function runSelftest(){
    ok('站起八次不随星增加复起次数', !SKILL_SV['revive1']);}
   // —— 批⑪ 第二羁绊轴（打法轴：破云之矢 / 不退之誓）——
   {const parmy=(...ids)=>({army:ids.map((id,i)=>({uid:'b'+i+'_'+id,id,star:1,gAtk:0,gHp:0})),relics:[],strats:[]});
-   ok('成员由 tg/taunt 派生：穿透7人·全 tg=pierce', BONDS.pierce.ids.length===7&&BONDS.pierce.ids.every(id=>UMAP[id].tg==='pierce'));
-   ok('成员由 tg/taunt 派生：嘲讽6人·全 taunt', BONDS.vanguard.ids.length===6&&BONDS.vanguard.ids.every(id=>UMAP[id].taunt===true));
+   ok('成员由 tg/taunt 派生：本体穿透7/嘲讽6，SP 梓/璇以互斥异格加入穿透轴',
+     BONDS.pierce.ids.filter(id=>!isSPUnit(id)).length===7&&BONDS.vanguard.ids.filter(id=>!isSPUnit(id)).length===6
+     &&BONDS.pierce.ids.includes('zi_sp')&&BONDS.pierce.ids.includes('xuan_sp')
+     &&BONDS.pierce.ids.every(id=>UMAP[id].tg==='pierce')&&BONDS.vanguard.ids.every(id=>UMAP[id].taunt===true));
    ok('第二轴跨阵营计数（信鸽sky+璇dark→穿透档1）', bondTier(parmy('pigeon','xuan'),'pierce')===1);
    ok('第二轴同名不叠（信鸽×2→0档）', bondTier(parmy('pigeon','pigeon'),'pierce')===0);
    ok('穿透满档阈值4（梓诺斥候鸽→档2）', bondTier(parmy('zi','nuo','scout','pigeon'),'pierce')===2);
@@ -4967,10 +5256,10 @@ function runSelftest(){
    ok('新单位入池：马将军/晰/佳（补弱系：摇摆/挑战者/天之国）',
      UMAP['majun'].fac==='swing'&&UMAP['xi'].fac==='novice'&&UMAP['jia'].fac==='sky'
      &&UMAP['majun'].rar==='N'&&UMAP['xi'].rar==='SSR'&&UMAP['jia'].rar==='SR');
-   ok('新单位不动第二轴成员（无 tg/taunt）',
+   ok('新单位不动第二轴本体成员（无 tg/taunt）',
      !UMAP['majun'].taunt&&!UMAP['xi'].taunt&&!UMAP['jia'].taunt
      &&!UMAP['majun'].tg&&!UMAP['xi'].tg&&!UMAP['jia'].tg
-     &&BONDS.pierce.ids.length===7&&BONDS.vanguard.ids.length===6);
+     &&BONDS.pierce.ids.filter(id=>!isSPUnit(id)).length===7&&BONDS.vanguard.ids.filter(id=>!isSPUnit(id)).length===6);
    // 马将军 · 归正（条件类，不随星）
    {const A=buildFighters(parmy('majun','hui'),{});simulateBattle(A,dummy(),{},{},mulberry32(5),{});
     ok('归正：队中有黑域→全队+1攻（慧仅1名不成黑域档）', A[0].atk===UMAP['majun'].atk+1&&A[1].atk===UMAP['hui'].atk+1);
@@ -5038,7 +5327,24 @@ function runSelftest(){
     const hit=()=>ghostFighters([{id:'h',n:'锤',glyph:'锤',atk:2,hp:40,spd:9,skill:{k:'none'}}]);
     const r=simulateBattle(hit(),van(),{},sideFlags(parmy('guard','lin')),mulberry32(5),{thornEv:true});
     ok('空耳机的回响（事件）：无羁绊无遗物也反震 1', r.log.some(e=>e.tag==='反震'&&e.amt===1));}
-   ok('RELICS=22 · EVENTS=25（内容量锚·批㉜ +3 狂宴专属事件,feastOnly 不进经典池）', RELICS.length===22&&EVENTS.length===25&&EVENTS.filter(e=>e.feastOnly).length===3);
+   ok('遗物升格内容量：普通遗物22 + 神器4 · EVENTS=25', normalRelics().length===22&&artifacts().length===4&&RELICS.length===26&&EVENTS.length===25&&EVENTS.filter(e=>e.feastOnly).length===3);
+   ok('四谱系覆盖全部普通遗物 · 三谱系才解锁神器炉 · 已有神器不重复铸造', (()=>{
+     if(normalRelics().some(r=>!RELIC_FAMILY[r.id])||Object.keys(RELIC_FAMILIES).length!==4)return false;
+     const p2={relics:['teapot','ruler']},p3={relics:['teapot','ruler','tassel']},pa={relics:['teapot','ruler','tassel','earthseal']};
+     return !artifactReady(p2)&&artifactReady(p3)&&!artifactReady(pa)&&relicFamilyIds(p3).length===3;})());
+   ok('神器炉出牌：只给3件不同神器，且优先保留当前阵容适配度', (()=>{
+     const p={army:['guard','lu','duo'].map((id,i)=>({id,uid:'af'+i,star:1,gAtk:0,gHp:0})),relics:['teapot','ruler','tassel']};
+     const ids=artifactOfferIds(p);return ids.length===3&&new Set(ids).size===3&&ids.every(id=>isArtifact(RMAP[id]))&&ids.includes('earthseal');})());
+   {const mk=(ids,relic)=>({army:ids.map((id,i)=>({id,uid:'ar'+relic+i,star:1,gAtk:0,gHp:0})),relics:[relic],strats:[]});
+    const foe=()=>ghostFighters([{id:'ax',n:'重锤',glyph:'锤',atk:20,hp:90,spd:9,skill:{k:'none'}},{id:'ay',n:'重锤',glyph:'锤',atk:16,hp:90,spd:8,skill:{k:'none'}}]);
+    const pe=mk(['guard','lin'],'earthseal'),FE=buildFighters(pe,{}),re=simulateBattle(FE,foe(),sideFlags(pe),sideFlags(null),mulberry32(21),{});
+    ok('神器·山河镇星印：前排+5命+2盾，首次致死以1命3盾镇回', FE[0].maxhp>=UMAP.guard.hp+5&&re.log.some(e=>e.t==='artifactProc'&&e.key==='earthseal'));
+    const pw=mk(['crane','lin'],'tideglass'),rw=simulateBattle(buildFighters(pw,{}),foe(),sideFlags(pw),sideFlags(null),mulberry32(22),{});
+    ok('神器·归潮镜：真正阵亡后仅触发一次回复与护盾', rw.log.filter(e=>e.t==='artifactProc'&&e.key==='tideglass').length===1);
+    const pf=mk(['crane','hui','lin'],'emberheart'),rf=simulateBattle(buildFighters(pf,{}),foe(),sideFlags(pf),sideFlags(null),mulberry32(23),{});
+    ok('神器·长明燧心：真正阵亡后仅触发一次攻速传火', rf.log.filter(e=>e.t==='artifactProc'&&e.key==='emberheart').length===1);
+    const pv=mk(['scout','lin'],'skywheel'),FV=buildFighters(pv,{}),rv=simulateBattle(FV,foe(),sideFlags(pv),sideFlags(null),mulberry32(24),{});
+    ok('神器·天衡风轮：最快者+2速，首击追击另一目标4伤', FV.some(f=>f.artifactWind)&&rv.log.some(e=>e.tag==='天衡追风'&&e.amt===4)&&rv.log.some(e=>e.t==='artifactProc'&&e.key==='skywheel'));}
    ok('批㉗ 流派配套遗物+事件：云梭穿透+2速 / 薪火陶罐死亡→随机友军+1攻(sideFlags.urn+processDeaths) / 云隙天光穿透流 / 挽歌余响亡语流(阵亡技单位)', (()=>{
      const bf=buildFighters.toString();
      if(bf.indexOf("hasRelic(p,'shuttle')")<0||bf.indexOf('evFlags.rift')<0||bf.indexOf('evFlags.mourn')<0)return false; // 接线
@@ -5251,7 +5557,7 @@ function runSelftest(){
      hud(); const lbl=($('#rage-wrap .lbl')||{}).textContent||''; S=_S;
      return lbl.indexOf('不屈命脉')>=0&&lbl.indexOf('断云')<0})());
    // —— 星辉词缀 & 星芒 & 寒门倍率(2026-07-14 P1) ——
-   ok('寒门星倍率: N三星倍>SSR三星·全表随星单调', RAR_STAR.N.a[2]>RAR_STAR.SSR.a[2]&&['N','R','SR','SSR','UR'].every(r=>RAR_STAR[r].a[2]>RAR_STAR[r].a[1]&&RAR_STAR[r].a[1]>1&&RAR_STAR[r].h[2]>RAR_STAR[r].h[1]));
+   ok('寒门星倍率: N三星倍>SSR三星·常规全表随星单调·SP固定一星', RAR_STAR.N.a[2]>RAR_STAR.SSR.a[2]&&['N','R','SR','SSR','UR'].every(r=>RAR_STAR[r].a[2]>RAR_STAR[r].a[1]&&RAR_STAR[r].a[1]>1&&RAR_STAR[r].h[2]>RAR_STAR[r].h[1])&&RAR_STAR.SP.a.every(x=>x===1)&&RAR_STAR.SP.h.every(x=>x===1));
    ok('N卡三星质变: 守望3★=1/8→2/23', (()=>{const b=instBase({id:'guard',star:3,gAtk:0,gHp:0});return b.atk===Math.round(1*3.2)&&b.hp===Math.round(8*2.9)})());
    ok('词缀表: id唯一·四品数值·minQ合法', new Set(AFFIXES.map(a=>a.id)).size===AFFIXES.length&&AFFIXES.every(a=>a.vs.length===4&&(a.minQ||0)<=3));
    {const _r=rng;rng=mulberry32(7);let bad=0,qc=0,qe=0;
@@ -5271,9 +5577,9 @@ function runSelftest(){
     const F=buildFighters(p,{});
     ok('先声词缀: 与 firstPlus 平行旗共存(睿 afFirst=8 且 skill 不变)', F[0].afFirst===8&&F[0].skill.k==='firstPlus');}
    // —— 不屈命脉 & 全局色阶(2026-07-14 P1b) ——
-   ok('色阶单一事实源: 五档色/名齐·单位映射全覆盖·遗物全归档',
-     TIER_COLOR.length===5&&TIER_NAME.length===5&&UNITS.every(u=>RAR_TIER[u.rar]!=null)&&RELICS.every(r=>RELIC_TIER[r.id]!=null));
-   ok('色阶递进: N<R<SR<SSR<UR 档位严格升', tierOfRar('N')<tierOfRar('R')&&tierOfRar('R')<tierOfRar('SR')&&tierOfRar('SR')<tierOfRar('SSR')&&tierOfRar('SSR')<tierOfRar('UR'));
+   ok('色阶单一事实源: 六档色/名齐·单位映射全覆盖·遗物全归档',
+     TIER_COLOR.length===6&&TIER_NAME.length===6&&ALL_UNITS.every(u=>RAR_TIER[u.rar]!=null)&&RELICS.every(r=>RELIC_TIER[r.id]!=null));
+   ok('色阶递进: N<R<SR<SSR<UR<SP 档位严格升', tierOfRar('N')<tierOfRar('R')&&tierOfRar('R')<tierOfRar('SR')&&tierOfRar('SR')<tierOfRar('SSR')&&tierOfRar('SSR')<tierOfRar('UR')&&tierOfRar('UR')<tierOfRar('SP'));
    ok('词缀色=全局色阶前四档(不再另立一套)', AFFIX_QC.every((c,i)=>c===TIER_COLOR[i])&&AFFIX_Q.every((n,i)=>n===TIER_NAME[i]));
    ok('命脉上限: 见习4>精英3>宗师2', LIFE_MAX[0]===4&&LIFE_MAX[1]===3&&LIFE_MAX[2]===2);
    ok('掉命脉按惨烈: 屠2/3以上=1颗·未屠尽=2颗·被屠平=3颗', (()=>{const B=[1,2,3,4];
@@ -5727,6 +6033,9 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
     let d=420;
     if(e.t==='round')d=300;
     else if(e.t==='bond')d=560;
+    else if(e.t==='artifact')d=720;
+    else if(e.t==='artifactProc')d=620;
+    else if(e.t==='spProc')d=680;
     else if(e.t==='dmg'){d=420+(e.crit?160:0)+(e.kill?260:0);if(isFinal)d*=2.2}
     else if(e.t==='die')d=210;
     else if(e.t==='shed')d=900; // 蛇蜕顿帧：终战的戏眼，给足一拍
@@ -5741,6 +6050,31 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
       box.classList.remove('bond-flare','edge','persist');void box.offsetWidth;box.classList.add('bond-flare');if(e.key==='edge'||e.key==='persist')box.classList.add(e.key); // lamp等其余key不加副class,空token会让DOMTokenList.add抛SyntaxError
       setTimeout(()=>box.classList.remove('bond-flare','edge','persist'),520);
       blog.innerHTML=`${uiIcon('state-halo')}<b>${e.side===0?'左阵':'右阵'} · ${e.key==='lamp'?'灯火相承':bondName(e.key)}</b> 生效：${e.txt}`;SFX.play('reveal')}
+    if(e.t==='artifact'&&animate){const r=RMAP[e.key],box=e.side===0?L:R;
+      box.classList.remove('artifact-flare','earth','water','fire','wind');void box.offsetWidth;box.classList.add('artifact-flare');if(e.elem)box.classList.add(e.elem);
+      setTimeout(()=>box.classList.remove('artifact-flare','earth','water','fire','wind'),780);
+      blog.innerHTML=`${uiIcon('state-halo')}<b>${e.side===0?'左阵':'右阵'} · 神器「${r?r.n:'旧器'}」</b> 苏醒`;SFX.play('crown')}
+    if(e.t==='artifactProc'){
+      const r=RMAP[e.key],tgt=el(e.d),box=e.side===0?L:R;
+      if(tgt&&e.key==='earthseal'){tgt.classList.remove('dead');hpNow[e.d]=1;tgt.querySelector('.hpb i').style.width=(1/hpMax[e.d]*100)+'%';
+        const hv=tgt.querySelector('.num .h .stat-v');if(hv)hv.textContent='1';tgt.querySelector('.sh').style.display=''}
+      if(tgt&&e.key==='tideglass'){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+(e.amt||0));tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
+        const hv=tgt.querySelector('.num .h .stat-v');if(hv)hv.textContent=hpNow[e.d];tgt.querySelector('.sh').style.display=''}
+      if(tgt&&e.key==='emberheart'){const av=tgt.querySelector('.num .a .stat-v');if(av)av.textContent=String((+av.textContent||0)+(e.atk||0))}
+      if(animate){box.classList.remove('artifact-flare','earth','water','fire','wind');void box.offsetWidth;box.classList.add('artifact-flare');if(r&&r.elem)box.classList.add(r.elem);
+        setTimeout(()=>box.classList.remove('artifact-flare','earth','water','fire','wind'),780);
+        if(tgt){floatNum(tgt,e.txt,r?relicColor(r):'#ffd166',true);if(e.key==='tideglass')vfxPlay('heal',tgt);else if(e.key==='earthseal')vfxPlay('shieldHit',tgt);else if(e.key==='skywheel')vfxPlay('pierce',tgt,{from:el(e.s)})}
+        blog.innerHTML=`${uiIcon('state-halo')}<b>${r?r.n:'神器'}</b>：${e.txt}`;SFX.play(e.key==='tideglass'?'heal':'crown')}}
+    if(e.t==='spProc'){
+      const tgt=el(e.d),box=e.side===0?L:R,u=UMAP[e.key];
+      if(tgt&&e.hp!=null){tgt.classList.remove('dead');hpNow[e.d]=e.hp;
+        tgt.querySelector('.hpb i').style.width=Math.max(0,e.hp/hpMax[e.d]*100)+'%';const hv=tgt.querySelector('.num .h .stat-v');if(hv)hv.textContent=e.hp}
+      if(tgt&&e.atk){const av=tgt.querySelector('.num .a .stat-v');if(av)av.textContent=String((+av.textContent||0)+e.atk)}
+      if(e.shield&&tgt)tgt.querySelector('.sh').style.display='';
+      if(animate){box.classList.remove('sp-flare');void box.offsetWidth;box.classList.add('sp-flare');setTimeout(()=>box.classList.remove('sp-flare'),700);
+        if(tgt){tgt.classList.remove('sp-proc');void tgt.offsetWidth;tgt.classList.add('sp-proc');setTimeout(()=>tgt.classList.remove('sp-proc'),720);floatNum(tgt,e.txt,'var(--sp2)',true)}
+        blog.innerHTML=`${uiIcon('state-halo')}<b>${u?u.spTitle:'天命异格'}</b>：${e.txt}`;
+        SFX.play(e.key==='xin_sp'?'revive':(e.key==='xi_sp'&&/反切/.test(e.txt||'')?'crit':(e.key==='xi_sp'?'shield':'reveal')))}}
     if(e.t==='dmg'){
       const tgt=el(e.d);if(tgt){
         hpNow[e.d]=Math.max(0,(hpNow[e.d]??hpMax[e.d])-(e.hpDmg??e.amt)); // 扣净伤(过盾后)，血条与结算一致；飘字仍显满额
@@ -6047,18 +6381,19 @@ function metaCommit(ctx){
   saveMeta();
   return {gain,lvUp:after>before,lv:after,ach:got};
 }
-/* ============ 全局稀有度色阶(单一事实源 · 白→蓝→紫→金→橙 · 2026-07-14) ============ */
+/* ============ 全局稀有度色阶(单一事实源 · 白→蓝→紫→金→橙→天命玫瑰 · 2026-08-20) ============ */
 // 上瘾机制的地基:单位/词缀/遗物 三套系统共用同一条色阶,学生一眼就懂"什么颜色更值钱"。
-const TIER_COLOR=['#9a9686','#7fc4d8','#c77dff','#ffd166','#ff8c42']; // 凡/秀/珍/传世/秘藏
-const TIER_NAME =['凡','秀','珍','传世','秘藏'];
-const RAR_TIER  ={N:0,R:1,SR:2,SSR:3,UR:4};              // 单位稀有度 → 色阶档
+const TIER_COLOR=['#9a9686','#7fc4d8','#c77dff','#ffd166','#ff8c42','#f08aaa']; // 凡/秀/珍/传世/秘藏/天命
+const TIER_NAME =['凡','秀','珍','传世','秘藏','天命'];
+const RAR_TIER  ={N:0,R:1,SR:2,SSR:3,UR:4,SP:5};         // 单位稀有度 → 色阶档；SP 独占最高档
 function tierOfRar(r){return RAR_TIER[r]!=null?RAR_TIER[r]:0}
 function rarColor(r){return TIER_COLOR[tierOfRar(r)]}
 // 遗物稀有度:按价格/强度归档(原本无稀有度——现在也进色阶体系)
 const RELIC_TIER={teapot:1,astro:2,tassel:1,letter:1,quiver:2,plaque:2,bell:2,lamp:1,anchor:2,seal:4,
                   shards:2,ruler:3,quill:3,goldleaf:2,thorn:2,diary:3,scale:1,
                   mask:2,dustbag:2,card:3,
-                  shuttle:2,urn:3}; // 22/22(批㉗ 流派配套遗物 云梭/薪火陶罐)
+                  shuttle:2,urn:3,
+                  earthseal:4,tideglass:4,emberheart:4,skywheel:4}; // 普通遗物22 + 神器4
 function relicTier(id){return RELIC_TIER[id]!=null?RELIC_TIER[id]:1}
 /* ============ 不屈命脉(生命池 · 治"一败即死" · 云顶/SAP 同款 · 2026-07-14) ============ */
 // 单人不再一败即死:开局带命脉,输一场按惨烈程度掉 1-3 颗,掉光才终局。
@@ -6102,6 +6437,7 @@ function rollAffix(u,depth,force){ // 纯靠全局rng;depth=单人S.round/多人
 }
 function affixDepth(){return S?(S.solo?S.round:(S.act||1)*3):1}
 function grantAffix(p,u,inst){ // 征募即roll——惊喜时刻;不中不打扰
+  if(isSPUnit(u))return; // SP 的稀有性来自固定机制与身份，不再叠随机词缀制造不可控上限
   const af=rollAffix(u,affixDepth()); if(!af)return;
   inst.af=af;
   const a=AFFIX_MAP[af.id];
@@ -6145,9 +6481,27 @@ function affixLine(inst){ // 详情/军团架共用的一行词缀描述
   if(inst.halo)bits.push(`<b class="halo-inline">${uiIcon('state-halo')}${inst.halo} 星芒</b>(攻+${inst.halo} 命+${inst.halo*2})`);
   return bits.length?`<div style="text-align:center;margin:-4px 0 10px;font-size:13px">${bits.join(' · ')}</div>`:'';
 }
+function spAwakenReveal(u){
+  if(!isSPUnit(u))return;
+  document.querySelectorAll('.sp-awaken-veil').forEach(x=>x.remove());
+  if(!vfxReduced()){flash(false);burst(innerWidth/2,innerHeight/2,['#f08aaa','#ffd5df','#e8c768','#fff'],68)}
+  SFX.play('crown');
+  hallSend('feed',u.id,`天命 · ${u.spTitle} · ${u.n}`,tierOfRar('SP'),0);
+  const v=document.createElement('div');v.className='sp-awaken-veil';
+  v.setAttribute('role','dialog');v.setAttribute('aria-modal','true');v.setAttribute('aria-label',`${u.spTitle}${u.n}天命降临`);
+  v.innerHTML=`<div class="sp-awaken">
+    <div class="sp-awaken-art"><img src="${cardURL(u.id)}" alt="${u.spTitle} ${u.n}" decoding="async"></div>
+    <div class="sp-awaken-copy"><div class="sp-awaken-kicker">天 命 异 格</div><div class="sp-awaken-rarity">SP</div>
+      <div class="sp-awaken-title">${u.spTitle}</div><div class="sp-awaken-name">${u.n}</div>
+      <div class="sp-awaken-skill">${u.skill.t}</div><div class="sp-awaken-rule">一局至多一位 · 与普通形态互斥 · 固定一星 · 不附词缀</div>
+      <div class="sp-awaken-hint">点击继续</div></div></div>`;
+  const close=()=>{if(v.parentNode)v.remove()};v.onclick=close;document.body.appendChild(v);
+  setTimeout(close,6500);
+}
 function reforgeAffix(uid){ // 重铸:金币无尽出口——费用随该单位重铸次数递增,必得词缀(品质按当前深度roll)
   if(!S||S.phase!=='draft')return;
   const p=curDrafter(); const inst=p&&ownedUnits(p).find(a=>a.uid===uid); if(!inst)return;
+  if(isSPUnit(inst.id)){toast('SP 天命异格不附词缀，无需重铸');return}
   const free=(S.freeReforge||0)>0;
   const cost=free?0:(4+2*(inst.rf||0));
   if(!free&&p.coins<cost){toast(`重铸需 ${cost} 铸币`);return}
@@ -6451,7 +6805,7 @@ async function showPlayerCard(pid,fallbackName){ // 点榜行 → 拉名片
     const tr=$('#pc-tr'); if(!tr)return;
     if(!mu&&!mr){tr.innerHTML='<div class="pc-empty">还没有登上名匠榜的绝品</div>';return}
     tr.innerHTML=`<div class="pc-trlab">镇店之宝</div><div class="pc-trrow">
-      ${mu?`<div class="pc-tr1">${artTag(mu.item,'pc-art')}<span class="pc-trn" style="color:${TIER_COLOR[Math.max(0,Math.min(4,mu.q|0))]}"></span></div>`:''}
+      ${mu?`<div class="pc-tr1">${artTag(mu.item,'pc-art')}<span class="pc-trn" style="color:${TIER_COLOR[Math.max(0,Math.min(5,mu.q|0))]}"></span></div>`:''}
       ${mr?`<div class="pc-tr1">${artTag('relic_'+mr.item,'pc-art')}<span class="pc-trn2" style="color:${TIER_COLOR[Math.max(0,Math.min(4,mr.q|0))]}"></span></div>`:''}
     </div>`;
     if(mu&&tr.querySelector('.pc-trn'))tr.querySelector('.pc-trn').textContent=mu.label||'';
@@ -6508,24 +6862,48 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
 const PATHS={
   calm:  {n:'安稳道', d:'常规宿敌 · 稳扎稳打',                    ic:'stat-shield'},
   peril: {n:'险道',   d:'宿敌强一档 · 胜则 +6 铸币、免费重铸1次',  ic:'state-crit'},
-  vault: {n:'宝库',   d:'不打这一阶 · 白拿一件遗物(三选一)',       ic:'currency-coin'},
+  vault: {n:'宝库',   d:'不打这一阶 · 遗物三选一；三谱系共鸣可升格神器炉',ic:'currency-coin'},
   spring:{n:'星尘泉', d:'不打这一阶 · 回1点命脉 + 免费重铸1次',    ic:'state-heal'},
   shadow:{n:'影军道', d:'迎战同窗的影军 · 胜则 +2 铸币并记斩影',   ic:'state-shadow-echo'},
 };
+function artifactFit(p,r){const army=(p&&p.army)||[];let score=0;
+  army.forEach(a=>{const u=UMAP[a.id];if(!u)return;
+    if(unitElem(a.id)===r.elem)score+=2;
+    if(r.elem==='earth'&&(u.taunt||BONDS.persist.ids.includes(a.id)))score+=2;
+    if(r.elem==='water'&&['healLow','purifyTide','revive1'].includes(u.skill.k))score+=2;
+    if(r.elem==='fire'&&['splashDeath','boostLin','buffAdj','coinDeath'].includes(u.skill.k))score+=2;
+    if(r.elem==='wind'&&(u.tg==='pierce'||BONDS.edge.ids.includes(a.id)))score+=2;
+  });return score}
+function artifactOfferIds(p){const ranked=artifacts().map(r=>({r,s:artifactFit(p,r)})).sort((a,b)=>b.s-a.s||a.r.id.localeCompare(b.r.id));
+  const first=ranked.slice(0,2),rest=ranked.slice(2);if(rest.length)first.push(rest[ri(rest.length)]);return first.map(x=>x.r.id)}
+function forgeLineageHTML(p){const got=new Set(relicFamilyIds(p));return `<div class="forge-lineages">${Object.keys(RELIC_FAMILIES).map(k=>`<span class="${got.has(k)?'on':''}">${RELIC_FAMILIES[k].n}${got.has(k)?' · 已鸣':' · 未鸣'}</span>`).join('')}</div>`}
+function showArtifactForge(ids){const you=S.players[0],rs=ids.map(id=>RMAP[id]).filter(isArtifact);
+  const veil=document.createElement('div');veil.id='strat-veil';veil.className='artifact-forge';
+  veil.innerHTML=`<p class="tag">神 器 炉 · 三 谱 系 共 鸣</p><p style="color:var(--ink2);font-size:12.5px;letter-spacing:.12em;margin:0 20px 10px;text-align:center">旧物彼此认出了来路——选一件，定下这一局的核心</p>${forgeLineageHTML(you)}
+    <div class="strat-row artifact-row">${rs.map(r=>{const c=relicColor(r),fit=artifactFit(you,r);return `<button class="strat-card ornate artifact-card" data-r="${r.id}" style="--ac:${c}">
+      ${relicArtTag(r.id,'artifact-art')}<span class="artifact-fit">${fit>=6?'高度适配':fit>=3?'阵容适配':'改变路线'}</span><b style="color:${c}">${r.n}</b><span class="artifact-rule">${r.t}</span><span class="artifact-lore">${r.lore}</span></button>`}).join('')}</div>`;
+  document.body.appendChild(veil);SFX.play('reveal');burst(innerWidth/2,innerHeight*.28,['#e8c768','#fff','#8ed8e8'],20);
+  veil.querySelectorAll('.artifact-card').forEach(b=>b.onclick=()=>{if(veil.dataset.done)return;veil.dataset.done='1';
+    const rid=b.dataset.r,r=RMAP[rid];you.relics.push(rid);S.vaultPend=null;S.round++;S.phase='pick';save();
+    veil.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('artifact-awaken');SFX.play('crown');
+    const rc=b.getBoundingClientRect();burst(rc.left+rc.width/2,rc.top+rc.height*.42,[relicColor(r),'#ffd166','#fff'],46);toast(`神器铸成 —— 「${r.n}」`,3400);
+    setTimeout(()=>{veil.remove();soloRound()},matchMedia('(prefers-reduced-motion: reduce)').matches?220:820)});
+}
 function showVault(ids){ // 宝库三选一(可重入:断电续局按落档的 ids 原样重开,不重摇)
+  if(ids.some(id=>isArtifact(RMAP[id]))){showArtifactForge(ids);return}
   const you=S.players[0];
   const veil=document.createElement('div');veil.id='strat-veil';
   veil.innerHTML=`<p class="tag">宝 库</p><p style="color:var(--ink3);font-size:12.5px;letter-spacing:.14em;margin-bottom:20px">挑一件带走</p>
-    <div class="strat-row">${ids.map(id=>RELICS.find(x=>x.id===id)).filter(Boolean).map(r=>`<button class="strat-card ornate" data-r="${r.id}" style="border-color:${TIER_COLOR[relicTier(r.id)]}">
-      ${relicArtTag(r.id,'vault-art')}<b style="color:${TIER_COLOR[relicTier(r.id)]}">${r.n}</b><span>${r.t}</span></button>`).join('')}</div>`;
+    <div class="strat-row">${ids.map(id=>RMAP[id]).filter(Boolean).map(r=>{const f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],c=relicColor(r);return `<button class="strat-card ornate" data-r="${r.id}" style="border-color:${c}">
+      ${relicArtTag(r.id,'vault-art')}<small style="color:${f.c};letter-spacing:.18em">${f.n}谱系</small><b style="color:${c}">${r.n}</b><span>${r.t}</span></button>`}).join('')}</div>`;
   document.body.appendChild(veil);
   veil.querySelectorAll('.strat-card').forEach(b=>b.onclick=()=>{
     const rid=b.dataset.r;if(!you.relics.includes(rid))you.relics.push(rid);
-    const r=RELICS.find(x=>x.id===rid);
+    const r=RMAP[rid];
     S.vaultPend=null;                 // 领完即销案——否则下一阶又弹一次宝库
-    veil.remove();SFX.play('crown');burst(innerWidth/2,innerHeight/2,[TIER_COLOR[relicTier(rid)],'#fff'],34);
+    S.round++;S.phase='pick';save();veil.remove();SFX.play('crown');burst(innerWidth/2,innerHeight/2,[TIER_COLOR[relicTier(rid)],'#fff'],34);
     toast(`宝库 —— 收下「${r.n}」`,3000);
-    S.round++;soloRound();
+    soloRound();
   });
 }
 function pathOffers(round){ // 纯函数(#selftest 可测):本阶可选的路。第1阶与终战不选路。
@@ -6553,7 +6931,10 @@ function applyPath(k){
   S.pathTaken=k;(S.pathLog=S.pathLog||[]).push(k);
   SFX.play('reveal');
   if(k==='vault'){ // 白拿一件遗物 → 不打这一阶,直接进下一阶
-    const avail=RELICS.filter(r=>!you.relics.includes(r.id));
+    if(artifactReady(you)){
+      S.vaultPend=artifactOfferIds(you);S.phase='pick';save();showArtifactForge(S.vaultPend);return;
+    }
+    const avail=normalRelics().filter(r=>!you.relics.includes(r.id));
     const three=[];while(three.length<3&&avail.length)three.push(avail.splice(ri(avail.length),1)[0]);
     if(!three.length){toast('宝库已空——改走安稳道',2600);S.pathTaken='calm';startDraft();return}
     S.vaultPend=three.map(r=>r.id); // 先落档再开幕:断电续局能原样重开(见 soloRound)
@@ -7027,7 +7408,7 @@ async function showLbHall(){
     }};
   // —— 名匠榜(人物/宝物)与绝品实录:后端存标签,前端按色阶上色 ——
   const hallRow=(e,i,kind)=>{
-    const c=TIER_COLOR[Math.max(0,Math.min(4,e.q|0))];
+    const c=TIER_COLOR[Math.max(0,Math.min(kind==='unit'?5:4,e.q|0))];
     const art=kind==='relic'?artTag('relic_'+e.item,'hall-art'):artTag(e.item,'hall-art');
     const sc=kind==='unit'?`${Math.floor((e.score|0)/100)} 战力`:(kind==='relic'?TIER_NAME[Math.max(0,Math.min(4,e.q|0))]:'');
     return `<div class="lbrow hallrow${rankRowClass(i)}">${rankBadge(i)}${art}<span class="hall-lab" style="color:${c}">${''}</span><i>${sc}</i></div>`;
@@ -7044,7 +7425,7 @@ async function showLbHall(){
   const renderFeed=rows=>{const el=$('#lblist');if(!el)return;
     el.className='b3-list b3-feed-list';
     if(!rows.length){el.innerHTML='<div style="color:var(--ink3);text-align:center;padding:24px">尚无绝品问世</div>';return}
-    el.innerHTML=rows.map(e=>{const c=TIER_COLOR[Math.max(0,Math.min(4,e.q|0))];
+    el.innerHTML=rows.map(e=>{const c=TIER_COLOR[Math.max(0,Math.min(5,e.q|0))];
       return `<div class="lbrow feedrow"><span class="b3-feed-mark" aria-hidden="true"></span>${artTag(e.item,'hall-art')}<span class="feed-lab" style="color:${c}"></span></div>`}).join('');
     el.querySelectorAll('.feedrow').forEach((row,i)=>{const e=rows[i];
       row.querySelector('.feed-lab').textContent=`${e.name||'?'} 抽到了 ${e.label||'?'}`;});};
@@ -7558,6 +7939,7 @@ function showHowto(){
   征募出高稀有卡的概率由<b>牌力等级</b>决定（1→5）。牌力有<b>幕数免费保底</b>（第二幕起≥2级，<b>保底封顶 2 级</b>——3级以上必须花铸币升），
   也可<b>花铸币升级牌力冲到更高</b>（点「牌力↑」，费用 4/6/8/10 递增）——中后期铸币多，与其溢出，
   不如升牌力抢先看到 SSR/UR，或稳扎攒同名合星。<i style="color:var(--ink3)">（钱花在牌力就少了刷同名的钱，三星不再轻易满。）</i><br><br>
+  <b style="color:var(--sp2)">SP 天命异格</b>：牌力 <b>4 级</b>才开启追寻；每组征募至多一张，连续 <b>${SP_PITY_HARD}</b> 次合资格征募必见。SP 是同一人物走到另一条命途的巅峰形态，<b>一局至多拥有一位</b>，与其普通形态互斥，固定一星、无词缀、不可合星。选择普通本体会放弃对应 SP，追天命也就放弃本体合星——这是强度之外真正的构筑代价。<br><br>
   <b style="color:var(--gold2)">锁定本轮</b>：看到好卡但钱不够？点「锁定本轮」（免费），这套三选一会封存到你下次征募原样送达——买过的位置也记得。刷新或升牌力会放弃锁定。<br>
   <b style="color:var(--gold2)">备战席（3格）</b>：军团满员后买到的成员会先去备战席；也可把上阵成员临时转为候补，下一轮再换阵。候补<b>不参战、也不激活羁绊</b>，但会与军团里的同名牌一起合星。它让你保留一条转型路线、观察宿敌后再决定终局阵容，而不是第一次买牌就被锁死。<br>
   <b style="color:var(--gold2)">利息看板</b>：铸币数下有一行「存5生1 · 下幕息+N」——留到 5 的倍数再花，钱会自己生钱（上限 3 息）。<br>
@@ -7609,7 +7991,7 @@ function showHowto(){
   两条征程开局任选——<b>经典十关</b>：逐关变强的宿敌，第 10 关<b>叶王亲临（蛇蜕两形）</b>，胜则加冕，通关后还可续入无尽回廊；
   <b>无尽回廊</b>：没有终点，一层比一层深，冲击「最深关数」纪录——世界回廊比的就是这个成绩。
   第 2 / 5 / 8 关有<b>断云秘策</b>三选一，决定这一局的构筑路线。<br><br>
-  <b style="color:var(--gold2)">路上还会遇到</b>：<b>云阶选路</b>——每阶开打前选道（安稳／险道／宝库／星尘泉／影军道），险道敌更强但奖 6 币＋免费重铸，星尘泉可回命脉；
+  <b style="color:var(--gold2)">路上还会遇到</b>：<b>云阶选路</b>——每阶开打前选道（安稳／险道／宝库／星尘泉／影军道），险道敌更强但奖 6 币＋免费重铸，星尘泉可回命脉；普通遗物分为<b>天工、破阵、守望、余响</b>四个谱系，收集三个不同谱系后，下一次宝库会升格为<b>神器炉</b>，三选一铸成全局至多一件的构筑核心；
   <b>影军回响</b>——同学们真实上传的军团挡路，斩它得奖励，输了可去标题页「复仇战」讨回来；
   <b>狼牙悬赏</b>——每局 3 张暗标，达成自动发铸币；
   <b>灵光</b>——征募第三格偶现的一次性法术牌，当场买、开战自动施放、不占军团位。<br>
@@ -7619,6 +8001,7 @@ function showHowto(){
   黑域单位更强，但各有代价。叶王不可征募，她只在你们答错太多时，亲自来。<br><br>
   <b style="color:var(--gold2)">S2E5 · 故事再续</b>：初代首徒<b>梓</b>（梅花鹿 · UR）与初代先锋<b>增</b>（黑熊 · SSR）已入征募池。
   增如今与原牛少年浩组成「谷地双壁」守住前线；梓与狼先生的「灯火相承」则是极难达成、也最值得追逐的终极正典组合。<br><br>
+  <b style="color:var(--sp2)">天命初临 · 首发 SP</b>：<b>归星先见·梓</b>、<b>八返不熄·欣</b>、<b>盛装诱导者·璇</b>、<b>月糖快刃·晰</b>分别代表预见保护、复生反攻、锁敌猎杀与受击折返，覆盖土／火／风／水四象。璇的异格命盘从本体土象转为风象；四位全部沿用 MYSKME 已定稿 SP 立绘，是普通形态走向另一条命途后的机制重构，而不是数值换皮。<br><br>
   <b style="color:var(--gold2)">正典补全 · 第一批</b>：赤狐少女<b>瑾</b>、帝企鹅少女<b>涵</b>、原牛少年<b>浩</b>已入征募池，分别补上学院的暴击输出、开战支援与嘲讽前排。<br><br>
   <b style="color:var(--gold2)">正典补全 · 第二批</b>：雪豹少年<b>睿</b>、驼鹿少女<b>海</b>、刺猬少女<b>欣</b>已入征募池，分别带来天之国首击重题、海族节拍控速与学院半血复起。三人均不增加穿透／嘲讽成员，避免旧羁绊无意膨胀。`));
   if(S&&S.solo){ // 单人视角重排:标题去"课堂"、单人节置顶展开、课堂开篇节收起(不改模板本体,DOM后处理)
@@ -7820,8 +8203,8 @@ function showMenu(){
 /* 狼先生的名册 · 主界面(复用 modal/.bond-chip/codex-grid,零新美术) */
 function showRoster(){
   ensureVisualBatch3();
-  const L=levelOf(_meta.xp), tot=UNITS.length;
-  const seenN=Object.keys(_meta.seen||{}).length, s3N=Object.keys(_meta.star3||{}).length, mvpN=Object.keys(_meta.mvp||{}).length;
+  const L=levelOf(_meta.xp), tot=ALL_UNITS.length;
+  const seenN=ALL_UNITS.filter(u=>!!(_meta.seen||{})[u.id]).length, s3N=Object.keys(_meta.star3||{}).length, mvpN=Object.keys(_meta.mvp||{}).length;
   const achGot=Object.keys(_meta.ach||{}).length;
   const bar=`<div style="max-width:420px;margin:0 auto 6px;height:8px;background:rgba(0,0,0,.35);border:1px solid var(--line2)">
     <i style="display:block;height:100%;width:${L.pct}%;background:linear-gradient(90deg,var(--gold3),var(--gold2))"></i></div>`;
@@ -7841,9 +8224,9 @@ function showRoster(){
       对局 <b style="color:var(--gold2)">${_meta.runs}</b> · 胜 <b style="color:var(--gold2)">${_meta.wins}</b> · 斩影 <b style="color:var(--purple)">${_meta.slain}</b> · 悬赏 <b style="color:var(--gold2)">${_meta.bountyDone}</b><br>
       收集 <b style="color:var(--gold2)">${seenN}/${tot}</b> 学员 · 三星 <b style="color:var(--gold2)">${s3N}</b> · MVP <b style="color:var(--gold2)">${mvpN}</b> · 成就 <b style="color:var(--gold2)">${achGot}/${ACHIEVEMENTS.length}</b>
     </div>${(()=>{const a=loadArena();if(!a.score)return '';return `<div style="margin-top:8px;font-size:12.5px;letter-spacing:.06em"><span class="b3-arena-inline">${uiIcon('state-shadow-echo')}群英擂台 · ${arenaTierBadge(a.score)} · 本周 <b style="color:var(--purple)">${a.score}</b> 擂台分</span></div>`;})()}${_meta.runs?'':'<div style="margin-top:6px;font-size:12px;color:var(--ink3)">名册还空着——去打一局单人试炼，它就开始记录你的旅程</div>'}</div>`;
-  const grid=`<h4 style="text-align:center;margin:18px 0 4px">学员收集</h4>
+  const grid=`<h4 style="text-align:center;margin:18px 0 4px">学员与天命异格收集</h4>
     <p style="text-align:center;color:var(--ink3);font-size:11.5px;margin-bottom:6px">用过点亮 · <span style="color:var(--gold2)">${uiIcon('rank-star')}</span>=三星过 · <span style="color:var(--purple)">${uiIcon('score-throne')}</span>=当过 MVP</p>
-    <div class="codex-grid">`+UNITS.map(u=>{
+    <div class="codex-grid">`+ALL_UNITS.map(u=>{
       const seen=!!(_meta.seen||{})[u.id], s3=!!(_meta.star3||{})[u.id], mv=!!(_meta.mvp||{})[u.id];
       return `<div class="codex-u" data-uid="${u.id}" style="${seen?'':'opacity:.3;filter:grayscale(1)'}">
         <div class="badge r-${u.rar}" data-fac="${u.fac}">${elemGlyph(unitElem(u.id))}<span class="glyph">${u.n[0]}</span>${artTag(u.id)}
@@ -7860,6 +8243,9 @@ function showRoster(){
 function showUnits(){
   // 单位立绘网格就是最好的目录（文字墙时代结束）；点立绘进完整档案
   // 图鉴按四象分组（20260716·四象上位）：土掩水→水灭火→火灼风→风蚀土 顺序；阵营退为点开档案里的「剧情归属」小字
+  const spRows=`<section class="sp-codex"><h4 style="text-align:center;margin-top:18px;color:var(--sp2)">SP 天命异格 <span style="font-size:11px;color:var(--ink3)">· 首发 ${SP_VARIANTS.length} 位 · 一局至多一位</span></h4>
+    <p style="text-align:center;color:var(--ink3);font-size:11.5px;line-height:1.7">牌力 4 级开启寻访 · 与普通形态互斥 · 固定一星无词缀 · 第 ${SP_PITY_HARD} 次合资格征募必见</p><div class="codex-grid">${SP_VARIANTS.map(u=>
+      `<div class="codex-u" data-uid="${u.id}"><div class="badge r-SP" data-fac="${u.fac}">${elemGlyph(unitElem(u.id))}<span class="beast">${u.beast}</span><span class="glyph">${u.n.slice(-1)}</span>${artTag(u.id)}</div><div class="cu-n">${u.spTitle} · ${u.n}</div><div class="cu-i rar-tag rt-SP">SP · ${u.cost}币 · 天命唯一</div></div>`).join('')}</div></section>`;
   const rows=['earth','water','fire','wind'].map(el=>{
     const us=UNITS.filter(u=>unitElem(u.id)===el);
     const kf=ELEM_COUNTER[el];
@@ -7871,11 +8257,12 @@ function showUnits(){
         <div class="cu-n">${u.n}</div><div class="cu-i rar-tag rt-${u.rar}">${u.rar} · ${u.cost}币</div>
       </div>`).join('')+`</div>`;
   }).join('');
-  const relics=`<div class="codex-relics">`+RELICS.map(r=>
-    `<span class="relic-chip" data-crid="${r.id}" title="${r.t}">${relicArtTag(r.id)}<span>${r.n}</span></span>`).join('')+`</div>`;
+  const relics=Object.keys(RELIC_FAMILIES).map(k=>{const f=RELIC_FAMILIES[k],rs=normalRelics().filter(r=>RELIC_FAMILY[r.id]===k);
+    return `<h4 style="text-align:center;margin-top:18px;color:${f.c}">${f.n}谱系 <span style="font-size:11px;color:var(--ink3)">· ${f.d}</span></h4><div class="codex-relics">${rs.map(r=>relicChipHTML(r,`data-crid="${r.id}"`)).join('')}</div>`}).join('')+
+    `<h4 style="text-align:center;margin-top:24px;color:var(--gold2)">神器 <span style="font-size:11px;color:var(--ink3)">· 三谱系共鸣后由神器炉三选一 · 一局至多一件</span></h4><div class="codex-relics">${artifacts().map(r=>relicChipHTML(r,`data-crid="${r.id}"`)).join('')}</div>`;
   modal(`<h3>单位与遗物图鉴</h3>
     <p style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.1em">点立绘看完整档案与相克</p>
-    ${rows}<h4 style="text-align:center;margin-top:22px">遗物（3 币 · 翻到才有 · 点看效果）</h4>${relics}`);
+    ${spRows}${rows}<h4 style="text-align:center;margin-top:22px">遗物谱系（普通遗物 3 币 · 点看效果）</h4>${relics}`);
   $$('#modal-box .codex-u').forEach(el=>bindDetail(el,()=>showUnitDetail(el.dataset.uid)));
   $$('#modal-box .relic-chip[data-crid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.crid];

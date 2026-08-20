@@ -16,7 +16,10 @@ on:
       - 'tools/verify-release.mjs'
       - 'tools/selftest-pwa.mjs'
       - 'tools/qa-leaderboard-network.mjs'
+      - 'tools/qa-sp-balance.mjs'
+      - 'tools/qa-sp-ui.mjs'
       - 'assets/pwa-20260809/**'
+      - 'assets/sp-launch-20260820/**'
   pull_request:
     paths:
       - 'index.html'
@@ -29,7 +32,10 @@ on:
       - 'tools/verify-release.mjs'
       - 'tools/selftest-pwa.mjs'
       - 'tools/qa-leaderboard-network.mjs'
+      - 'tools/qa-sp-balance.mjs'
+      - 'tools/qa-sp-ui.mjs'
       - 'assets/pwa-20260809/**'
+      - 'assets/sp-launch-20260820/**'
   workflow_dispatch: {}
 
 permissions:
@@ -57,5 +63,9 @@ jobs:
         run: node tools/selftest-pwa.mjs
       - name: 验证排行榜弱网补传与切榜竞态
         run: node tools/qa-leaderboard-network.mjs
+      - name: 验证首发 SP 强度坡面
+        run: node tools/qa-sp-balance.mjs
+      - name: 验证首发 SP 卡面与降临双视口
+        run: node tools/qa-sp-ui.mjs
       - name: 校验 PWA、域名与网络边界
         run: node tools/verify-release.mjs
