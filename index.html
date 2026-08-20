@@ -384,6 +384,9 @@ body.playing #hud{display:flex}
 .side.bond-flare{box-shadow:inset 0 0 32px rgba(232,199,104,.12);border-color:rgba(232,199,104,.38)}
 .side.bond-flare.edge{box-shadow:inset 0 0 34px rgba(255,138,91,.16)}
 .side.bond-flare.persist{box-shadow:inset 0 0 34px rgba(115,214,155,.15)}
+.side.artifact-flare{animation:artifactSide 760ms cubic-bezier(.16,1,.3,1)}
+.side.artifact-flare.earth{--afl:#9fc78e}.side.artifact-flare.water{--afl:#8ed8e8}.side.artifact-flare.fire{--afl:#ff9a55}.side.artifact-flare.wind{--afl:#a7e8d8}
+@keyframes artifactSide{0%{box-shadow:inset 0 0 0 transparent}35%{box-shadow:inset 0 0 50px color-mix(in srgb,var(--afl) 22%,transparent);border-color:color-mix(in srgb,var(--afl) 60%,transparent)}100%{box-shadow:inset 0 0 12px transparent}}
 .bunit{border:1px solid var(--line);background:var(--panel);padding:7px 10px;text-align:center;
   transition:border-color .2s;position:relative;min-width:78px}
 .bunit:hover{border-color:var(--gold)}
@@ -616,6 +619,10 @@ body.arok .av-reliquary-frame{display:block}
 .af-glow{border-color:var(--afc) !important;box-shadow:0 0 14px -2px var(--afc),inset 0 0 18px -8px var(--afc)}
 /* 遗物色阶边 */
 .relic-tiered{border-left:3px solid var(--rtc)}
+.relic-tiered::after{content:'';position:absolute;inset:0;pointer-events:none;opacity:.28;
+  background:linear-gradient(112deg,transparent 14%,color-mix(in srgb,var(--rtc) 32%,transparent) 38%,transparent 58%);
+  transform:translateX(-115%);transition:transform .65s cubic-bezier(.16,1,.3,1)}
+.relic-tiered:hover::after,.relic-tiered:focus-within::after{transform:translateX(115%)}
 /* 星芒角标+词缀品质点(2026-07-14 星辉词缀) */
 .halo-tag{position:absolute;top:-6px;right:-4px;font-size:10px;color:var(--gold2);text-shadow:0 0 6px rgba(232,199,104,.6);letter-spacing:0;display:inline-flex;align-items:center;gap:1px}
 .af-dot{position:absolute;bottom:-3px;right:-3px;width:8px;height:8px;border-radius:50%;border:1px solid rgba(0,0,0,.5);box-shadow:0 0 5px currentColor}
@@ -703,9 +710,25 @@ body.arok .av-reliquary-frame{display:block}
 .u.final-blow{animation:finalBlow .9s cubic-bezier(.16,1,.3,1)}
 @keyframes finalBlow{0%{transform:scale(1)}30%{transform:scale(1.14);filter:brightness(1.8)}100%{transform:scale(1)}}
 #relic-shelf{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:10px}
-.relic-chip{display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--gold3);color:var(--gold2);font-size:11.5px;padding:3px 10px 3px 5px;letter-spacing:.1em;cursor:help;background:rgba(4,8,12,.32)}
+.relic-chip{--rc:var(--gold3);position:relative;isolation:isolate;display:inline-flex;align-items:center;gap:7px;min-height:36px;border:1px solid var(--rc);color:var(--gold2);font-size:11.5px;padding:3px 10px 3px 5px;letter-spacing:.1em;cursor:help;background:rgba(4,8,12,.44);overflow:hidden}
+.relic-chip::after{content:'';position:absolute;inset:-50%;z-index:-1;pointer-events:none;background:conic-gradient(from 90deg,transparent 0 40%,color-mix(in srgb,var(--rc) 22%,transparent) 50%,transparent 60%);opacity:0;animation:relicGlint 5.5s linear infinite}
+.relic-chip:hover::after,.relic-chip:focus-visible::after{opacity:1}
+.relic-chip .relic-family-dot{width:5px;height:5px;border:1px solid currentColor;transform:rotate(45deg);opacity:.8;flex:0 0 auto}
+.relic-chip.artifact-chip{--rc:#ffe59a;color:#ffe8a8;border-color:rgba(255,213,108,.75);background:radial-gradient(circle at 18% 30%,rgba(255,208,91,.14),transparent 45%),rgba(4,8,12,.76);box-shadow:inset 0 0 16px rgba(255,196,69,.08),0 0 12px rgba(255,183,64,.12)}
+.relic-chip.artifact-chip::before{content:'神器';font-size:8px;letter-spacing:.15em;color:#ffcf63;border:1px solid rgba(255,207,99,.45);padding:1px 3px;margin-left:1px}
+.relic-chip.artifact-chip::after{opacity:.75}
+.relic-chip.resonance-chip{--rc:rgba(157,114,214,.48);color:var(--purple);cursor:default;background:rgba(157,114,214,.055);font-size:10px;padding-inline:9px}
+.relic-chip.resonance-chip.ready{--rc:rgba(232,199,104,.65);color:var(--gold2);box-shadow:0 0 10px rgba(201,166,74,.12)}
+@keyframes relicGlint{to{transform:rotate(1turn)}}
 .relic-art{width:28px;height:28px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 3px 6px rgba(0,0,0,.62))}
 .relic-detail-art{display:block;width:min(180px,54vw);height:min(180px,54vw);object-fit:contain;margin:4px auto 16px;filter:drop-shadow(0 10px 20px rgba(0,0,0,.65))}
+.relic-detail{--rdc:var(--gold2);position:relative;text-align:center;padding:8px 6px 4px}
+.relic-detail.artifact-detail{margin:-6px -8px 0;padding:20px 18px 12px;background:radial-gradient(circle at 50% 22%,color-mix(in srgb,var(--rdc) 14%,transparent),transparent 52%)}
+.artifact-detail .relic-detail-art{width:min(250px,66vw);height:min(250px,66vw);filter:drop-shadow(0 16px 28px rgba(0,0,0,.72)) drop-shadow(0 0 18px color-mix(in srgb,var(--rdc) 26%,transparent));animation:artifactFloat 4.8s ease-in-out infinite}
+.relic-kicker{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.28em;color:var(--rdc);text-indent:.28em;margin-bottom:7px}
+.relic-effect{line-height:1.9;color:var(--ink);max-width:480px;margin:0 auto}.relic-lore{font-size:11.5px;color:var(--ink3);letter-spacing:.06em;margin:10px auto 0;max-width:480px}
+.relic-family-note{display:inline-block;margin-top:10px;padding:2px 9px;border:1px solid color-mix(in srgb,var(--rdc) 45%,transparent);font-size:10px;color:var(--rdc);letter-spacing:.14em}
+@keyframes artifactFloat{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(-7px) rotate(.4deg)}}
 /* 羁绊进度（让"发现协同"可见）：未激活灰 / 2档紫 / 大档金晕 */
 #bond-shelf,#bounty-shelf{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:9px;align-items:center}
 .bond-lab{color:var(--ink3);font-size:11px;letter-spacing:.24em}
@@ -1483,6 +1506,32 @@ html.atlas-poster-mode,html.atlas-poster-mode body{width:2400px;height:3000px;mi
 .strat-card:hover{transform:translateY(-4px);box-shadow:var(--glow-gold);border-color:var(--gold)}
 .strat-card b{color:var(--gold2);font-size:19px;letter-spacing:.18em;font-weight:500}
 .strat-card span{color:var(--ink2);font-size:13px;line-height:1.7}
+.artifact-forge{background:
+  radial-gradient(circle at 50% 35%,rgba(224,184,89,.12),transparent 38%),
+  linear-gradient(160deg,rgba(3,8,13,.985),rgba(8,13,18,.97))!important;overflow-x:hidden;overflow-y:auto}
+.artifact-forge::before{content:'';position:fixed;inset:0;pointer-events:none;opacity:.28;background:
+  repeating-conic-gradient(from 0deg at 50% 50%,rgba(232,199,104,.12) 0deg 1deg,transparent 1deg 18deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 18%,#000 18.2% 47%,transparent 47.2%);mask:radial-gradient(circle,transparent 0 18%,#000 18.2% 47%,transparent 47.2%);animation:forgeTurn 42s linear infinite}
+.forge-lineages{display:flex;gap:7px;justify-content:center;flex-wrap:wrap;margin:0 0 18px;position:relative}
+.forge-lineages span{font-size:10px;letter-spacing:.16em;color:var(--ink3);border:1px solid rgba(201,166,74,.24);padding:3px 8px;background:rgba(0,0,0,.22)}
+.forge-lineages span.on{color:var(--gold2);border-color:rgba(232,199,104,.55);box-shadow:0 0 10px rgba(201,166,74,.12)}
+.artifact-row{position:relative;z-index:1}
+.artifact-card{--ac:#ffd166;min-width:190px;max-width:236px;padding:14px 15px 18px;border-color:color-mix(in srgb,var(--ac) 62%,transparent)!important;background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 8%,var(--panel2)),var(--panel2))!important;box-shadow:inset 0 0 24px color-mix(in srgb,var(--ac) 6%,transparent)}
+.artifact-card::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,color-mix(in srgb,var(--ac) 18%,transparent) 44%,transparent 63%);transform:translateX(-120%);transition:transform .7s cubic-bezier(.16,1,.3,1)}
+.artifact-card:hover::after,.artifact-card:focus-visible::after{transform:translateX(120%)}
+.artifact-card .artifact-art{width:112px;height:112px;object-fit:contain;margin:0 auto;filter:drop-shadow(0 10px 18px rgba(0,0,0,.7)) drop-shadow(0 0 12px color-mix(in srgb,var(--ac) 23%,transparent));transition:transform .35s cubic-bezier(.16,1,.3,1)}
+.artifact-card:hover .artifact-art{transform:translateY(-4px) scale(1.035)}
+.artifact-card .artifact-fit{display:inline-flex;align-self:center;color:var(--ac);border:1px solid color-mix(in srgb,var(--ac) 42%,transparent);font-size:9.5px;letter-spacing:.15em;padding:2px 7px}
+.artifact-card .artifact-rule{color:var(--ink);font-size:12px;line-height:1.72}.artifact-card .artifact-lore{color:var(--ink3);font-size:10.5px;line-height:1.55}
+.artifact-awaken{animation:forgeAwaken 1.1s cubic-bezier(.16,1,.3,1) both}
+@keyframes forgeTurn{to{transform:rotate(1turn)}}
+@keyframes forgeAwaken{0%{filter:brightness(.7);transform:scale(.96)}35%{filter:brightness(1.75);transform:scale(1.025)}100%{filter:none;transform:none}}
+@media(max-width:760px){
+  #strat-veil.artifact-forge{justify-content:flex-start;padding-top:max(34px,var(--sat));padding-bottom:calc(24px + var(--sab))}
+  .artifact-row{width:100%;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding-inline:8vw;padding:4px 8vw 16px;-webkit-overflow-scrolling:touch}
+  .artifact-card{flex:0 0 min(78vw,286px);max-width:none;scroll-snap-align:center}.artifact-card:first-child{scroll-snap-align:start}
+  .artifact-card .artifact-art{width:126px;height:126px}
+}
 /* 玩法说明手风琴 */
 #modal-box details{border:1px solid var(--line2);margin:8px 0;background:rgba(0,0,0,.18)}
 #modal-box summary{cursor:pointer;padding:9px 14px;color:var(--ink);letter-spacing:.14em;font-weight:500;list-style:none;position:relative}
@@ -1504,7 +1553,9 @@ html.atlas-poster-mode,html.atlas-poster-mode body{width:2400px;height:3000px;mi
   #rage-bar.life.warn~#rage-num .life-pips .mi,.life-pips.last .mi:first-child,
   #title-kv.show,#boss-art.show,#final-art.show,.result-banner,.result-banner h1,.result-banner .hint,
   #boss-veil.on,#boss-veil h1,#boss-veil .snake,#boss-veil .boss-tr,.stamp.show,#strat-veil,
-  .u.acting,.u.hit,.u.hit.hit-hard,.u.final-blow,.u .hpb.low i,.float-num{animation:none!important}
+  .u.acting,.u.hit,.u.hit.hit-hard,.u.final-blow,.u .hpb.low i,.float-num,
+  .relic-chip::after,.artifact-detail .relic-detail-art,.artifact-forge::before,.artifact-awaken{animation:none!important}
+  .relic-tiered::after,.artifact-card::after,.artifact-card .artifact-art{transition:none!important}
   .offer .cardback{display:none!important}
   .stamp.show{opacity:1!important;transform:none!important}
   .float-num{opacity:1!important;transform:translate(-50%,-14px)!important}
@@ -1987,8 +2038,35 @@ const RELICS = [
  // —— 批㉗ 流派配套遗物(20260717·穿透流/亡语流)——
  {id:'shuttle',n:'云梭',       t:'穿透单位 +2 速（先手一刀，正合破云）', icon:'梭'},   // 穿透流:提速→pierceCrit首击必暴 synergy
  {id:'urn',    n:'薪火陶罐',   t:'己方单位阵亡时，随机存活友军 +1 攻（薪火相传）', icon:'陶'}, // 亡语流:死亡供能,与向死而生叠加
+ // —— 神器(20260820):只由单人云阶神器炉铸成；不进商店/狂宴随机池，一局至多一件 ——
+ {id:'earthseal', n:'山河镇星印', kind:'artifact', elem:'earth', icon:'镇',
+  t:'最前排 +5 最大生命、+2 护盾；其首次倒下时，以 1 命、3 护盾镇回阵中', lore:'山河在匣中缩成一寸，仍压得住一颗将坠的星。'},
+ {id:'tideglass', n:'归潮镜', kind:'artifact', elem:'water', icon:'潮',
+  t:'每战首名友军真正阵亡时：血量比例最低的存活友军回复 4 命，并获得 2 护盾', lore:'镜中之潮不追逝者，只把仍在场的人送回岸边。'},
+ {id:'emberheart',n:'长明燧心', kind:'artifact', elem:'fire', icon:'燧',
+  t:'每战首名友军真正阵亡时：存活友军中攻击最高者 +2 攻、+2 速度', lore:'火不是留给倒下的人，而是交给还要继续走的人。'},
+ {id:'skywheel',  n:'天衡风轮', kind:'artifact', elem:'wind', icon:'衡',
+  t:'速度最高的友军 +2 速度；其首次基本攻击追击另一名敌人，造成 4 伤', lore:'风轮不替你选方向，只让第一个决定来得更快。'},
 ];
 const RMAP = Object.fromEntries(RELICS.map(r=>[r.id,r]));
+const RELIC_FAMILIES={
+  craft:{n:'天工',c:'#e7c579',d:'征募、铸币与牌库经营'},
+  assault:{n:'破阵',c:'#e99169',d:'先手、输出与穿透攻势'},
+  guard:{n:'守望',c:'#88c59a',d:'前排、护盾与反击承伤'},
+  echo:{n:'余响',c:'#9caee2',d:'阵亡、速度与战局回声'},
+};
+const RELIC_FAMILY={
+  teapot:'craft',astro:'craft',mask:'craft',dustbag:'craft',goldleaf:'craft',scale:'craft',card:'craft',
+  ruler:'assault',quiver:'assault',bell:'assault',anchor:'assault',shuttle:'assault',
+  tassel:'guard',plaque:'guard',lamp:'guard',thorn:'guard',seal:'guard',
+  letter:'echo',shards:'echo',quill:'echo',diary:'echo',urn:'echo',
+};
+function isArtifact(r){return !!(r&&r.kind==='artifact')}
+function normalRelics(){return RELICS.filter(r=>!isArtifact(r))}
+function artifacts(){return RELICS.filter(isArtifact)}
+function artifactOf(p){return p&&Array.isArray(p.relics)?p.relics.map(id=>RMAP[id]).find(isArtifact)||null:null}
+function relicFamilyIds(p){return [...new Set(((p&&p.relics)||[]).map(id=>RELIC_FAMILY[id]).filter(Boolean))]}
+function artifactReady(p){return !artifactOf(p)&&relicFamilyIds(p).length>=3}
 
 // 命运事件（征募后翻一张，作用于本幕演武或经济）
 const EVENTS = [
@@ -2466,6 +2544,10 @@ const ART={
   relic_scale:'relic-scale.webp', relic_card:'relic-card.webp', relic_lamp:'relic-lamp.webp',
   relic_thorn:'relic-thorn.webp', relic_anchor:'relic-anchor.webp', relic_seal:'relic-seal.webp', relic_diary:'relic-diary.webp',
   relic_shuttle:VISUAL_BATCH2_REL+'relics/relic-shuttle.webp', relic_urn:VISUAL_BATCH2_REL+'relics/relic-urn.webp',
+  relic_earthseal:'artifacts-20260820/artifact-earth-seal.webp',
+  relic_tideglass:'artifacts-20260820/artifact-water-mirror.webp',
+  relic_emberheart:'artifacts-20260820/artifact-fire-heart.webp',
+  relic_skywheel:'artifacts-20260820/artifact-wind-wheel.webp',
   // 命运事件插图（768×512 横版）
   ev_rain:'event-rain.webp',   ev_wind:'event-wind.webp',   ev_swing:'event-swing.webp',
   ev_gaze:'event-gaze.webp',   ev_crane:'event-crane.webp', ev_purple:'event-purple.webp',
@@ -2487,7 +2569,7 @@ const ART_DPR=new Set([
   'relic_shuttle','relic_urn','ev_rift','ev_mourn'
 ]);
 // 版本参数：击穿玩家端旧图缓存。每批新图上线时 bump 一次即可全量生效（file:// 下不加，保离线纯净）
-const ART_VER='20260810b'; // 六人终版立绘 v2：钧普通版更新为成熟完整站姿
+const ART_VER='20260820a'; // 遗物升格：四神器原画 + 谱系与铸造仪式
 function artURLAt(key,suffix){
   suffix=suffix||'';
   const base=ART[key];if(!base)return null;
@@ -2514,7 +2596,16 @@ function avatarArtTag(id,cls){
   return '<img class="'+(cls||'mua')+'" src="'+src+'"'+(ss?' srcset="'+ss+'"':'')+' data-fb="'+fb+'" alt="" decoding="async" onerror="if(this.dataset.fb){this.srcset=\'\';this.src=this.dataset.fb;this.dataset.fb=\'\'}else this.remove()">';
 }
 function relicArtTag(id,cls){return artTag('relic_'+id,cls||'relic-art')}
-function relicDetailHTML(r){return `${relicArtTag(r.id,'relic-detail-art')}<h3>${r.n}</h3><div style="text-align:center;line-height:1.9">${r.t}</div>`}
+function relicColor(r){const f=RELIC_FAMILIES[RELIC_FAMILY[r&&r.id]];return isArtifact(r)?(ELEM_COLOR2[r.elem]||'#ffd166'):(f?f.c:TIER_COLOR[relicTier(r.id)])}
+function relicChipHTML(r,attr){if(!r)return '';
+  const f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],cl=isArtifact(r)?' artifact-chip':'';
+  return `<span class="relic-chip${cl}" ${attr||''} style="--rc:${relicColor(r)}" title="${r.t}">${relicArtTag(r.id)}${f?`<i class="relic-family-dot" style="color:${f.c}" aria-hidden="true"></i>`:''}<span>${r.n}</span></span>`}
+function relicDetailHTML(r){const f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],artifact=isArtifact(r),c=relicColor(r);
+  return `<div class="relic-detail${artifact?' artifact-detail':''}" style="--rdc:${c}">
+    <div class="relic-kicker">${artifact?`${elemGlyph(r.elem)} ${ELEM_CN[r.elem]}象神器`:`${f?f.n:'遗物'}谱系 · ${TIER_NAME[relicTier(r.id)]}`}</div>
+    ${relicArtTag(r.id,'relic-detail-art')}<h3>${r.n}</h3><div class="relic-effect">${r.t}</div>
+    ${r.lore?`<div class="relic-lore">${r.lore}</div>`:''}
+    <span class="relic-family-note">${artifact?'一局至多一件 · 仅神器炉铸成':`${f?f.n:'遗物'} · ${f?f.d:'军团级永久效果'}`}</span></div>`}
 function showFinalArt(){
   const wrap=$('#final-art');if(!wrap)return;
   const large=artURL('ending'),small=artURL('endingSmall'),im=wrap.querySelector('img');
@@ -2807,7 +2898,7 @@ $('#btn-start').onclick=()=>{
     S=newState(names,segVal('#seg-acts'),segVal('#seg-rage'),segVal('#seg-event')===1,feast);
     rng=mulberry32(S.seed);
     if(feast){ // 狂宴开席礼：人人一件随机遗物（独立 Math.random，不碰玩法 rng 流）
-      S.players.forEach(p=>{const r=RELICS[Math.floor(Math.random()*RELICS.length)];p.relics.push(r.id)});
+      {const pool=normalRelics();S.players.forEach(p=>{const r=pool[Math.floor(Math.random()*pool.length)];p.relics.push(r.id)})}
       setTimeout(()=>toast('鎏金狂宴开席——铸币洪流、军团更宽、牌力半价，人人先领一件遗物！',4200),700);
     }
     setAct(1);hud();startOriginDraft();save();BGM.auto('play',false); // 多人课堂默认不开（不打扰讲课）
@@ -3337,7 +3428,7 @@ function genOffers(p){
   for(let i=0;i<3;i++)offers.push({type:'unit',id:draw().id});
   // 22% 第三格换成遗物——但不覆盖「本轮唯一的高稀有」(否则遗物白吞保底、又触发补发窗口=遗物零代价)
   const owned=new Set(p.relics);
-  const avail=RELICS.filter(r=>!owned.has(r.id));
+  const avail=normalRelics().filter(r=>!owned.has(r.id));
   { // 第三格特殊物:遗物(22%) / 灵光(16%·仅单人)——都不覆盖「本轮唯一高稀有」(否则白吞保底)
     const slot2SoleHigh=isHigh(UMAP[offers[2].id]) && !offers.slice(0,2).some(o=>isHigh(UMAP[o.id]));
     if(!slot2SoleHigh){const r3=rng();
@@ -3574,16 +3665,16 @@ function renderDraft(fresh){
         <button class="btn mini gold cost-btn">施展 · ${sp.cost} 铸币</button>`;
       d.querySelector('.cost-btn').onclick=()=>buySpell(idx,sp);
     }else{
-      const r=RMAP[o.id];
+      const r=RMAP[o.id],f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],rc=relicColor(r);
       d.innerHTML=`
-        <div class="fac" style="color:var(--gold2)">遗 物</div>
+        <div class="fac" style="color:${f.c}">遗 物 · ${f.n}谱系</div>
         <div class="badge r-SSR"><span class="glyph" style="font-size:36px">${r.icon}</span>${artTag('relic_'+r.id)}</div>
-        <h3>${r.n}</h3><div class="rar-tag" style="color:${TIER_COLOR[relicTier(r.id)]}">遗物 · ${TIER_NAME[relicTier(r.id)]}</div>
+        <h3>${r.n}</h3><div class="rar-tag" style="color:${rc}">${f.n} · ${TIER_NAME[relicTier(r.id)]}</div>
         <div class="stats" style="color:var(--ink3)">军团级 · 永久生效</div>
         <div class="skill">${r.t}</div>
-        <div class="lore">云上的馈赠</div>
+        <div class="lore">${f.d}</div>
         <button class="btn mini gold cost-btn">收下 · 3 铸币</button>`;
-      d.style.setProperty('--rtc',TIER_COLOR[relicTier(r.id)]);d.classList.add('relic-tiered'); // 遗物也进全局色阶
+      d.style.setProperty('--rtc',rc);d.classList.add('relic-tiered'); // 遗物也进全局色阶
       d.querySelector('.cost-btn').onclick=()=>buyRelic(idx,r);
     }
     if(rv){const cb=document.createElement('div');cb.className='cardback'; // 真实 div 卡背（.ornate 伪元素已被四角碑铭占用）
@@ -3696,8 +3787,9 @@ function renderBench(p){
       bindDetail(d.querySelector('.g'),()=>showUnitDetail(a.id,a));rx.appendChild(d);
     });
   }
-  $('#relic-shelf').innerHTML=p.relics.map(rid=>{const r=RMAP[rid];
-    return `<span class="relic-chip" data-rid="${rid}" title="${r.t}">${relicArtTag(rid)}<span>${r.n}</span></span>`}).join('');
+  $('#relic-shelf').innerHTML=p.relics.map(rid=>relicChipHTML(RMAP[rid],`data-rid="${rid}"`)).join('');
+  {const fams=relicFamilyIds(p),art=artifactOf(p);if(!art&&fams.length){$('#relic-shelf').insertAdjacentHTML('beforeend',
+    `<span class="relic-chip resonance-chip${fams.length>=3?' ready':''}" title="凑齐三个不同遗物谱系后，下一次选择宝库可开启神器炉">谱系共鸣 ${Math.min(3,fams.length)}/3${fams.length>=3?' · 神器炉已就绪':''}</span>`)}}
   // 触屏看不到 title 悬停——点 chip 弹详情
   $$('#relic-shelf .relic-chip[data-rid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.rid];
@@ -4034,6 +4126,9 @@ function buildFighters(p, evFlags){
   if(hasRelic(p,'bell')&&fs.length){const m=fs.reduce((a,b)=>b.spd>a.spd?b:a);m.atk+=1;m.spd+=1}
   if(hasRelic(p,'lamp')&&fs.length){const m=fs.reduce((a,b)=>b.hp<a.hp?b:a);m.shield+=2}
   if(hasRelic(p,'anchor')) fs.forEach(f=>{if(f.taunt)f.atk+=1});          // 麒的船锚：治嘲讽组零输出
+  // 神器：同样走既有数值/事件通道，但每件改变一条构筑路线；一局至多一件由神器炉入口保证。
+  if(hasRelic(p,'earthseal')&&fs[0]){fs[0].hp+=5;fs[0].maxhp+=5;fs[0].shield+=2;fs[0].artifactEarth=true}
+  if(hasRelic(p,'skywheel')&&fs.length){const m=fs.reduce((a,b)=>b.spd>a.spd?b:a);m.spd+=2;m.artifactWind=true}
   // 狼先生的铜印：只加在走得远的人身上——高稀有单位各 +3 命（至多 3 名）。
   // ⚠ 初版是「每名 SSR/UR → 全队 +1 命(封顶3)」，看似温和实为 +3×5=15 总血：
   //   镜像对局(同阵容仅一方带遗物)实测 100% vs 剑穗 61% / 灯 49%，是无脑首选。
@@ -4078,17 +4173,17 @@ function resolveTarget(f, foes){
   return tk||foes[0];
 }
 function sideFlags(p){ // 边级效果
-  if(!p) return {seaTier:0,vanTier:0,deathTier:0,ctrlTier:0,edgeTier:0,persistTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false,urn:false};
+  if(!p) return {seaTier:0,vanTier:0,deathTier:0,ctrlTier:0,edgeTier:0,persistTier:0,shards:false,ruler:false,quill:false,goldleaf:false,thorn:false,diary:false,urn:false,artifact:null};
   // seaTier 字段名保留(sim内部锚点),语义=水象·潮汐同悲;deathTier=向死而生(亡语流)
   return {seaTier:bondTier(p,'water'), vanTier:bondTier(p,'vanguard'), deathTier:bondTier(p,'death'), ctrlTier:bondTier(p,'control'), edgeTier:bondTier(p,'edge'), persistTier:bondTier(p,'persist'), shards:hasRelic(p,'shards'),
     ruler:hasRelic(p,'ruler'), quill:hasRelic(p,'quill'), goldleaf:hasRelic(p,'goldleaf'),
-    thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary'), urn:hasRelic(p,'urn')};
+    thorn:hasRelic(p,'thorn'), diary:hasRelic(p,'diary'), urn:hasRelic(p,'urn'), artifact:(artifactOf(p)||{}).id||null};
 }
 
 function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   mods=mods||{};
   const sides=[A,B], flags=[flagsA,flagsB], log=[], dmgByUid={}, coinsGain=[0,0], diaryCoins=[0,0];
-  const rulerUsed=[false,false],lampUsed=[false,false];
+  const rulerUsed=[false,false],lampUsed=[false,false],artifactUsed=[false,false];
   const alive=s=>sides[s].filter(f=>f.alive);
   const foes=s=>alive(1-s);
   const front=s=>alive(s)[0];
@@ -4112,6 +4207,9 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
   function processDeaths(){
     while(deathQ.length){
       const f=deathQ.shift();const s=dieSideOf(f);
+      // 山河镇星印：只镇回被指定的最前排一次；先于普通复起结算，二者可形成昂贵但可研究的双保险。
+      if(f.artifactEarth&&!artifactUsed[s]){artifactUsed[s]=true;f.alive=true;f.hp=1;f.shield+=3;
+        log.push({t:'artifactProc',side:s,key:'earthseal',d:f.uid,txt:'镇星 · 1 命 3 盾归阵'});continue}
       // 一次复起：复读机 / 欣共用已验证分支
       if((f.skill.k==='revive1'||f.spellRevive)&&!f.usedRevive){f.usedRevive=true;f.alive=true; // 欣「站起八次」/ 灵光「回光·不屈」共用一次复起不变量
         f.hp=Math.ceil(f.maxhp/2);if(f.spellReviveAtk)f.atk+=f.spellReviveAtk;log.push({t:'revive',d:f.uid});continue} // 不屈:复起后加攻
@@ -4144,6 +4242,13 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(flags[s].diary){diaryCoins[s]=(diaryCoins[s]||0);if(diaryCoins[s]<3){diaryCoins[s]++;coinsGain[s]+=1;log.push({t:'coin',side:s,amt:1})}}
       // 薪火陶罐(亡语流遗物):己方阵亡→随机存活友军 +1 攻(不制造新死亡·与向死而生叠加)
       if(flags[s].urn){const survs=alive(s);if(survs.length){const x=pickR(survs);x.atk+=1;log.push({t:'buff',d:x.uid,txt:'+1 攻 · 薪火陶罐'})}}
+      // 神器只在「真正阵亡」后触发；复起、接灯、蛇蜕都在上方 continue，不会白嫖阵亡收益。
+      if(!artifactUsed[s]&&flags[s].artifact==='tideglass'){const survs=alive(s);if(survs.length){artifactUsed[s]=true;
+        const x=survs.reduce((m,y)=>y.hp/y.maxhp<m.hp/m.maxhp?y:m,survs[0]),heal=Math.min(4,x.maxhp-x.hp);x.hp+=heal;x.shield+=2;
+        log.push({t:'artifactProc',side:s,key:'tideglass',d:x.uid,amt:heal,shield:2,txt:`归潮 · 回复 ${heal} 命并获 2 盾`})}}
+      if(!artifactUsed[s]&&flags[s].artifact==='emberheart'){const survs=alive(s);if(survs.length){artifactUsed[s]=true;
+        const x=survs.reduce((m,y)=>y.atk>m.atk?y:m,survs[0]);x.atk+=2;x.spd+=2;
+        log.push({t:'artifactProc',side:s,key:'emberheart',d:x.uid,atk:2,spd:2,txt:'长明 · 攻击 +2、速度 +2'})}}
     }
   }
   function foesOf(s){return alive(1-s)}
@@ -4153,6 +4258,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
 
   // 战斗开场先把玩家最容易误以为“没作用”的羁绊明确写进事件流：数值、单位范围与档位均可见。
   [0,1].forEach(s=>{
+    if(flags[s].artifact){const r=RMAP[flags[s].artifact];log.push({t:'artifact',side:s,key:r.id,elem:r.elem,txt:r.n+' 已苏醒'})}
     if(flags[s].edgeTier)log.push({t:'bond',side:s,key:'edge',tier:flags[s].edgeTier,txt:flags[s].edgeTier>=2?'锋锐满档 · 首击额外伤害并必暴':'锋锐成阵 · 首击额外 +2 伤'});
     if(flags[s].persistTier)log.push({t:'bond',side:s,key:'persist',tier:flags[s].persistTier,txt:flags[s].persistTier>=2?'坚韧满档 · +4 命，最左坚韧首次半血复起':'坚韧成阵 · 坚韧成员 +4 最大生命'});
     if(sides[s].some(f=>f.lampLink))log.push({t:'bond',side:s,key:'lamp',tier:2,txt:'灯火相承 · 全队 +3 盾，梓与狼先生相互接灯'});
@@ -4232,7 +4338,7 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
     for(const [s,f] of order){
       if(!f.alive)continue;
       const t=resolveTarget(f,alive(1-s));if(!t)break; // 目标 archetype：melee打前排/被嘲讽拉住，pierce穿透后排
-      let amt=f.atk,crit=false;
+      let amt=f.atk,crit=false;const wasFirst=f.first;
       if(f.first){
         if(f.skill.k==='firstPlus')amt+=f.skill.v;
         if(f.afFirst)amt+=f.afFirst; // 词缀「先声」与 firstPlus 同权叠加
@@ -4241,6 +4347,8 @@ function simulateBattle(A,B,flagsA,flagsB,rand,mods){
       if(flags[s].ruler&&!rulerUsed[s]){amt+=3;rulerUsed[s]=true}
       f.first=false;
       dealDmg(s,f,t,amt,'攻击',crit,true); // isBasic=true：仅基本攻击吃相克
+      if(wasFirst&&f.artifactWind){const other=alive(1-s).find(x=>x!==t);if(other){dealDmg(s,f,other,4,'天衡追风');
+        log.push({t:'artifactProc',side:s,key:'skywheel',d:other.uid,s:f.uid,amt:4,txt:'风轮追击 · 另一名敌人 4 伤'})}}
       // 不退之誓 · 反震：打嘲讽的人被反刺（哪怕这一下打死了他）。
       // 不传 isBasic → 不吃相克；反震本身不在攻击循环里 → 嘲讽互打不会无限反弹。
       // 反震三来源可叠：不退之誓(羁绊) + 空耳机(遗物) + 空耳机的回响(事件)。没凑羁绊的人也有入口。
@@ -5038,7 +5146,24 @@ function runSelftest(){
     const hit=()=>ghostFighters([{id:'h',n:'锤',glyph:'锤',atk:2,hp:40,spd:9,skill:{k:'none'}}]);
     const r=simulateBattle(hit(),van(),{},sideFlags(parmy('guard','lin')),mulberry32(5),{thornEv:true});
     ok('空耳机的回响（事件）：无羁绊无遗物也反震 1', r.log.some(e=>e.tag==='反震'&&e.amt===1));}
-   ok('RELICS=22 · EVENTS=25（内容量锚·批㉜ +3 狂宴专属事件,feastOnly 不进经典池）', RELICS.length===22&&EVENTS.length===25&&EVENTS.filter(e=>e.feastOnly).length===3);
+   ok('遗物升格内容量：普通遗物22 + 神器4 · EVENTS=25', normalRelics().length===22&&artifacts().length===4&&RELICS.length===26&&EVENTS.length===25&&EVENTS.filter(e=>e.feastOnly).length===3);
+   ok('四谱系覆盖全部普通遗物 · 三谱系才解锁神器炉 · 已有神器不重复铸造', (()=>{
+     if(normalRelics().some(r=>!RELIC_FAMILY[r.id])||Object.keys(RELIC_FAMILIES).length!==4)return false;
+     const p2={relics:['teapot','ruler']},p3={relics:['teapot','ruler','tassel']},pa={relics:['teapot','ruler','tassel','earthseal']};
+     return !artifactReady(p2)&&artifactReady(p3)&&!artifactReady(pa)&&relicFamilyIds(p3).length===3;})());
+   ok('神器炉出牌：只给3件不同神器，且优先保留当前阵容适配度', (()=>{
+     const p={army:['guard','lu','duo'].map((id,i)=>({id,uid:'af'+i,star:1,gAtk:0,gHp:0})),relics:['teapot','ruler','tassel']};
+     const ids=artifactOfferIds(p);return ids.length===3&&new Set(ids).size===3&&ids.every(id=>isArtifact(RMAP[id]))&&ids.includes('earthseal');})());
+   {const mk=(ids,relic)=>({army:ids.map((id,i)=>({id,uid:'ar'+relic+i,star:1,gAtk:0,gHp:0})),relics:[relic],strats:[]});
+    const foe=()=>ghostFighters([{id:'ax',n:'重锤',glyph:'锤',atk:20,hp:90,spd:9,skill:{k:'none'}},{id:'ay',n:'重锤',glyph:'锤',atk:16,hp:90,spd:8,skill:{k:'none'}}]);
+    const pe=mk(['guard','lin'],'earthseal'),FE=buildFighters(pe,{}),re=simulateBattle(FE,foe(),sideFlags(pe),sideFlags(null),mulberry32(21),{});
+    ok('神器·山河镇星印：前排+5命+2盾，首次致死以1命3盾镇回', FE[0].maxhp>=UMAP.guard.hp+5&&re.log.some(e=>e.t==='artifactProc'&&e.key==='earthseal'));
+    const pw=mk(['crane','lin'],'tideglass'),rw=simulateBattle(buildFighters(pw,{}),foe(),sideFlags(pw),sideFlags(null),mulberry32(22),{});
+    ok('神器·归潮镜：真正阵亡后仅触发一次回复与护盾', rw.log.filter(e=>e.t==='artifactProc'&&e.key==='tideglass').length===1);
+    const pf=mk(['crane','hui','lin'],'emberheart'),rf=simulateBattle(buildFighters(pf,{}),foe(),sideFlags(pf),sideFlags(null),mulberry32(23),{});
+    ok('神器·长明燧心：真正阵亡后仅触发一次攻速传火', rf.log.filter(e=>e.t==='artifactProc'&&e.key==='emberheart').length===1);
+    const pv=mk(['scout','lin'],'skywheel'),FV=buildFighters(pv,{}),rv=simulateBattle(FV,foe(),sideFlags(pv),sideFlags(null),mulberry32(24),{});
+    ok('神器·天衡风轮：最快者+2速，首击追击另一目标4伤', FV.some(f=>f.artifactWind)&&rv.log.some(e=>e.tag==='天衡追风'&&e.amt===4)&&rv.log.some(e=>e.t==='artifactProc'&&e.key==='skywheel'));}
    ok('批㉗ 流派配套遗物+事件：云梭穿透+2速 / 薪火陶罐死亡→随机友军+1攻(sideFlags.urn+processDeaths) / 云隙天光穿透流 / 挽歌余响亡语流(阵亡技单位)', (()=>{
      const bf=buildFighters.toString();
      if(bf.indexOf("hasRelic(p,'shuttle')")<0||bf.indexOf('evFlags.rift')<0||bf.indexOf('evFlags.mourn')<0)return false; // 接线
@@ -5727,6 +5852,8 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
     let d=420;
     if(e.t==='round')d=300;
     else if(e.t==='bond')d=560;
+    else if(e.t==='artifact')d=720;
+    else if(e.t==='artifactProc')d=620;
     else if(e.t==='dmg'){d=420+(e.crit?160:0)+(e.kill?260:0);if(isFinal)d*=2.2}
     else if(e.t==='die')d=210;
     else if(e.t==='shed')d=900; // 蛇蜕顿帧：终战的戏眼，给足一拍
@@ -5741,6 +5868,21 @@ function runPlayback(A,B,fA,fB,titleHTML,mods,battleRng,onEnd,faceoffHTML){
       box.classList.remove('bond-flare','edge','persist');void box.offsetWidth;box.classList.add('bond-flare');if(e.key==='edge'||e.key==='persist')box.classList.add(e.key); // lamp等其余key不加副class,空token会让DOMTokenList.add抛SyntaxError
       setTimeout(()=>box.classList.remove('bond-flare','edge','persist'),520);
       blog.innerHTML=`${uiIcon('state-halo')}<b>${e.side===0?'左阵':'右阵'} · ${e.key==='lamp'?'灯火相承':bondName(e.key)}</b> 生效：${e.txt}`;SFX.play('reveal')}
+    if(e.t==='artifact'&&animate){const r=RMAP[e.key],box=e.side===0?L:R;
+      box.classList.remove('artifact-flare','earth','water','fire','wind');void box.offsetWidth;box.classList.add('artifact-flare');if(e.elem)box.classList.add(e.elem);
+      setTimeout(()=>box.classList.remove('artifact-flare','earth','water','fire','wind'),780);
+      blog.innerHTML=`${uiIcon('state-halo')}<b>${e.side===0?'左阵':'右阵'} · 神器「${r?r.n:'旧器'}」</b> 苏醒`;SFX.play('crown')}
+    if(e.t==='artifactProc'){
+      const r=RMAP[e.key],tgt=el(e.d),box=e.side===0?L:R;
+      if(tgt&&e.key==='earthseal'){tgt.classList.remove('dead');hpNow[e.d]=1;tgt.querySelector('.hpb i').style.width=(1/hpMax[e.d]*100)+'%';
+        const hv=tgt.querySelector('.num .h .stat-v');if(hv)hv.textContent='1';tgt.querySelector('.sh').style.display=''}
+      if(tgt&&e.key==='tideglass'){hpNow[e.d]=Math.min(hpMax[e.d],(hpNow[e.d]||0)+(e.amt||0));tgt.querySelector('.hpb i').style.width=(hpNow[e.d]/hpMax[e.d]*100)+'%';
+        const hv=tgt.querySelector('.num .h .stat-v');if(hv)hv.textContent=hpNow[e.d];tgt.querySelector('.sh').style.display=''}
+      if(tgt&&e.key==='emberheart'){const av=tgt.querySelector('.num .a .stat-v');if(av)av.textContent=String((+av.textContent||0)+(e.atk||0))}
+      if(animate){box.classList.remove('artifact-flare','earth','water','fire','wind');void box.offsetWidth;box.classList.add('artifact-flare');if(r&&r.elem)box.classList.add(r.elem);
+        setTimeout(()=>box.classList.remove('artifact-flare','earth','water','fire','wind'),780);
+        if(tgt){floatNum(tgt,e.txt,r?relicColor(r):'#ffd166',true);if(e.key==='tideglass')vfxPlay('heal',tgt);else if(e.key==='earthseal')vfxPlay('shieldHit',tgt);else if(e.key==='skywheel')vfxPlay('pierce',tgt,{from:el(e.s)})}
+        blog.innerHTML=`${uiIcon('state-halo')}<b>${r?r.n:'神器'}</b>：${e.txt}`;SFX.play(e.key==='tideglass'?'heal':'crown')}}
     if(e.t==='dmg'){
       const tgt=el(e.d);if(tgt){
         hpNow[e.d]=Math.max(0,(hpNow[e.d]??hpMax[e.d])-(e.hpDmg??e.amt)); // 扣净伤(过盾后)，血条与结算一致；飘字仍显满额
@@ -6058,7 +6200,8 @@ function rarColor(r){return TIER_COLOR[tierOfRar(r)]}
 const RELIC_TIER={teapot:1,astro:2,tassel:1,letter:1,quiver:2,plaque:2,bell:2,lamp:1,anchor:2,seal:4,
                   shards:2,ruler:3,quill:3,goldleaf:2,thorn:2,diary:3,scale:1,
                   mask:2,dustbag:2,card:3,
-                  shuttle:2,urn:3}; // 22/22(批㉗ 流派配套遗物 云梭/薪火陶罐)
+                  shuttle:2,urn:3,
+                  earthseal:4,tideglass:4,emberheart:4,skywheel:4}; // 普通遗物22 + 神器4
 function relicTier(id){return RELIC_TIER[id]!=null?RELIC_TIER[id]:1}
 /* ============ 不屈命脉(生命池 · 治"一败即死" · 云顶/SAP 同款 · 2026-07-14) ============ */
 // 单人不再一败即死:开局带命脉,输一场按惨烈程度掉 1-3 颗,掉光才终局。
@@ -6508,24 +6651,48 @@ function soloWinPerks(result,A){ // 每次单人胜利:斩影奖励+悬赏核销
 const PATHS={
   calm:  {n:'安稳道', d:'常规宿敌 · 稳扎稳打',                    ic:'stat-shield'},
   peril: {n:'险道',   d:'宿敌强一档 · 胜则 +6 铸币、免费重铸1次',  ic:'state-crit'},
-  vault: {n:'宝库',   d:'不打这一阶 · 白拿一件遗物(三选一)',       ic:'currency-coin'},
+  vault: {n:'宝库',   d:'不打这一阶 · 遗物三选一；三谱系共鸣可升格神器炉',ic:'currency-coin'},
   spring:{n:'星尘泉', d:'不打这一阶 · 回1点命脉 + 免费重铸1次',    ic:'state-heal'},
   shadow:{n:'影军道', d:'迎战同窗的影军 · 胜则 +2 铸币并记斩影',   ic:'state-shadow-echo'},
 };
+function artifactFit(p,r){const army=(p&&p.army)||[];let score=0;
+  army.forEach(a=>{const u=UMAP[a.id];if(!u)return;
+    if(unitElem(a.id)===r.elem)score+=2;
+    if(r.elem==='earth'&&(u.taunt||BONDS.persist.ids.includes(a.id)))score+=2;
+    if(r.elem==='water'&&['healLow','purifyTide','revive1'].includes(u.skill.k))score+=2;
+    if(r.elem==='fire'&&['splashDeath','boostLin','buffAdj','coinDeath'].includes(u.skill.k))score+=2;
+    if(r.elem==='wind'&&(u.tg==='pierce'||BONDS.edge.ids.includes(a.id)))score+=2;
+  });return score}
+function artifactOfferIds(p){const ranked=artifacts().map(r=>({r,s:artifactFit(p,r)})).sort((a,b)=>b.s-a.s||a.r.id.localeCompare(b.r.id));
+  const first=ranked.slice(0,2),rest=ranked.slice(2);if(rest.length)first.push(rest[ri(rest.length)]);return first.map(x=>x.r.id)}
+function forgeLineageHTML(p){const got=new Set(relicFamilyIds(p));return `<div class="forge-lineages">${Object.keys(RELIC_FAMILIES).map(k=>`<span class="${got.has(k)?'on':''}">${RELIC_FAMILIES[k].n}${got.has(k)?' · 已鸣':' · 未鸣'}</span>`).join('')}</div>`}
+function showArtifactForge(ids){const you=S.players[0],rs=ids.map(id=>RMAP[id]).filter(isArtifact);
+  const veil=document.createElement('div');veil.id='strat-veil';veil.className='artifact-forge';
+  veil.innerHTML=`<p class="tag">神 器 炉 · 三 谱 系 共 鸣</p><p style="color:var(--ink2);font-size:12.5px;letter-spacing:.12em;margin:0 20px 10px;text-align:center">旧物彼此认出了来路——选一件，定下这一局的核心</p>${forgeLineageHTML(you)}
+    <div class="strat-row artifact-row">${rs.map(r=>{const c=relicColor(r),fit=artifactFit(you,r);return `<button class="strat-card ornate artifact-card" data-r="${r.id}" style="--ac:${c}">
+      ${relicArtTag(r.id,'artifact-art')}<span class="artifact-fit">${fit>=6?'高度适配':fit>=3?'阵容适配':'改变路线'}</span><b style="color:${c}">${r.n}</b><span class="artifact-rule">${r.t}</span><span class="artifact-lore">${r.lore}</span></button>`}).join('')}</div>`;
+  document.body.appendChild(veil);SFX.play('reveal');burst(innerWidth/2,innerHeight*.28,['#e8c768','#fff','#8ed8e8'],20);
+  veil.querySelectorAll('.artifact-card').forEach(b=>b.onclick=()=>{if(veil.dataset.done)return;veil.dataset.done='1';
+    const rid=b.dataset.r,r=RMAP[rid];you.relics.push(rid);S.vaultPend=null;S.round++;S.phase='pick';save();
+    veil.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('artifact-awaken');SFX.play('crown');
+    const rc=b.getBoundingClientRect();burst(rc.left+rc.width/2,rc.top+rc.height*.42,[relicColor(r),'#ffd166','#fff'],46);toast(`神器铸成 —— 「${r.n}」`,3400);
+    setTimeout(()=>{veil.remove();soloRound()},matchMedia('(prefers-reduced-motion: reduce)').matches?220:820)});
+}
 function showVault(ids){ // 宝库三选一(可重入:断电续局按落档的 ids 原样重开,不重摇)
+  if(ids.some(id=>isArtifact(RMAP[id]))){showArtifactForge(ids);return}
   const you=S.players[0];
   const veil=document.createElement('div');veil.id='strat-veil';
   veil.innerHTML=`<p class="tag">宝 库</p><p style="color:var(--ink3);font-size:12.5px;letter-spacing:.14em;margin-bottom:20px">挑一件带走</p>
-    <div class="strat-row">${ids.map(id=>RELICS.find(x=>x.id===id)).filter(Boolean).map(r=>`<button class="strat-card ornate" data-r="${r.id}" style="border-color:${TIER_COLOR[relicTier(r.id)]}">
-      ${relicArtTag(r.id,'vault-art')}<b style="color:${TIER_COLOR[relicTier(r.id)]}">${r.n}</b><span>${r.t}</span></button>`).join('')}</div>`;
+    <div class="strat-row">${ids.map(id=>RMAP[id]).filter(Boolean).map(r=>{const f=RELIC_FAMILIES[RELIC_FAMILY[r.id]],c=relicColor(r);return `<button class="strat-card ornate" data-r="${r.id}" style="border-color:${c}">
+      ${relicArtTag(r.id,'vault-art')}<small style="color:${f.c};letter-spacing:.18em">${f.n}谱系</small><b style="color:${c}">${r.n}</b><span>${r.t}</span></button>`}).join('')}</div>`;
   document.body.appendChild(veil);
   veil.querySelectorAll('.strat-card').forEach(b=>b.onclick=()=>{
     const rid=b.dataset.r;if(!you.relics.includes(rid))you.relics.push(rid);
-    const r=RELICS.find(x=>x.id===rid);
+    const r=RMAP[rid];
     S.vaultPend=null;                 // 领完即销案——否则下一阶又弹一次宝库
-    veil.remove();SFX.play('crown');burst(innerWidth/2,innerHeight/2,[TIER_COLOR[relicTier(rid)],'#fff'],34);
+    S.round++;S.phase='pick';save();veil.remove();SFX.play('crown');burst(innerWidth/2,innerHeight/2,[TIER_COLOR[relicTier(rid)],'#fff'],34);
     toast(`宝库 —— 收下「${r.n}」`,3000);
-    S.round++;soloRound();
+    soloRound();
   });
 }
 function pathOffers(round){ // 纯函数(#selftest 可测):本阶可选的路。第1阶与终战不选路。
@@ -6553,7 +6720,10 @@ function applyPath(k){
   S.pathTaken=k;(S.pathLog=S.pathLog||[]).push(k);
   SFX.play('reveal');
   if(k==='vault'){ // 白拿一件遗物 → 不打这一阶,直接进下一阶
-    const avail=RELICS.filter(r=>!you.relics.includes(r.id));
+    if(artifactReady(you)){
+      S.vaultPend=artifactOfferIds(you);S.phase='pick';save();showArtifactForge(S.vaultPend);return;
+    }
+    const avail=normalRelics().filter(r=>!you.relics.includes(r.id));
     const three=[];while(three.length<3&&avail.length)three.push(avail.splice(ri(avail.length),1)[0]);
     if(!three.length){toast('宝库已空——改走安稳道',2600);S.pathTaken='calm';startDraft();return}
     S.vaultPend=three.map(r=>r.id); // 先落档再开幕:断电续局能原样重开(见 soloRound)
@@ -7609,7 +7779,7 @@ function showHowto(){
   两条征程开局任选——<b>经典十关</b>：逐关变强的宿敌，第 10 关<b>叶王亲临（蛇蜕两形）</b>，胜则加冕，通关后还可续入无尽回廊；
   <b>无尽回廊</b>：没有终点，一层比一层深，冲击「最深关数」纪录——世界回廊比的就是这个成绩。
   第 2 / 5 / 8 关有<b>断云秘策</b>三选一，决定这一局的构筑路线。<br><br>
-  <b style="color:var(--gold2)">路上还会遇到</b>：<b>云阶选路</b>——每阶开打前选道（安稳／险道／宝库／星尘泉／影军道），险道敌更强但奖 6 币＋免费重铸，星尘泉可回命脉；
+  <b style="color:var(--gold2)">路上还会遇到</b>：<b>云阶选路</b>——每阶开打前选道（安稳／险道／宝库／星尘泉／影军道），险道敌更强但奖 6 币＋免费重铸，星尘泉可回命脉；普通遗物分为<b>天工、破阵、守望、余响</b>四个谱系，收集三个不同谱系后，下一次宝库会升格为<b>神器炉</b>，三选一铸成全局至多一件的构筑核心；
   <b>影军回响</b>——同学们真实上传的军团挡路，斩它得奖励，输了可去标题页「复仇战」讨回来；
   <b>狼牙悬赏</b>——每局 3 张暗标，达成自动发铸币；
   <b>灵光</b>——征募第三格偶现的一次性法术牌，当场买、开战自动施放、不占军团位。<br>
@@ -7871,11 +8041,12 @@ function showUnits(){
         <div class="cu-n">${u.n}</div><div class="cu-i rar-tag rt-${u.rar}">${u.rar} · ${u.cost}币</div>
       </div>`).join('')+`</div>`;
   }).join('');
-  const relics=`<div class="codex-relics">`+RELICS.map(r=>
-    `<span class="relic-chip" data-crid="${r.id}" title="${r.t}">${relicArtTag(r.id)}<span>${r.n}</span></span>`).join('')+`</div>`;
+  const relics=Object.keys(RELIC_FAMILIES).map(k=>{const f=RELIC_FAMILIES[k],rs=normalRelics().filter(r=>RELIC_FAMILY[r.id]===k);
+    return `<h4 style="text-align:center;margin-top:18px;color:${f.c}">${f.n}谱系 <span style="font-size:11px;color:var(--ink3)">· ${f.d}</span></h4><div class="codex-relics">${rs.map(r=>relicChipHTML(r,`data-crid="${r.id}"`)).join('')}</div>`}).join('')+
+    `<h4 style="text-align:center;margin-top:24px;color:var(--gold2)">神器 <span style="font-size:11px;color:var(--ink3)">· 三谱系共鸣后由神器炉三选一 · 一局至多一件</span></h4><div class="codex-relics">${artifacts().map(r=>relicChipHTML(r,`data-crid="${r.id}"`)).join('')}</div>`;
   modal(`<h3>单位与遗物图鉴</h3>
     <p style="text-align:center;color:var(--ink3);font-size:12px;letter-spacing:.1em">点立绘看完整档案与相克</p>
-    ${rows}<h4 style="text-align:center;margin-top:22px">遗物（3 币 · 翻到才有 · 点看效果）</h4>${relics}`);
+    ${rows}<h4 style="text-align:center;margin-top:22px">遗物谱系（普通遗物 3 币 · 点看效果）</h4>${relics}`);
   $$('#modal-box .codex-u').forEach(el=>bindDetail(el,()=>showUnitDetail(el.dataset.uid)));
   $$('#modal-box .relic-chip[data-crid]').forEach(ch=>{ch.style.cursor='pointer';
     ch.onclick=()=>{const r=RMAP[ch.dataset.crid];

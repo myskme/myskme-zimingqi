@@ -58,7 +58,11 @@ for(const path of [
   'assets/codex-atlas-20260810/zimingqi-atlas-1200.jpg',
   'assets/codex-atlas-20260810/zimingqi-atlas-preview-600.jpg',
   'assets/codex-atlas-20260810/atlas-data.json',
-  'assets/codex-atlas-20260810/manifest.json'
+  'assets/codex-atlas-20260810/manifest.json',
+  'assets/artifacts-20260820/artifact-earth-seal.webp',
+  'assets/artifacts-20260820/artifact-water-mirror.webp',
+  'assets/artifacts-20260820/artifact-fire-heart.webp',
+  'assets/artifacts-20260820/artifact-wind-wheel.webp'
 ]){
   const info=await stat(new URL('../'+path,import.meta.url));
   ok(path,info.isFile()&&info.size>1024);
