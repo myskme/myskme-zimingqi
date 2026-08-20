@@ -1,9 +1,11 @@
 import {chromium} from 'playwright';
 import {createServer} from 'node:http';
 import {readFile} from 'node:fs/promises';
-import {extname,resolve} from 'node:path';
+import {tmpdir} from 'node:os';
+import {extname,join,resolve} from 'node:path';
 
 const ROOT=resolve(process.argv[2]||'.');
+const SHOT_DIR=tmpdir();
 const TYPES={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.json':'application/json','.jpg':'image/jpeg','.png':'image/png','.webp':'image/webp','.svg':'image/svg+xml','.mp3':'audio/mpeg','.m4a':'audio/mp4'};
 const server=createServer(async(req,res)=>{
   try{const path=decodeURIComponent(new URL(req.url,'http://local/').pathname),file=resolve(ROOT,path==='/'?'index.html':path.replace(/^\/+/,''));
@@ -40,7 +42,7 @@ try{
       image:{naturalWidth:im.naturalWidth,naturalHeight:im.naturalHeight,fit:getComputedStyle(im).objectFit,insideFrame:ir.left>=fr.left-1&&ir.right<=fr.right+1&&ir.top>=fr.top-1&&ir.bottom<=fr.bottom+1},
       card:{left:cr.left,right:cr.right,width:cr.width},docWidth:document.documentElement.scrollWidth,innerWidth
     }});
-    await page.screenshot({path:`/private/tmp/zimingqi-sp-offer-${viewport.name}.png`,fullPage:true});
+    await page.screenshot({path:join(SHOT_DIR,`zimingqi-sp-offer-${viewport.name}.png`),fullPage:true});
     await page.locator('.offer.sp-unit .cost-btn').click();
     await page.waitForSelector('.sp-awaken-veil');
     await page.waitForFunction(()=>{const im=document.querySelector('.sp-awaken-art img');return im&&im.complete&&im.naturalWidth>0});
@@ -51,7 +53,7 @@ try{
       panel:{left:pr.left,right:pr.right,top:pr.top,bottom:pr.bottom,insideViewport:pr.left>=0&&pr.right<=innerWidth&&pr.top>=0&&pr.bottom<=innerHeight},
       docWidth:document.documentElement.scrollWidth,innerWidth
     }});
-    await page.screenshot({path:`/private/tmp/zimingqi-sp-reveal-${viewport.name}.png`});
+    await page.screenshot({path:join(SHOT_DIR,`zimingqi-sp-reveal-${viewport.name}.png`)});
     await page.locator('.sp-awaken-veil').click();
     await page.evaluate(({spId})=>{showUnitDetail(spId,S.players[0].army.find(a=>a.id===spId))},target);
     const detail=await page.evaluate(()=>document.querySelector('#modal-box').innerText);
@@ -67,6 +69,6 @@ const good=!pageErrors.length&&!requestFailures.length&&reports.every(r=>r.asset
   &&r.offer.image.naturalWidth===540&&r.offer.image.naturalHeight===756&&r.offer.image.fit==='contain'&&r.offer.image.insideFrame&&r.offer.docWidth===r.offer.innerWidth
   &&r.reveal.title===r.target.title&&r.reveal.name===r.target.name&&r.reveal.rule.includes('普通形态互斥')&&r.reveal.image.insideArt&&r.reveal.panel.insideViewport&&r.reveal.docWidth===r.reveal.innerWidth
   &&r.detailHasBase&&r.state.spCount===1&&r.state.baseBlocked&&r.state.saved&&r.state.army.some(a=>a.id===r.target.spId&&a.star===1&&!a.affix));
-console.log(JSON.stringify({reports,pageErrors,requestFailures,screenshots:['/private/tmp/zimingqi-sp-offer-phone.png','/private/tmp/zimingqi-sp-reveal-phone.png','/private/tmp/zimingqi-sp-offer-desktop.png','/private/tmp/zimingqi-sp-reveal-desktop.png']},null,2));
+console.log(JSON.stringify({reports,pageErrors,requestFailures,screenshots:['phone','desktop'].flatMap(name=>[join(SHOT_DIR,`zimingqi-sp-offer-${name}.png`),join(SHOT_DIR,`zimingqi-sp-reveal-${name}.png`)])},null,2));
 console.log(good?'自鸣棋 SP 卡面与降临双视口验收通过':'自鸣棋 SP 卡面与降临双视口验收失败');
 if(!good)process.exitCode=1;
